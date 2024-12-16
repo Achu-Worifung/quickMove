@@ -45,12 +45,10 @@ def write_data(data):
         f.write(y)
 
 def main():
-    data = [{'emp_name': 'Shubham', 'email': 'ksingh.shubh@gmail.com', 'job_profile': 'intern'},
-{'emp_name': 'Gaurav', 'email': 'gaurav.singh@gmail.com', 'job_profile': 'developer'},
-{'emp_name': 'Nikhil', 'email': 'nikhil@geeksforgeeks.org', 'job_profile': 'Full Time'}]
-    # write_data(data)
-    data = get_data()
-    print(data)
+    data =  [{'action': 'click', 'location': (1163, 892), 'button': 'Button.left'}, {'action': 'click', 'location': (966, 969), 'button': 'Button.left'}, {'action': 'paste', 'button': 'ctrl+v', 'location': 'clipboard'}, {'action': 'click', 'location': (1191, 657), 'button': 'Button.left'}, {'action': 'click', 'location': (1222, 908), 'button': 'Button.left'}, {'action': 'click', 'location': (1208, 644), 'button': 'Button.left'}, {'action': 'paste', 'button': 'ctrl+v', 'location': 'clipboard'}, {'action': 'click', 'location': (1228, 653), 'button': 'Button.left'}]
+    write_data(data)
+    # data = get_data()
+    # print(data)
 
 if __name__ == '__main__':
     main()
