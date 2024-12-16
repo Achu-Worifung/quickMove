@@ -50,7 +50,7 @@ def track_mouse_position():
             print("\nMouse tracking stopped.")
             break
 
-def
+
 def main():
     # Create a mouse listener for clicks
     click_listener = mouse.Listener(on_click=on_click)
