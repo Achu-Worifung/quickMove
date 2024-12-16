@@ -6,6 +6,7 @@ actionList = []
 # Define global listeners
 click_listener = None
 keyboard_listener = None
+tracking = True # Flag to track the state of the listeners
 
 # Function triggered by the hotkey (Ctrl + V)
 def on_copy():
@@ -70,6 +71,15 @@ def stopListener():
         click_listener.stop()
     if keyboard_listener is not None:
         keyboard_listener.stop()
+def crete_new_automaton():
+    startListener()
+    try:
+        while tracking:
+            pass
+    except Exception as e:
+        print("an Exception occured ", e)
+    stopListener()
+
 
 # Main function
 def main():
@@ -78,10 +88,10 @@ def main():
 
     # Run in a loop to keep the main thread alive (non-blocking way)
     try:
-        while True:
+        while tracking:
             pass  # Keep running
-    except KeyboardInterrupt:
-        print("Exiting due to KeyboardInterrupt")
+    except Exception as e:
+        print("an Exception occured ", e)
         stopListener()
 
 

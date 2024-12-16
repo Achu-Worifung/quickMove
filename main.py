@@ -50,21 +50,25 @@ def track_mouse_position():
             print("\nMouse tracking stopped.")
             break
 
+def
 def main():
     # Create a mouse listener for clicks
     click_listener = mouse.Listener(on_click=on_click)
     click_listener.start()
     
-    try:
-        # Track mouse position
-        track_mouse_position()
+    # try:
+    #     # Track mouse position
+    #     # track_mouse_position()
     
-    except Exception as e:
-        print(f"An error occurred: {e}")
+    # except Exception as e:
+    #     print(f"An error occurred: {e}")
     
-    finally:
-        # Stop the listener
+    # finally:
+    #     # Stop the listener
+    while True:
         click_listener.stop()
+        import time
+        time.sleep(1)
 
 if __name__ == '__main__':
     main()
