@@ -40,9 +40,8 @@ def get_data():
 
 def write_data(data):
     global file_path
-    y = json.dumps(data)
     with open(file_path, "w") as f:
-        f.write(y)
+        json.dump(data, f) 
 
 def main():
     data =  [{'action': 'click', 'location': (1163, 892), 'button': 'Button.left'}, {'action': 'click', 'location': (966, 969), 'button': 'Button.left'}, {'action': 'paste', 'button': 'ctrl+v', 'location': 'clipboard'}, {'action': 'click', 'location': (1191, 657), 'button': 'Button.left'}, {'action': 'click', 'location': (1222, 908), 'button': 'Button.left'}, {'action': 'click', 'location': (1208, 644), 'button': 'Button.left'}, {'action': 'paste', 'button': 'ctrl+v', 'location': 'clipboard'}, {'action': 'click', 'location': (1228, 653), 'button': 'Button.left'}]
