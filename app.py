@@ -7,11 +7,23 @@ from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import QDialog, QApplication, QVBoxLayout, QRadioButton, QMessageBox, QWidget
 from PyQt5.QtCore import QThread, pyqtSignal
 from PyQt5.QtWidgets import QHBoxLayout, QRadioButton, QPushButton
-
+from PyQt5.QtWidgets import QHeaderView
+from PyQt5.QtWidgets import (
+    QApplication, QTableWidget, QTableWidgetItem, QHeaderView, QVBoxLayout, QDialog, QLabel, QPushButton
+)
 import walk  # Placeholder for automata.json data retrieval logic
 import event_tracker  # Renamed from Together for clarity
 
-
+#global method to clear layout
+def clearLayout(layout):
+    if layout is not None:
+                while layout.count():
+                    item = layout.takeAt(0)
+                    if item.widget():
+                        item.widget().deleteLater()  # Delete any existing widgets (radio buttons, buttons, etc.)
+                    elif item.layout():
+                        clearLayout(item.layout())  # Recursively clear any layouts
+    
 class EventTrackerThread(QThread):
     """
     A QThread to handle event tracking without blocking the main UI
@@ -57,22 +69,20 @@ class Welcome(QDialog):
             no_autos = noAutomata()
             
             # Clear current layout and add no_autos widget
-            layout = self.widget_2.layout()
-            if layout is not None:
-                while layout.count():
-                    item = layout.takeAt(0)
-                    if widget := item.widget():
-                        widget.deleteLater()
+            datapane = self.scrollPane.layout()
+            print(datapane)
+            #clearing the layout
+            clearLayout(datapane)
             
-            layout.addWidget(no_autos)
+            datapane.addWidget(no_autos)
         else:
-            datapane = self.datapane_2.layout()
+            datapane = self.verticalLayout.layout()
+            print(datapane)
+            
+          
             # deleteing prev radio buttons
-            if datapane is not None:
-                while datapane.count():
-                    item = datapane.takeAt(0)
-                    if item.widget():
-                        item.widget().deleteLater()  # Delete any existing widgets (radio buttons, buttons, etc.)
+            clearLayout(datapane)
+            
             self.radion_button = []
             for button in data['Automata']:
                 # Create a QWidget to hold the radio button and buttons
@@ -88,15 +98,20 @@ class Welcome(QDialog):
                 # Create delete and modify buttons
                 delete_button = QPushButton("Delete")
                 modify_button = QPushButton("Modify")
+                start_button = QPushButton("Start")
                 
                 # Add the radio button and buttons to the pane layout
                 pane_layout.addWidget(radio_button)
                 pane_layout.addWidget(modify_button)
                 pane_layout.addWidget(delete_button)
+                pane_layout.addWidget(start_button)
                 
                 # Optionally, connect the buttons to their actions
                 delete_button.clicked.connect(self.delete)
-                modify_button.clicked.connect(self.mod)
+                modify_button.clicked.connect(lambda checked=False, d=data, b=button['name']: self.mod(d, b))
+ #so much easier to do this( passsing data on a click event)
+                
+             
                 
                 # Add the pane to the datapane layout
                 datapane.addWidget(pane)
@@ -121,8 +136,62 @@ class Welcome(QDialog):
             
             self.start(data) # calling the start method to update the UI (inefficient but it works)
 
-    def mod(self):
-        pass
+    def mod(self, data = None, button_name = None):
+        # print(f"Modify button clicked for {button_name}")
+    #    did we get the data?
+        if not data:
+            QMessageBox.warning(self, "Error", "No data passed to modify automata")
+            return 
+        
+        edit = editAutomata(data, button_name)
+                
+        # Clear current layout and add no_autos widget
+        datapane = self.scrollPane.layout()
+        # print(datapane)
+        #clearing the layout
+        clearLayout(datapane)
+        
+        rowcount = 0
+        numRow = edit.table.rowCount()
+        edit.table.setItem(numRow, 0, QtWidgets.QTableWidgetItem('name'))
+        edit.table.setItem(numRow, 1, QtWidgets.QTableWidgetItem('hello there'))
+        
+        print('edit table', edit.table)
+        rowcount += 1
+        edit.title.setText("Editing Automata: " + button_name)
+        datapane.addWidget(edit)
+        # edditing the edit page designed
+        
+
+        
+        
+        # Function to load data into the table
+    
+        
+        
+      
+
+                
+
+# code for mod and after creation of automata
+class editAutomata(QDialog):
+    def __init__(self, data, name): #data will contain the list of all automata and the name of editing automata
+        super(editAutomata, self).__init__()
+        ui_path = "./ui/edite.ui"
+        loadUi(ui_path, self)
+        #check if data is being passed
+    def loadDataTable(self, data, name = None):
+        print('name is ', name)
+        #adding the name attribute to the table
+        # print('ion load data')
+        rowcount = 0
+        
+        self.table.setItem(rowcount, 0, QtWidgets.QTableWidgetItem('name'))
+        self.table.setItem(rowcount, 1, QtWidgets.QTableWidgetItem(name))
+        rowcount += 1
+        
+       
+            
 class noAutomata(QDialog):
     def __init__(self):
         super(noAutomata, self).__init__()
