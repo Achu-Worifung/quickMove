@@ -157,8 +157,39 @@ border:none;
              <height>570</height>
             </size>
            </property>
-           <layout class="QVBoxLayout" name="verticalLayout_2">
-            <item alignment="Qt::AlignHCenter">
+           <layout class="QGridLayout" name="gridLayout_2">
+            <item row="2" column="0">
+             <widget class="QPushButton" name="pushButton">
+              <property name="minimumSize">
+               <size>
+                <width>150</width>
+                <height>25</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>250</width>
+                <height>16777215</height>
+               </size>
+              </property>
+              <property name="styleSheet">
+               <string notr="true">#pushButton
+{
+
+    border-style: outset;
+    border-width: 2px;
+    border-radius: 10px;
+    border-color: black;
+    padding: 4px;
+font:20px
+}</string>
+              </property>
+              <property name="text">
+               <string>Edit</string>
+              </property>
+             </widget>
+            </item>
+            <item row="0" column="0">
              <widget class="QPushButton" name="pushButton_2">
               <property name="minimumSize">
                <size>
@@ -197,38 +228,7 @@ font:20px
               </property>
              </widget>
             </item>
-            <item alignment="Qt::AlignHCenter">
-             <widget class="QPushButton" name="pushButton">
-              <property name="minimumSize">
-               <size>
-                <width>150</width>
-                <height>25</height>
-               </size>
-              </property>
-              <property name="maximumSize">
-               <size>
-                <width>250</width>
-                <height>16777215</height>
-               </size>
-              </property>
-              <property name="styleSheet">
-               <string notr="true">#pushButton
-{
-
-    border-style: outset;
-    border-width: 2px;
-    border-radius: 10px;
-    border-color: black;
-    padding: 4px;
-font:20px
-}</string>
-              </property>
-              <property name="text">
-               <string>Edit</string>
-              </property>
-             </widget>
-            </item>
-            <item alignment="Qt::AlignHCenter">
+            <item row="3" column="0">
              <widget class="QPushButton" name="pushButton_4">
               <property name="minimumSize">
                <size>
@@ -259,7 +259,7 @@ font:20px
               </property>
              </widget>
             </item>
-            <item alignment="Qt::AlignHCenter">
+            <item row="5" column="0">
              <widget class="QPushButton" name="pushButton_3">
               <property name="minimumSize">
                <size>
@@ -287,6 +287,33 @@ font:20px
               </property>
               <property name="text">
                <string>Save</string>
+              </property>
+             </widget>
+            </item>
+            <item row="4" column="0">
+             <widget class="QPushButton" name="pushButton_5">
+              <property name="minimumSize">
+               <size>
+                <width>150</width>
+                <height>25</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>250</width>
+                <height>16777215</height>
+               </size>
+              </property>
+              <property name="styleSheet">
+               <string notr="true">    border-style: outset;
+    border-width: 2px;
+    border-radius: 10px;
+    border-color: black;
+    padding: 4px;
+font:20px</string>
+              </property>
+              <property name="text">
+               <string>Simulate</string>
               </property>
              </widget>
             </item>
