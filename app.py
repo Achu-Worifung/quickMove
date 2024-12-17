@@ -135,33 +135,35 @@ class Welcome(QDialog):
             walk.write_data(data)
             
             self.start(data) # calling the start method to update the UI (inefficient but it works)
-
     def mod(self, data = None, button_name = None):
-        # print(f"Modify button clicked for {button_name}")
-    #    did we get the data?
         if not data:
             QMessageBox.warning(self, "Error", "No data passed to modify automata")
             return 
         
         edit = editAutomata(data, button_name)
-                
+        
         # Clear current layout and add no_autos widget
         datapane = self.scrollPane.layout()
-        # print(datapane)
-        #clearing the layout
         clearLayout(datapane)
+
+        # Find the specific automaton by button_name
+        row_data = [automaton for automaton in data["Automata"] if automaton["name"] == button_name][0]
         
-        rowcount = 0
-        numRow = edit.table.rowCount()
-        edit.table.setItem(numRow, 0, QtWidgets.QTableWidgetItem('name'))
-        edit.table.setItem(numRow, 1, QtWidgets.QTableWidgetItem('hello there'))
+        # Set the number of rows to match the number of actions plus the additional row
+        edit.table.setRowCount(len(row_data['actions']) + 1)
         
-        print('edit table', edit.table)
-        rowcount += 1
+        # Add the additional row first
+        edit.table.setItem(0, 0, QtWidgets.QTableWidgetItem('name'))
+        edit.table.setItem(0, 1, QtWidgets.QTableWidgetItem(button_name))
+        
+        # Populate the table with actions, starting from the next row
+        for row, actions in enumerate(row_data['actions'], start=1):
+            edit.table.setItem(row, 0, QtWidgets.QTableWidgetItem(actions['action']))
+            edit.table.setItem(row, 1, QtWidgets.QTableWidgetItem(f'{actions["button"]} @ location:{actions["location"]}'))
+        
         edit.title.setText("Editing Automata: " + button_name)
         datapane.addWidget(edit)
-        # edditing the edit page designed
-        
+                    
 
         
         

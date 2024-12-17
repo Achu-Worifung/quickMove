@@ -94,11 +94,14 @@ border:none;
            </property>
            <property name="font">
             <font>
-             <pointsize>20</pointsize>
+             <pointsize>9</pointsize>
             </font>
            </property>
            <property name="sizeAdjustPolicy">
             <enum>QAbstractScrollArea::AdjustToContents</enum>
+           </property>
+           <property name="editTriggers">
+            <set>QAbstractItemView::NoEditTriggers</set>
            </property>
            <attribute name="horizontalHeaderDefaultSectionSize">
             <number>150</number>
@@ -118,7 +121,7 @@ border:none;
             </property>
             <property name="font">
              <font>
-              <pointsize>16</pointsize>
+              <pointsize>9</pointsize>
              </font>
             </property>
             <property name="textAlignment">
@@ -131,7 +134,7 @@ border:none;
             </property>
             <property name="font">
              <font>
-              <pointsize>16</pointsize>
+              <pointsize>9</pointsize>
              </font>
             </property>
             <property name="textAlignment">
