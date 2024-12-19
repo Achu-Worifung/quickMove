@@ -1,3 +1,6 @@
+"""
+This module creates a new automaton by tracking mouse and keyboard events."""
+
 from pynput import keyboard, mouse
 
 def create_new_automaton(edit=False):

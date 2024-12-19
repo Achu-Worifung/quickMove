@@ -12,6 +12,7 @@ from PyQt5.QtWidgets import (
     QApplication, QTableWidget, QTableWidgetItem, QHeaderView, QVBoxLayout, QDialog, QLabel, QPushButton
 )
 import dataMod
+import Simulate
 from PyQt5.QtWidgets import *
 import walk  # Placeholder for automata.json data retrieval logic
 import event_tracker  # Renamed from Together for clarity
@@ -161,7 +162,7 @@ class Welcome(QDialog):
         # Populate the table with actions, starting from the next row
         for row, actions in enumerate(row_data['actions'], start=1):
             edit.table.setItem(row, 0, QtWidgets.QTableWidgetItem(actions['action']))
-            edit.table.setItem(row, 1, QtWidgets.QTableWidgetItem(f'{actions["button"]} @ location:{actions["location"]}'))
+            edit.table.setItem(row, 1, QtWidgets.QTableWidgetItem(f'{[actions['button'], actions["location"]]}'))
         
         edit.title.setText("Editing Automata: " + button_name)
         datapane.addWidget(edit)
@@ -171,15 +172,16 @@ class Welcome(QDialog):
         edit.editButton.clicked.connect(lambda checked=False, d=data, n=button_name: edit.editcell(d, n))
         
         edit.deleteButton.clicked.connect(lambda checked=False, d=data, n=button_name: edit.deleteCell(d, n))
+        
+        edit.insertButton.clicked.connect(lambda checked=False, d=data, n=button_name: edit.insertCell(d, n))
         #-------------------------------------
         
-        edit.simButton.clicked.connect(lambda checked=False, d=data, n=button_name: edit.deleteCell(d, n))
+        edit.simButton.clicked.connect(lambda checked=False, d=data, n=button_name: edit.simulate(d, n))
         
         edit.saveButton.clicked.connect(lambda checked=False, d=data, n=button_name: edit.deleteCell(d, n))
         
         edit.runButton.clicked.connect(lambda checked=False, d=data, n=button_name: edit.deleteCell(d, n))
                     
-        edit.insertButton.clicked.connect(lambda checked=False, d=data, n=button_name: edit.insertCell(d, n))
 
         
         
@@ -218,20 +220,22 @@ class editAutomata(QDialog):
             #inserting a new row
             self.table.insertRow(row_index+1)
             return
-    def simulate(self):
-        row_index = self.table.currentRow()
-        if row_index == -1:
+    def simulate(self, data = None, name = None):
+        cell_index = self.table.currentRow()
+        if cell_index == -1:
             QMessageBox.warning(self, "Error", "No row selected")
             return
-        elif row_index == 0: # 1st row is name
-            QMessageBox.warning(self, "Error", "Cannot simulate the name row")
-            return
         else:
-            #simulate data[row_index]
-            pass
-           
-        #call the walk for simulating one  event
-       
+            sim = data['Automata'][2]['actions'][cell_index-1] #getting the action
+            print(sim)
+            if sim['action'] == 'click': #simulating a click
+                x_coord = sim['location'][0]
+                y_coord = sim['location'][1]
+                button = sim['button']
+                print(f'button: {button} @ location: {x_coord}, {y_coord}')
+                Simulate.simClick(x_coord, y_coord, button, True)
+            elif sim['action'] == 'paste': #simulating a paste
+                Simulate.simPaste('v', True)
     def editcell(self, data = None, name = None):
         curr_row = self.table.currentRow()
         #editting the name of the automata
