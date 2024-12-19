@@ -169,8 +169,17 @@ class Welcome(QDialog):
         
         #adding actionlister to button 
         edit.editButton.clicked.connect(lambda checked=False, d=data, n=button_name: edit.editcell(d, n))
+        
         edit.deleteButton.clicked.connect(lambda checked=False, d=data, n=button_name: edit.deleteCell(d, n))
+        #-------------------------------------
+        
+        edit.simButton.clicked.connect(lambda checked=False, d=data, n=button_name: edit.deleteCell(d, n))
+        
+        edit.saveButton.clicked.connect(lambda checked=False, d=data, n=button_name: edit.deleteCell(d, n))
+        
+        edit.runButton.clicked.connect(lambda checked=False, d=data, n=button_name: edit.deleteCell(d, n))
                     
+        edit.insertButton.clicked.connect(lambda checked=False, d=data, n=button_name: edit.insertCell(d, n))
 
         
         
@@ -200,10 +209,21 @@ class editAutomata(QDialog):
         #running the entire automata
         for row in range(self.table.rowCount()):
             pass
-            
+    def insertCell(self, data = None, name = None):
+        row_index = self.table.currentRow()
+        if row_index == -1:
+            QMessageBox.warning(self, "Error", "No row selected")
+            return
+        else:
+            #inserting a new row
+            self.table.insertRow(row_index+1)
+            return
     def simulate(self):
-        row_index = self.table.currentIndex().row()
-        if row_index == 0: # 1st row is name
+        row_index = self.table.currentRow()
+        if row_index == -1:
+            QMessageBox.warning(self, "Error", "No row selected")
+            return
+        elif row_index == 0: # 1st row is name
             QMessageBox.warning(self, "Error", "Cannot simulate the name row")
             return
         else:
