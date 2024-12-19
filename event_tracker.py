@@ -1,8 +1,18 @@
+"""
+Together.py
+Description: This script allows you to track mouse and keyboard events simultaneously.
+Author: Worifung Achu
+Date: 12.18.2024
+"""
+
 from pynput import keyboard, mouse
 
-def create_new_automaton():
+def create_new_automaton(edit=False):
     """
     Create a new automaton by tracking mouse and keyboard events
+    
+    Args:
+        edit (bool): If True, stop tracking after the first event.
     
     Returns:
         list: List of tracked actions
@@ -24,15 +34,19 @@ def create_new_automaton():
 
     def on_copy():
         """Log copy/paste action"""
+        nonlocal tracking  # Declare nonlocal to modify outer variable
         actionList.append({
             'action': 'paste',
             'button': 'ctrl+v',
             'location': 'clipboard'
         })
         print("Ctrl + V detected and logged!")
+        if edit:
+            tracking = False  # Stop tracking
 
     def on_mouse_click(x, y, button, pressed):
         """Log mouse click events"""
+        nonlocal tracking  # Declare nonlocal to modify outer variable
         if pressed:
             actionList.append({
                 'action': 'click',
@@ -40,9 +54,11 @@ def create_new_automaton():
                 'button': str(button)
             })
             print(f"Mouse clicked at {x}, {y} with {button}")
+        if edit:
+            tracking = False  # Stop tracking
 
     def on_keyboard_press(key):
-        nonlocal current, tracking
+        nonlocal current, tracking  # Declare nonlocal to modify outer variables
         
         try:
             # Handle Escape key to stop tracking
@@ -63,7 +79,7 @@ def create_new_automaton():
             pass
 
     def on_keyboard_release(key):
-        nonlocal current
+        nonlocal current  # Declare nonlocal to modify outer variables
         
         try:
             # Remove the key from current set if it was part of a combination
@@ -87,7 +103,7 @@ def create_new_automaton():
 
     try:
         while tracking:
-            keyboard_listener.wait()  # Wait for the listener to complete
+            pass  # Run loop until tracking is set to False
     except Exception as e:
         print(f"An exception occurred: {e}")
     finally:
@@ -99,5 +115,5 @@ def create_new_automaton():
 
 # Can be used for standalone testing
 if __name__ == '__main__':
-    actions = create_new_automaton()
+    actions = create_new_automaton(edit=True)
     print("Tracked Actions:", actions)

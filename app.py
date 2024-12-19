@@ -11,6 +11,8 @@ from PyQt5.QtWidgets import QHeaderView
 from PyQt5.QtWidgets import (
     QApplication, QTableWidget, QTableWidgetItem, QHeaderView, QVBoxLayout, QDialog, QLabel, QPushButton
 )
+import dataMod
+from PyQt5.QtWidgets import *
 import walk  # Placeholder for automata.json data retrieval logic
 import event_tracker  # Renamed from Together for clarity
 
@@ -163,6 +165,11 @@ class Welcome(QDialog):
         
         edit.title.setText("Editing Automata: " + button_name)
         datapane.addWidget(edit)
+        
+        
+        #adding actionlister to button 
+        edit.editButton.clicked.connect(edit.editcell)
+        edit.deleteButton.clicked.connect(lambda checked=False, d=data, n=button_name: edit.deleteCell(d, n))
                     
 
         
@@ -182,16 +189,84 @@ class editAutomata(QDialog):
         ui_path = "./ui/edite.ui"
         loadUi(ui_path, self)
         #check if data is being passed
-    def loadDataTable(self, data, name = None):
-        print('name is ', name)
-        #adding the name attribute to the table
-        # print('ion load data')
-        rowcount = 0
+    # def getSelectedRow(self):
+    #   curr_row = self.table.currentRow().text() #returns the object of current row
+    #   print('curr row',curr_row)
+    #   select_row = self.table.currentIndex().row() #returns the index of selected row
+    #  # select_row = self.table.removeRow(select_row) #removes the selected row
+    #   print(select_row)
+      
+    def run(self):
+        #running the entire automata
+        for row in range(self.table.rowCount()):
+            pass
+            
+    def simulate(self):
+        row_index = self.table.currentIndex().row()
+        if row_index == 0: # 1st row is name
+            QMessageBox.warning(self, "Error", "Cannot simulate the name row")
+            return
+        else:
+            #simulate data[row_index]
+            pass
+           
+        #call the walk for simulating one  event
+       
+    def editcell(self):
+        cell_info = self.getCellInfo()
+        #editting the name of the automata
+        if(cell_info[0] == 'name'):
+            text, ok = QInputDialog.getText(self, "Rename Automata", "Enter new name:")
+            if ok:
+                self.table.setItem(0, 1, QtWidgets.QTableWidgetItem(text))
+        else:
+            response = QMessageBox.question(self, "Edit Cell", f"Click Yes to edit cell and record 1 I/O event.",
+                                        QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+            if response == QMessageBox.Yes:
+                event_tracker.create_new_automaton(True)
+                #call the event tracker to record only 1 event
+                event = event_tracker.create_new_automaton(True)
+                type = event[0]['action']
+                button = event[0]['button']
+                location = event[0]['location']
+                dataMod.editrow(self.data, self.name, cell_info[0], {"action": type, "button": button, "location": location})
+                #updating the table
+                
+    def deleteCell(self, data= None, name = None):
+        curr_row = self.table.currentRow()
+        row_data = self.getCellInfo()
+        if(row_data[0] == 'name'):
+            QMessageBox.warning(self, "Error", "Cannot delete the name row")
+            return
+        if curr_row == -1:
+            QMessageBox.warning(self, "Error", "No row selected")
+            return
+        else:
+            response = QMessageBox.question(self, "Delete Automata", f"Are you sure you want to delete this row?",
+                                        QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+            if response == QMessageBox.Yes:
+                self.table.removeRow(curr_row)
+                #updating the data 
+                dataMod.deleteRow(data, name, curr_row-1) #curr_row -1 becuse name is  0 index         
+            else:
+                return
+    def getCellInfo(self):
+         # Get the index of the currently selected row
+        curr_row = self.table.currentRow()
         
-        self.table.setItem(rowcount, 0, QtWidgets.QTableWidgetItem('name'))
-        self.table.setItem(rowcount, 1, QtWidgets.QTableWidgetItem(name))
-        rowcount += 1
-        
+        if curr_row == -1:
+            QMessageBox.warning(self, "Error", "No row selected")
+            return
+
+        # Retrieve all the data from the selected row
+        row_data = []
+        for column in range(self.table.columnCount()):
+            item = self.table.item(curr_row, column)  # Get QTableWidgetItem
+            row_data.append(item.text() if item else "")  # Get the text or empty string if no item
+
+        return row_data
+    def insertBelow(self):
+        pass
        
             
 class noAutomata(QDialog):

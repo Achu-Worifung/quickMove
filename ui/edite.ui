@@ -159,7 +159,7 @@ border:none;
            </property>
            <layout class="QGridLayout" name="gridLayout_2">
             <item row="2" column="0">
-             <widget class="QPushButton" name="pushButton">
+             <widget class="QPushButton" name="editButton">
               <property name="minimumSize">
                <size>
                 <width>150</width>
@@ -173,16 +173,13 @@ border:none;
                </size>
               </property>
               <property name="styleSheet">
-               <string notr="true">#pushButton
-{
-
-    border-style: outset;
+               <string notr="true">    border-style: outset;
     border-width: 2px;
     border-radius: 10px;
     border-color: black;
     padding: 4px;
 font:20px
-}</string>
+</string>
               </property>
               <property name="text">
                <string>Edit</string>
@@ -229,7 +226,7 @@ font:20px
              </widget>
             </item>
             <item row="3" column="0">
-             <widget class="QPushButton" name="pushButton_4">
+             <widget class="QPushButton" name="deleteButton">
               <property name="minimumSize">
                <size>
                 <width>150</width>
@@ -243,8 +240,7 @@ font:20px
                </size>
               </property>
               <property name="styleSheet">
-               <string notr="true">#pushButton, #pushButton_2, #pushButton_3,#pushButton_4
-{
+               <string notr="true">
 
     border-style: outset;
     border-width: 2px;
@@ -252,7 +248,7 @@ font:20px
     border-color: black;
     padding: 4px;
 font:20px
-}</string>
+</string>
               </property>
               <property name="text">
                <string>Delete</string>

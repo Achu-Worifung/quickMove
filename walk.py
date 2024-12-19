@@ -1,3 +1,9 @@
+"""
+walk.py
+Author: worifung achu
+Date: 12.18.2024
+This module provides a function to retrieve and write  data from a JSON file in a user-accessible directory."""
+
 import os
 import json
 
