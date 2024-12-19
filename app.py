@@ -168,7 +168,7 @@ class Welcome(QDialog):
         
         
         #adding actionlister to button 
-        edit.editButton.clicked.connect(edit.editcell)
+        edit.editButton.clicked.connect(lambda checked=False, d=data, n=button_name: edit.editcell(d, n))
         edit.deleteButton.clicked.connect(lambda checked=False, d=data, n=button_name: edit.deleteCell(d, n))
                     
 
@@ -212,10 +212,13 @@ class editAutomata(QDialog):
            
         #call the walk for simulating one  event
        
-    def editcell(self):
-        cell_info = self.getCellInfo()
+    def editcell(self, data = None, name = None):
+        curr_row = self.table.currentRow()
         #editting the name of the automata
-        if(cell_info[0] == 'name'):
+        if curr_row == -1:
+            QMessageBox.warning(self, "Error", "No row selected")
+            return
+        elif(curr_row == 0):
             text, ok = QInputDialog.getText(self, "Rename Automata", "Enter new name:")
             if ok:
                 self.table.setItem(0, 1, QtWidgets.QTableWidgetItem(text))
@@ -226,11 +229,14 @@ class editAutomata(QDialog):
                 event_tracker.create_new_automaton(True)
                 #call the event tracker to record only 1 event
                 event = event_tracker.create_new_automaton(True)
+                print('here is the event',event) #nothing is being returned
                 type = event[0]['action']
                 button = event[0]['button']
                 location = event[0]['location']
-                dataMod.editrow(self.data, self.name, cell_info[0], {"action": type, "button": button, "location": location})
+                dataMod.editrow(data, name, curr_row-1, {"action": type, "button": button, "location": location})
                 #updating the table
+                self.table.setItem(curr_row,0, QtWidgets.QTableWidgetItem(type))
+                self.table.setItem(curr_row,1, QtWidgets.QTableWidgetItem(f'{button} @ location:{location}'))
                 
     def deleteCell(self, data= None, name = None):
         curr_row = self.table.currentRow()

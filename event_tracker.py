@@ -1,27 +1,21 @@
-"""
-Together.py
-Description: This script allows you to track mouse and keyboard events simultaneously.
-Author: Worifung Achu
-Date: 12.18.2024
-"""
-
 from pynput import keyboard, mouse
 
 def create_new_automaton(edit=False):
     """
-    Create a new automaton by tracking mouse and keyboard events
-    
+    Create a new automaton by tracking mouse and keyboard events.
+
     Args:
         edit (bool): If True, stop tracking after the first event.
-    
+
     Returns:
-        list: List of tracked actions
+        list: List of tracked actions.
     """
     # Store actions in a list
     actionList = []
 
     # Tracking state
     tracking = True
+    event_logged = False  # Flag to ensure at least one event is logged in edit mode
 
     # All acceptable hotkey combinations
     combination = [
@@ -33,20 +27,21 @@ def create_new_automaton(edit=False):
     current = set()
 
     def on_copy():
-        """Log copy/paste action"""
-        nonlocal tracking  # Declare nonlocal to modify outer variable
+        """Log copy/paste action."""
+        nonlocal tracking, event_logged
         actionList.append({
             'action': 'paste',
             'button': 'ctrl+v',
             'location': 'clipboard'
         })
         print("Ctrl + V detected and logged!")
+        event_logged = True  # Mark that an event has been logged
         if edit:
             tracking = False  # Stop tracking
 
     def on_mouse_click(x, y, button, pressed):
-        """Log mouse click events"""
-        nonlocal tracking  # Declare nonlocal to modify outer variable
+        """Log mouse click events."""
+        nonlocal tracking, event_logged
         if pressed:
             actionList.append({
                 'action': 'click',
@@ -54,12 +49,12 @@ def create_new_automaton(edit=False):
                 'button': str(button)
             })
             print(f"Mouse clicked at {x}, {y} with {button}")
-        if edit:
-            tracking = False  # Stop tracking
+            event_logged = True  # Mark that an event has been logged
+            if edit:
+                tracking = False  # Stop tracking
 
     def on_keyboard_press(key):
-        nonlocal current, tracking  # Declare nonlocal to modify outer variables
-        
+        nonlocal current, tracking, event_logged
         try:
             # Handle Escape key to stop tracking
             if key == keyboard.Key.esc:
@@ -74,19 +69,16 @@ def create_new_automaton(edit=False):
                 # Check if any complete combination is pressed
                 if any(all(k in current for k in comb) for comb in combination):
                     on_copy()
-        
         except AttributeError:
             pass
 
     def on_keyboard_release(key):
-        nonlocal current  # Declare nonlocal to modify outer variables
-        
+        nonlocal current
         try:
             # Remove the key from current set if it was part of a combination
             if any([key in comb for comb in combination]):
                 if key in current:
                     current.remove(key)
-        
         except AttributeError:
             pass
 
@@ -103,7 +95,9 @@ def create_new_automaton(edit=False):
 
     try:
         while tracking:
-            pass  # Run loop until tracking is set to False
+            if edit and event_logged:
+                # Stop tracking if in edit mode and an event has been logged
+                break
     except Exception as e:
         print(f"An exception occurred: {e}")
     finally:
