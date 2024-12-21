@@ -24,6 +24,8 @@ class Welcome(QDialog):
         assert os.path.exists(ui_path), f"UI file not found: {ui_path}"
         loadUi(ui_path, self)
 
+        #adding action event to create button
+        self.create_auto.clicked.connect(self.createAutomata)
         # # Initialize scroll area layout
         # if not self.scrollAreaWidgetContents.layout():
         #     self.scroll_layout = QVBoxLayout(self.scrollAreaWidgetContents)
@@ -137,10 +139,7 @@ class Welcome(QDialog):
                 if widget:  # Ensure the widget exists before removing and deleting it
                     widget.setParent(None)
                     widget.deleteLater()
-                else:
-                    print(f"No widget found at index {index}")
-            else:
-                print(f"No item at index {index}")
+                
 
             
             # self.start(data) # calling the start method to update the UI (inefficient but it works)
@@ -193,7 +192,16 @@ class Welcome(QDialog):
         edit.runButton.clicked.connect(lambda checked=False, d=data, n=button_name: edit.run(d, n))
                     
 
-        
+    def createAutomata(self):
+        no_autos = noAutomata()
+            
+        # Clear current layout and add no_autos widget
+        datapane = self.scrollPane.layout()
+        # print(datapane)
+        #clearing the layout
+        clearLayout(datapane)
+            
+        datapane.addWidget(no_autos)
         
         # Function to load data into the table
     

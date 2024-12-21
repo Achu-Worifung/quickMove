@@ -99,7 +99,7 @@ font:20px
        <item>
         <widget class="QWidget" name="widget_2" native="true">
          <layout class="QGridLayout" name="gridLayout_2">
-          <item row="0" column="0">
+          <item row="0" column="0" alignment="Qt::AlignHCenter">
            <widget class="QLabel" name="label_4">
             <property name="minimumSize">
              <size>
