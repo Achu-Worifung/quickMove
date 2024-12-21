@@ -63,57 +63,87 @@ class Welcome(QDialog):
             clearLayout(datapane)
             
             self.radion_button = []
+            #pane for each automata
+            link = os.path.join(os.path.dirname(__file__), '../ui/automate_select.ui')
+
             for button in data['Automata']:
-                # Create a QWidget to hold the radio button and buttons
-                pane = QWidget()
+                single_automata = loadUi(link)#loading the ui file
+                single_automata.name.setText(button['name'])
+                single_automata.modify.clicked.connect(lambda checked=False, d=data, b=button['name']: self.mod(d, b))
+
+                single_automata.delete_2.clicked.connect(lambda checked=False, d=data, b=button['name']: self.delete(d, b))
+
+#                 # Create a QWidget to hold the radio button and buttons
+#                 pane = QWidget()
                 
-                # Create a horizontal layout for the radio button and buttons
-                pane_layout = QHBoxLayout(pane)
+#                 # Create a horizontal layout for the radio button and buttons
+#                 pane_layout = QHBoxLayout(pane)
                 
-                # Create the radio button
-                radio_button = QRadioButton(button['name'])
-                self.radion_button.append(radio_button)
+#                 # Create the radio button
+#                 radio_button = QRadioButton(button['name'])
+#                 self.radion_button.append(radio_button)
                 
-                # Create delete and modify buttons
-                delete_button = QPushButton("Delete")
-                modify_button = QPushButton("Modify")
-                start_button = QPushButton("Start")
+#                 # Create delete and modify buttons
+#                 delete_button = QPushButton("Delete")
+#                 modify_button = QPushButton("Modify")
+#                 start_button = QPushButton("Start")
                 
-                # Add the radio button and buttons to the pane layout
-                pane_layout.addWidget(radio_button)
-                pane_layout.addWidget(modify_button)
-                pane_layout.addWidget(delete_button)
-                pane_layout.addWidget(start_button)
+#                 # Add the radio button and buttons to the pane layout
+#                 pane_layout.addWidget(radio_button)
+#                 pane_layout.addWidget(modify_button)
+#                 pane_layout.addWidget(delete_button)
+#                 pane_layout.addWidget(start_button)
                 
-                # Optionally, connect the buttons to their actions
-                delete_button.clicked.connect(self.delete)
-                modify_button.clicked.connect(lambda checked=False, d=data, b=button['name']: self.mod(d, b))
- #so much easier to do this( passsing data on a click event)
+#                 # Optionally, connect the buttons to their actions
+#                 delete_button.clicked.connect(self.delete)
+#                 modify_button.clicked.connect(lambda checked=False, d=data, b=button['name']: self.mod(d, b))
+#  #so much easier to do this( passsing data on a click event)
                 
              
                 
                 # Add the pane to the datapane layout
-                datapane.addWidget(pane)
+                datapane.addWidget(single_automata)
 
-    def delete(self):
-        button = self.sender() #getting the button triggering the event
-        parent = button.parent() #getting the parent of the button
-        automata_name = parent.findChildren(QRadioButton)[0].text() #getting the text of the radio button
+    def delete(self, data = None, button_name = None):
+        # button = self.sender() #getting the button triggering the event
+        # parent = button.parent() #getting the parent of the button
+        # automata_name = parent.findChildren(QRadioButton)[0].text() #getting the text of the radio button
         
-        print(f"Delete button clicked for {parent.findChildren(QRadioButton)[0].text()}")
+        # print(f"Delete button clicked for {parent.findChildren(QRadioButton)[0].text()}")
         # print(f"Delete button clicked for {button.parent()}")
-        response = msg.questionBox(self, "Delete Automata", f"Are you sure you want to delete '{automata_name}'?")
+        response = msg.questionBox(self, "Delete Automata", f"Are you sure you want to delete '{button_name}'?")
         
         if response:
             data = walk.get_data()
             # Filter out the automata with the given name
-            data["Automata"] = [automaton for automaton in data["Automata"] if automaton["name"] != automata_name]
-            print(f"Data: {data}")
+            # data["Automata"] = [automaton for automaton in data["Automata"] if automaton["name"] != button_name]
+            # print(f"Data: {data}")
+            
+            index = 0
+            #deleting the automata
+            for i in range(len(data['Automata'])):
+                if data['Automata'][i]['name'] == button_name:
+                    data['Automata'].pop(i)
+                    index = i
+                    break
             
             #overwrite json with new data
             walk.write_data(data)
+
+            #getting the automata
+            auto = self.verticalLayout.layout().takeAt(index)
+            if auto:
+                widget = auto.widget()
+                if widget:  # Ensure the widget exists before removing and deleting it
+                    widget.setParent(None)
+                    widget.deleteLater()
+                else:
+                    print(f"No widget found at index {index}")
+            else:
+                print(f"No item at index {index}")
+
             
-            self.start(data) # calling the start method to update the UI (inefficient but it works)
+            # self.start(data) # calling the start method to update the UI (inefficient but it works)
             
             #issue several button that edit the data but each button access to the data doesn't affect the other
     def mod(self, data = None, button_name = None):

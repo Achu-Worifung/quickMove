@@ -114,16 +114,12 @@ layoutAlignment: AlignCenter;
              </size>
             </property>
             <property name="styleSheet">
-             <string notr="true">#pushButton
-{
-background-color: red;
-    border-style: outset;
+             <string notr="true">    border-style: outset;
     border-width: 2px;
-    border-radius: 15px;
+    border-radius: 10px;
     border-color: black;
     padding: 4px;
-font:20px
-}</string>
+font:20px</string>
             </property>
             <property name="text">
              <string>Create New Automata</string>
