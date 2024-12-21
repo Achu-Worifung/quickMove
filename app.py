@@ -11,11 +11,11 @@ from PyQt5.QtWidgets import QHeaderView
 from PyQt5.QtWidgets import (
     QApplication, QTableWidget, QTableWidgetItem, QHeaderView, QVBoxLayout, QDialog, QLabel, QPushButton
 )
-import dataMod
-import Simulate
+import util.dataMod as dataMod
+import util.Simulate as Simulate
 from PyQt5.QtWidgets import *
-import walk  # Placeholder for automata.json data retrieval logic
-import event_tracker  # Renamed from Together for clarity
+import util.walk as walk  # Placeholder for automata.json data retrieval logic
+import util.event_tracker as event_tracker  # Renamed from Together for clarity
 
 #global method to clear layout
 def clearLayout(layout):
