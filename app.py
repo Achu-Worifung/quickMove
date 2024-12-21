@@ -138,6 +138,8 @@ class Welcome(QDialog):
             walk.write_data(data)
             
             self.start(data) # calling the start method to update the UI (inefficient but it works)
+            
+            #issue several button that edit the data but each button access to the data doesn't affect the other
     def mod(self, data = None, button_name = None):
         if not data:
             QMessageBox.warning(self, "Error", "No data passed to modify automata")
@@ -180,7 +182,7 @@ class Welcome(QDialog):
         
         edit.saveButton.clicked.connect(lambda checked=False, d=data, n=button_name: edit.deleteCell(d, n))
         
-        edit.runButton.clicked.connect(lambda checked=False, d=data, n=button_name: edit.deleteCell(d, n))
+        edit.runButton.clicked.connect(lambda checked=False, d=data, n=button_name: edit.run(d, n))
                     
 
         
@@ -207,10 +209,22 @@ class editAutomata(QDialog):
     #  # select_row = self.table.removeRow(select_row) #removes the selected row
     #   print(select_row)
       
-    def run(self):
+    def run(self, data = None, name = None):
         #running the entire automata
-        for row in range(self.table.rowCount()):
-            pass
+       sim = data['Automata'][2]['actions'] #getting the action list why 2
+       for action in sim:
+            if action['action'] == 'click': #simulating a click
+                x_coord = action['location'][0]
+                y_coord = action['location'][1]
+                button = action['button']
+                print(f'button: {button} @ location: {x_coord}, {y_coord}')
+                Simulate.simClick(x_coord, y_coord, button, True)
+            elif action['action'] == 'paste': #simulating a paste
+                Simulate.simPaste(action['text'])
+       
+        
+
+       
     def insertCell(self, data = None, name = None):
         row_index = self.table.currentRow()
         if row_index == -1:
@@ -277,7 +291,7 @@ class editAutomata(QDialog):
             if response == QMessageBox.Yes:
                 self.table.removeRow(curr_row)
                 #updating the data 
-                dataMod.deleteRow(data, name, curr_row-1) #curr_row -1 becuse name is  0 index         
+                data =dataMod.deleteRow(data, name, curr_row-1) #curr_row -1 becuse name is  0 index         
             else:
                 return
     def getCellInfo(self):
