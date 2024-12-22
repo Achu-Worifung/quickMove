@@ -2,8 +2,8 @@ from PyQt5 import QtWidgets
 from PyQt5.QtCore import QThread, pyqtSignal
 from PyQt5.QtWidgets import QDialog, QTableWidget, QTableWidgetItem
 from PyQt5.uic import loadUi
-from util import event_tracker, Simulate, Message as msg, dataMod
-from util.clearLayout import clearLayout
+from util import event_tracker, Simulate, Message as msg, dataMod, walk
+# from util.walk import get_data
 import os
 
 
@@ -70,14 +70,51 @@ class editAutomata(QDialog):
         )
 
         self.saveButton.clicked.connect(
-            lambda checked=False, d=data, n=name: self.deleteCell(d, n)
+            lambda checked=False, d=data, n=name: self.save(d, n)
         )
 
         self.runButton.clicked.connect(
             lambda checked=False, d=data, n=name: self.run(d, n)
         )
         self.cancelButton.clicked.connect(self.cancel)
-    def cancel(self):
+    def save(self, data=None, name=None):
+        name = self.table.item(0, 1).text()
+        if name == "Automata":
+            msg.warningBox(self, "Error", "Name cannot be 'Automata'")
+            return
+        #getting the data
+        saved_data = walk.get_data()
+
+        # print('saved data', saved_data)
+
+
+        # print('data', self.data)
+        # print('name', self.name)
+
+        if saved_data is None:
+            # Initialize saved_data if it's None
+            saved_data = {"Automata": []}
+
+        # Flag to track whether the automata was modified
+        mod = False
+
+        # Iterate through existing automata to find a match by name
+        for i, automata in enumerate(saved_data.get('Automata', [])):
+            if automata['name'] == self.name:
+                # Modify the existing automata
+                saved_data['Automata'][i] = {"name": self.name, "actions": self.data}
+                mod = True
+                break
+
+        # If no match was found, add a new automata
+        if not mod:
+            saved_data['Automata'].append({"name": self.name, "actions": self.data})
+
+        # Write the updated data back to the storage
+        walk.write_data(saved_data)
+
+                
+        #returning to the welcome page
         # Lazy import
         from widgets.Welcome import Welcome
         
@@ -87,7 +124,44 @@ class editAutomata(QDialog):
             if item.widget():
                 item.widget().deleteLater()
         
-        # Find the main window (assuming it's the top-level parent)
+        # Find the main window
+        main_window = self
+        while main_window.parent():
+            main_window = main_window.parent()
+        
+        # Assuming main window has a stacked widget or central layout
+        if hasattr(main_window, 'centralWidget'):
+            # Remove old central widget if it exists
+            old_widget = main_window.centralWidget()
+            if old_widget:
+                old_widget.deleteLater()
+                
+            # Create and set new Welcome widget
+            welcome_widget = Welcome()
+            main_window.setCentralWidget(welcome_widget)
+        else:
+            # Alternative approach if using a layout
+            main_layout = main_window.layout()
+            if main_layout:
+                while main_layout.count():
+                    item = main_layout.takeAt(0)
+                    if item.widget():
+                        item.widget().deleteLater()
+                main_layout.addWidget(Welcome())
+
+
+    def cancel(self):
+        
+        # Lazy import
+        from widgets.Welcome import Welcome
+        
+        # Clear current widgets from scroll area
+        while self.scrollAreaWidgetContents.layout().count():
+            item = self.scrollAreaWidgetContents.layout().takeAt(0)
+            if item.widget():
+                item.widget().deleteLater()
+        
+        # Find the main window
         main_window = self
         while main_window.parent():
             main_window = main_window.parent()
@@ -132,6 +206,8 @@ class editAutomata(QDialog):
         else:
             # inserting a new row
             self.table.insertRow(row_index + 1)
+            #updating the data
+            self.data = dataMod.insertRow(data, name, row_index)
             return
 
     def simulate(self, data=None, name=None):
@@ -161,6 +237,10 @@ class editAutomata(QDialog):
             text, ok = msg.inputDialogBox(self, "Rename Automata", "Enter new Name:")
             if ok:
                 self.table.setItem(0, 1, QtWidgets.QTableWidgetItem(text))
+                # updating the data
+                self.name = text
+                #updating the label
+                self.title.setText("Editing Automata: " + text)
         else:
             response = msg.questionBox(
                 self, "Edit Cell", f"Click Yes to edit cell and record 1 I/O event."
@@ -170,11 +250,12 @@ class editAutomata(QDialog):
                 event_tracker.create_new_automaton(True)
                 # call the event tracker to record only 1 event
                 event = event_tracker.create_new_automaton(True)
-                print("here is the event", event)  # nothing is being returned
+                print("here is the event", event)
+                  # nothing is being returned
                 type = event[0]["action"]
                 button = event[0]["button"]
                 location = event[0]["location"]
-                dataMod.editrow(
+                self.data=dataMod.editrow(
                     data,
                     name,
                     curr_row - 1,
@@ -205,7 +286,7 @@ class editAutomata(QDialog):
             if response:
                 self.table.removeRow(curr_row) #removing selected row
                 # updating the data
-                data = dataMod.deleteRow(
+                self.data = dataMod.deleteRow(
                     data, name, curr_row - 1
                 )  # curr_row -1 becuse name is  0 index
             else:

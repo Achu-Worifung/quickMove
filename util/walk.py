@@ -50,7 +50,32 @@ def write_data(data):
         json.dump(data, f) 
 
 def main():
-    data =  [{'action': 'click', 'location': (1163, 892), 'button': 'Button.left'}, {'action': 'click', 'location': (966, 969), 'button': 'Button.left'}, {'action': 'paste', 'button': 'ctrl+v', 'location': 'clipboard'}, {'action': 'click', 'location': (1191, 657), 'button': 'Button.left'}, {'action': 'click', 'location': (1222, 908), 'button': 'Button.left'}, {'action': 'click', 'location': (1208, 644), 'button': 'Button.left'}, {'action': 'paste', 'button': 'ctrl+v', 'location': 'clipboard'}, {'action': 'click', 'location': (1228, 653), 'button': 'Button.left'}]
+    data = {"Automata": [
+    {
+      "name": "Automata",
+      "actions": [
+        { "action": "click", "button": "Button.left", "location": [740, 757] },
+        { "action": "click", "button": "Button.left", "location": [1283, 987] },
+        { "action": "paste", "button": "ctrl+v", "location": "clipboard" }
+      ]
+    },
+    {
+      "name": "Automata1",
+      "actions": [
+        { "action": "click", "button": "Button.left", "location": [740, 757] },
+        { "action": "click", "button": "Button.left", "location": [1283, 987] },
+        { "action": "paste", "button": "ctrl+v", "location": "clipboard" }
+      ]
+    },
+    {
+      "name": "Automata2",
+      "actions": [
+        { "action": "click", "button": "Button.left", "location": [740, 757] },
+        { "action": "click", "button": "Button.left", "location": [1283, 987] },
+        { "action": "paste", "button": "ctrl+v", "location": "clipboard" }
+      ]
+    }
+  ]}
     write_data(data)
     # data = get_data()
     # print(data)
