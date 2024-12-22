@@ -9,13 +9,16 @@ def updateName(data, name, newName):
     return newName
 #deletes the row of the automata
 def deleteRow(data, name, row):
-    return  data.pop(row)
+    data = data[:row] + data[row+1:]
+    return  data
 
 #inserts a new action above the selected row
-def insertBelow(data, name, row, newAction):
-    return data.insert(row+1, newAction)
+def insertRow(data, name, row, newAction):
+    data = data[:row] + [newAction] + data[row:]
+    return data
 
-def editrow(data, name, row, newAction):    
-    data = data[row-1] = newAction
+def editrow(data, name, row, newAction): 
+       
+    data[row] = newAction
 
     return data

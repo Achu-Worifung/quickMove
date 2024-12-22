@@ -42,39 +42,42 @@ class editAutomata(QDialog):
         self.table.setItem(0, 1, QtWidgets.QTableWidgetItem(name))
         # populating the rest of the table
         row_index = 1
+        print ("data", data)
         for row in data:
             self.table.setItem(row_index, 0, QtWidgets.QTableWidgetItem(row["action"]))
-            button_location = [row["button"], '@', row["location"]]
-            self.table.setItem(
-                row_index, 1, QtWidgets.QTableWidgetItem(str(button_location))
+            if row["button"] == "" and row["location"] == [] and row["action"] == "":
+                self.table.setItem(row_index, 1, QtWidgets.QTableWidgetItem(""))
+            else:
+                button_location = [row["button"], '@', row["location"]]
+                self.table.setItem(
+                    row_index, 1, QtWidgets.QTableWidgetItem(str(button_location))
             )
             row_index += 1
 
         # adding action event to buttons
         # adding actionlister to button
         self.editButton.clicked.connect(
-            lambda checked=False, d=data, n=name: self.editcell(d, n)
+            lambda checked=False, d=self.data, n=self.name: self.editcell(d, n)
         )
 
         self.deleteButton.clicked.connect(
-            lambda checked=False, d=data, n=name: self.deleteCell(d, n)
+            lambda checked=False, d=self.data, n=self.name: self.deleteCell(d, n)
         )
-
         self.insertButton.clicked.connect(
-            lambda checked=False, d=data, n=name: self.insertCell(d, n)
+            lambda checked=False, d=self.data, n=self.name: self.insertCell(d, n)
         )
         # -------------------------------------
 
         self.simButton.clicked.connect(
-            lambda checked=False, d=data, n=name: self.simulate(d, n)
+            lambda checked=False, d=self.data, n=self.name: self.simulate(d, n)
         )
 
         self.saveButton.clicked.connect(
-            lambda checked=False, d=data, n=name: self.save(d, n)
+            lambda checked=False, d=self.data, n=self.name: self.save(d, n)
         )
 
         self.runButton.clicked.connect(
-            lambda checked=False, d=data, n=name: self.run(d, n)
+            lambda checked=False, d=self.data, n=self.name: self.run(d, n)
         )
         self.cancelButton.clicked.connect(self.cancel)
     def save(self, data=None, name=None):
@@ -187,17 +190,17 @@ class editAutomata(QDialog):
                 main_layout.addWidget(Welcome())
             
     def run(self, data=None, name=None):
-        # running the entire automata
-        #    sim = data['Automata'][2]['actions'] #getting the action list why 2
-        for action in data:
-            if action["action"] == "click":  # simulating a click
-                x_coord = action["location"][0]
-                y_coord = action["location"][1]
-                button = action["button"]
+        print('here is the data ', self.data)
+        for todo in data:
+            if todo["action"] == "click":  # simulating a click
+                x_coord = todo["location"][0]
+                y_coord = todo["location"][1]
+                button = todo["button"]
                 print(f"button: {button} @ location: {x_coord}, {y_coord}")
                 Simulate.simClick(x_coord, y_coord, button, True)
-            elif action["action"] == "paste":  # simulating a paste
-                Simulate.simPaste(action["text"])
+            elif todo["action"] == "paste":  # simulating a paste
+                Simulate.simPaste('v', True)
+            #pa
 
     def insertCell(self, data=None, name=None):
         row_index = self.table.currentRow()
@@ -207,7 +210,7 @@ class editAutomata(QDialog):
             # inserting a new row
             self.table.insertRow(row_index + 1)
             #updating the data
-            self.data = dataMod.insertRow(data, name, row_index)
+            self.data = dataMod.insertRow(self.data, self.name, row_index, {'action':'', 'button': '', 'location': []})
             return
 
     def simulate(self, data=None, name=None):
@@ -222,7 +225,7 @@ class editAutomata(QDialog):
                 x_coord = sim["location"][0]
                 y_coord = sim["location"][1]
                 button = sim["button"]
-                print(f"button: {button} @ location: {x_coord}, {y_coord}")
+                # print(f"button: {button} @ location: {x_coord}, {y_coord}")
                 Simulate.simClick(x_coord, y_coord, button, True)
             elif sim["action"] == "paste":  # simulating a paste
                 Simulate.simPaste("v", True)
@@ -250,12 +253,12 @@ class editAutomata(QDialog):
                 event_tracker.create_new_automaton(True)
                 # call the event tracker to record only 1 event
                 event = event_tracker.create_new_automaton(True)
-                print("here is the event", event)
+                # print("here is the event", event)
                   # nothing is being returned
                 type = event[0]["action"]
                 button = event[0]["button"]
                 location = event[0]["location"]
-                self.data=dataMod.editrow(
+                self.data = dataMod.editrow(
                     data,
                     name,
                     curr_row - 1,
@@ -268,9 +271,11 @@ class editAutomata(QDialog):
                     1,
                     QtWidgets.QTableWidgetItem(f"{button} @ location:{location}"),
                 )
+                print('here is the new data', self.data)
+            
 
     def deleteCell(self, data=None, name=None):
-        print('here is the data from delete', data)
+        # print('here is the data from delete', data)
         curr_row = self.table.currentRow()
         row_data = self.getCellInfo()
         if row_data[0] == "name":
@@ -287,10 +292,10 @@ class editAutomata(QDialog):
                 self.table.removeRow(curr_row) #removing selected row
                 # updating the data
                 self.data = dataMod.deleteRow(
-                    data, name, curr_row - 1
+                    self.data, name, curr_row - 1
                 )  # curr_row -1 becuse name is  0 index
-            else:
-                return
+        
+        # print('data after deleting row', self.data)
 
     def getCellInfo(self):
         # Get the index of the currently selected row
