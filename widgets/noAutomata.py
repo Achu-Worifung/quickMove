@@ -3,6 +3,8 @@ from PyQt5.QtCore import QThread, pyqtSignal
 from PyQt5.QtWidgets import QDialog
 from PyQt5.uic import loadUi
 from util import event_tracker, walk, Message as msg
+from util.clearLayout import clearLayout
+from widgets.editAutomata import editAutomata
 import os
 class noAutomata(QDialog):
     def __init__(self):
@@ -10,16 +12,16 @@ class noAutomata(QDialog):
         ui_path = os.path.join(os.path.dirname(__file__), '../ui/no_autos.ui')
 
         loadUi(ui_path, self)
-        #adding acuion event to button
+        #adding action event to button
         self.create_auto.clicked.connect(self.start_tracking)
         
-    def start_tracking(self):
-        # Show tracking started message
-        start = msg.informationBox(self, "StartTracking", 'Press Ok to start tracking and ESC to stop')
+    # def start_tracking(self):
+    #     # Show tracking started message
+    #     start = msg.informationBox(self, "StartTracking", 'Press Ok to start tracking and ESC to stop')
         
-        if start :
-            # start tracking
-            print("Tracking started")
+    #     if start :
+    #         # start tracking
+    #         print("Tracking started")
     
     def start_tracking(self):
         # Show tracking started message
@@ -60,6 +62,12 @@ class noAutomata(QDialog):
         # if action_list:
         #     QMessageBox.information(self, "Tracking Complete", 
         #                             f"Tracked {len(action_list)} actions.")
+
+        #moving to the edit automata section of 
+        edit = editAutomata(action_list, "Automata")
+        clearLayout(self.scrollPane.layout())
+        #setting the table rows
+        edit.table.setRowCount(len(action_list) + 1)
 
 
 class EventTrackerThread(QThread):

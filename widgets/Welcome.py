@@ -145,51 +145,25 @@ class Welcome(QDialog):
             # self.start(data) # calling the start method to update the UI (inefficient but it works)
             
             #issue several button that edit the data but each button access to the data doesn't affect the other
-    def mod(self, data = None, button_name = None):
+    def mod(self, data = None, button_name = None): #data = entire json file
         if not data:
             msg.warningBox(self, "Error", "No data found")
             return 
-        
-        edit = editAutomata(data, button_name)
-        
-        # Clear current layout and add no_autos widget
-        datapane = self.scrollPane.layout()
-        clearLayout(datapane)
 
         # Find the specific automaton by button_name
         row_data = [automaton for automaton in data["Automata"] if automaton["name"] == button_name][0]
         
-        # Set the number of rows to match the number of actions plus the additional row
-        edit.table.setRowCount(len(row_data['actions']) + 1)
         
-        # Add the additional row first
-        edit.table.setItem(0, 0, QtWidgets.QTableWidgetItem('name'))
-        edit.table.setItem(0, 1, QtWidgets.QTableWidgetItem(button_name))
-        
-        # Populate the table with actions, starting from the next row
-        for row, actions in enumerate(row_data['actions'], start=1):
-            edit.table.setItem(row, 0, QtWidgets.QTableWidgetItem(actions['action']))
-            button_location = [actions['button'], actions['location']]
-            edit.table.setItem(row, 1, QtWidgets.QTableWidgetItem(str(button_location)))
+        # Clear current layout and add no_autos widget
+        curr_pane = self.scrollPane.layout()
+        clearLayout(curr_pane)
 
-        
-        edit.title.setText("Editing Automata: " + button_name)
-        datapane.addWidget(edit)
-        
-        
-        #adding actionlister to button 
-        edit.editButton.clicked.connect(lambda checked=False, d=data, n=button_name: edit.editcell(d, n))
-        
-        edit.deleteButton.clicked.connect(lambda checked=False, d=data, n=button_name: edit.deleteCell(d, n))
-        
-        edit.insertButton.clicked.connect(lambda checked=False, d=data, n=button_name: edit.insertCell(d, n))
-        #-------------------------------------
-        
-        edit.simButton.clicked.connect(lambda checked=False, d=data, n=button_name: edit.simulate(d, n))
-        
-        edit.saveButton.clicked.connect(lambda checked=False, d=data, n=button_name: edit.deleteCell(d, n))
-        
-        edit.runButton.clicked.connect(lambda checked=False, d=data, n=button_name: edit.run(d, n))
+        #providing edit automata with the data and the name of the automata
+        edit_pane = editAutomata(row_data['actions'], button_name)
+        curr_pane.addWidget(edit_pane)
+
+
+       
                     
 
     def createAutomata(self):
