@@ -50,26 +50,50 @@ class Completer(QtWidgets.QCompleter):
         return super(Completer, self).splitPath(path)
 
 
-class Widget(QtWidgets.QWidget):
+class AutocompleteWidget(QtWidgets.QWidget):
     def __init__(self, parent=None):
-        super(Widget, self).__init__(parent)
+        super(AutocompleteWidget, self).__init__(parent)
+        
+        # Initialize the model and completer for the autocomplete functionality
         self._model = SuggestionModel(self)
         completer = Completer(self, caseSensitivity=QtCore.Qt.CaseInsensitive)
         completer.setModel(self._model)
-
+        
+        # Create the QLineEdit and set the completer
         lineedit = QtWidgets.QLineEdit(self)
         lineedit.setCompleter(completer)
 
+        # Layout to add the QLineEdit to the widget
         layout = QtWidgets.QVBoxLayout(self)
         layout.addWidget(lineedit)
         self.setLayout(layout)
 
 
+class AnotherWidget(QtWidgets.QWidget):
+    def __init__(self, parent=None):
+        super(AnotherWidget, self).__init__(parent)
+        
+        # Create an instance of AutocompleteWidget and add it to AnotherWidget
+        autocomplete_widget = AutocompleteWidget(self)
+        
+        # Layout to add the AutocompleteWidget
+        layout = QtWidgets.QVBoxLayout(self)
+        layout.addWidget(autocomplete_widget)
+        
+        # Add other widgets to this widget as needed
+        other_label = QtWidgets.QLabel("This is another widget", self)
+        layout.addWidget(other_label)
+        
+        self.setLayout(layout)
+
+
 if __name__ == "__main__":
     import sys
-
     app = QtWidgets.QApplication(sys.argv)
-    w = Widget()
-    w.resize(400, w.sizeHint().height())
+
+    # Create an instance of AnotherWidget and display it
+    w = AnotherWidget()
+    w.resize(400, 200)
     w.show()
+
     sys.exit(app.exec_())

@@ -72,7 +72,7 @@ layoutAlignment: AlignCenter;
 }</string>
          </property>
          <layout class="QGridLayout" name="gridLayout_3">
-          <item row="0" column="0" alignment="Qt::AlignHCenter">
+          <item row="0" column="0" colspan="2" alignment="Qt::AlignHCenter">
            <widget class="QLabel" name="label">
             <property name="font">
              <font>
@@ -86,7 +86,7 @@ layoutAlignment: AlignCenter;
             </property>
            </widget>
           </item>
-          <item row="2" column="0" alignment="Qt::AlignHCenter">
+          <item row="1" column="0" colspan="2">
            <widget class="Line" name="line">
             <property name="minimumSize">
              <size>
@@ -99,7 +99,36 @@ layoutAlignment: AlignCenter;
             </property>
            </widget>
           </item>
-          <item row="4" column="0" alignment="Qt::AlignHCenter">
+          <item row="5" column="1">
+           <widget class="QPushButton" name="present">
+            <property name="minimumSize">
+             <size>
+              <width>210</width>
+              <height>0</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>240</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">
+    border-style: outset;
+    border-width: 2px;
+    border-radius: 15px;
+    border-color: black;
+    padding: 4px;
+font:20px
+</string>
+            </property>
+            <property name="text">
+             <string>Get Started</string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="0">
            <widget class="QPushButton" name="create_auto">
             <property name="minimumSize">
              <size>
@@ -109,17 +138,20 @@ layoutAlignment: AlignCenter;
             </property>
             <property name="maximumSize">
              <size>
-              <width>150</width>
+              <width>240</width>
               <height>16777215</height>
              </size>
             </property>
             <property name="styleSheet">
-             <string notr="true">    border-style: outset;
+             <string notr="true">
+
+    border-style: outset;
     border-width: 2px;
-    border-radius: 10px;
+    border-radius: 15px;
     border-color: black;
     padding: 4px;
-font:20px</string>
+font:20px
+</string>
             </property>
             <property name="text">
              <string>Create New Automata</string>
