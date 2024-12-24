@@ -9,6 +9,7 @@ from PyQt5.QtWidgets import (
 )
 # from widgets import noAutomata, editAutomata
 from widgets.noAutomata import noAutomata
+from widgets.search import search
 from widgets.editAutomata import editAutomata
 from util import clearLayout, walk
 # from util.walk import get_data
@@ -179,6 +180,20 @@ class Welcome(QDialog):
         
         # Function to load data into the table
     
+    def present(self, data = None):
+        if not data:
+            msg.warningBox(self, "Error", "Please select an automata")
+            return 
+        #clearing the welcome page and moving to the search
+        search = search()
+            
+        # Clear current layout and add no_autos widget
+        search_pane = self.scrollPane.layout()
+        #clearing the layout
+        clearLayout(search_pane)
+        
+        search_pane.addWidget(search)
+
         
         
       

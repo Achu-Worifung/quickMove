@@ -26,32 +26,17 @@
        </property>
        <layout class="QGridLayout" name="gridLayout_3">
         <item row="0" column="1">
-         <widget class="QToolButton" name="toolButton">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="maximumSize">
-           <size>
-            <width>100</width>
-            <height>16777215</height>
-           </size>
+         <widget class="QComboBox" name="comboBox">
+          <property name="whatsThis">
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Version&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
           </property>
           <property name="styleSheet">
            <string notr="true">    border-style: outset;
-    border-width: 2px;
-    border-radius: 10px;
+    border-width: 2px 0 2px 2px;
+    border-radius: 10px 10 px0 10px;
     border-color: black;
     padding: 4px;
 font:20px</string>
-          </property>
-          <property name="text">
-           <string>Version</string>
-          </property>
-          <property name="arrowType">
-           <enum>Qt::NoArrow</enum>
           </property>
          </widget>
         </item>
@@ -86,7 +71,7 @@ border-radius:10px</string>
              <x>0</x>
              <y>0</y>
              <width>793</width>
-             <height>555</height>
+             <height>554</height>
             </rect>
            </property>
            <widget class="QLabel" name="label_2">

@@ -1,2 +1,4 @@
 .venv
-.googlesearch.py
+googlesearch.py
+googlesuggest/
+index.html
