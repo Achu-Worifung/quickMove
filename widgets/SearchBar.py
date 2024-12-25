@@ -7,7 +7,7 @@ class SuggestionModel(QtGui.QStandardItemModel):
         super(SuggestionModel, self).__init__(parent)
         self._manager = QtNetwork.QNetworkAccessManager(self)
         self._reply = None
-        self._suggestions = set()  # To track existing suggestions and avoid duplicates
+        # self._suggestions = set()  # To track existing suggestions and avoid duplicates
 
     @QtCore.pyqtSlot(str)
     def search(self, text):
@@ -37,9 +37,9 @@ class SuggestionModel(QtGui.QStandardItemModel):
             self.clear()  # Clear existing suggestions before adding new ones
             for data in suggestions.iter("suggestion"):
                 suggestion = data.attrib["data"]
-                if suggestion not in self._suggestions:  # Avoid duplicates
-                    self._suggestions.add(suggestion)
-                    self.appendRow(QtGui.QStandardItem(suggestion))
+                # if suggestion not in self._suggestions:  # Avoid duplicates
+                #     self._suggestions.add(suggestion)
+                #     self.appendRow(QtGui.QStandardItem(suggestion))
         reply.deleteLater()
         self._reply = None
 
@@ -60,12 +60,12 @@ class AutocompleteWidget(QtWidgets.QWidget):
         completer.setModel(self._model)
         
         # Create the QLineEdit and set the completer
-        lineedit = QtWidgets.QLineEdit(self)
-        lineedit.setCompleter(completer)
+        self.lineedit = QtWidgets.QLineEdit(self)
+        self.lineedit.setCompleter(completer)
 
         # Layout to add the QLineEdit to the widget
         layout = QtWidgets.QVBoxLayout(self)
-        layout.addWidget(lineedit)
+        layout.addWidget(self.lineedit)
         self.setLayout(layout)
 
 

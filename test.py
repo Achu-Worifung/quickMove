@@ -1,61 +1,85 @@
+import xml.etree.ElementTree as ET
 
-# myset = [{'brand': 'Ford', 'model': 'Mustang', 'year': 1964}, {'brand': 'Ford', 'model': 'Mustang', 'year': 1964}]
-# # list and dictionary
-# print(myset)
+from PyQt5 import QtCore, QtGui, QtWidgets, QtNetwork
 
-# ----------------------testing keyboard event-----------------------
 
-from pynput import keyboard
+class SuggestionModel(QtGui.QStandardItemModel):
+    finished = QtCore.pyqtSignal()
+    error = QtCore.pyqtSignal(str)
 
-def on_activate():
-    print('Global hotkey (Ctrl+C) activated!')
+    def __init__(self, parent=None):
+        super(SuggestionModel, self).__init__(parent)
+        self._manager = QtNetwork.QNetworkAccessManager(self)
+        self._reply = None
 
-def display_key(key):
-    try:
-        # Display character keys
-        print(f"Key pressed: {key.char}")
-    except AttributeError:
-        # Handle special keys
-        print(f'Special key {key} pressed')
+    @QtCore.pyqtSlot(str)
+    def search(self, text):
+        self.clear()
+        if self._reply is not None:
+            self._reply.abort()
+        if text:
+            r = self.create_request(text)
+            self._reply = self._manager.get(r)
+            self._reply.finished.connect(self.on_finished)
+        loop = QtCore.QEventLoop()
+        self.finished.connect(loop.quit)
+        loop.exec_()
 
-# Listener to handle key presses and hotkey detection
-def on_press(key):
-    # Create a hotkey handler for Ctrl+C
-    hotkey = keyboard.HotKey(
-        keyboard.HotKey.parse('<ctrl>+c'),
-        on_activate
-    )
-    
-    try:
-        # Pass the key press event to the hotkey handler
-        hotkey.press(l.canonical(key))
-        
-        # Display the pressed key
-        display_key(key)
-    except Exception as e:
-        print(f"Error in key press: {e}")
+    def create_request(self, text):
+        url = QtCore.QUrl("http://toolbarqueries.google.com/complete/search")
+        query = QtCore.QUrlQuery()
+        query.addQueryItem("q", text)
+        query.addQueryItem("output", "toolbar")
+        query.addQueryItem("hl", "en")
+        url.setQuery(query)
+        request = QtNetwork.QNetworkRequest(url)
+        return request
 
-def on_release(key):
-    try:
-        # Create a hotkey handler for Ctrl+C
-        hotkey = keyboard.HotKey(
-            keyboard.HotKey.parse('<ctrl>+c'),
-            on_activate
-        )
-        
-        # Stop listener if Esc is pressed
-        if key == keyboard.Key.esc:
-            print("Exiting...")
-            return False
-        
-        # Pass the key release event to the hotkey handler
-        hotkey.release(l.canonical(key))
-    except Exception as e:
-        print(f"Error in key release: {e}")
+    @QtCore.pyqtSlot()
+    def on_finished(self):
+        reply = self.sender()
+        if reply.error() == QtNetwork.QNetworkReply.NoError:
+            content = reply.readAll().data()
+            suggestions = ET.fromstring(content)
+            for data in suggestions.iter("suggestion"):
+                suggestion = data.attrib["data"]
+                self.appendRow(QtGui.QStandardItem(suggestion))
+            self.error.emit("")
+        elif reply.error() != QtNetwork.QNetworkReply.OperationCanceledError:
+            self.error.emit(reply.errorString())
+        else:
+            self.error.emit("")
+        self.finished.emit()
+        reply.deleteLater()
+        self._reply = None
 
-# Start the listener
-print("Keyboard listener started. Press Ctrl+C to trigger hotkey, ESC to exit.")
-with keyboard.Listener(
-        on_press=on_press,
-        on_release=on_release) as l:
-    l.join()
+
+class Completer(QtWidgets.QCompleter):
+    def splitPath(self, path):
+        self.model().search(path)
+        return super(Completer, self).splitPath(path)
+
+
+class Widget(QtWidgets.QWidget):
+    def __init__(self, parent=None):
+        super(Widget, self).__init__(parent)
+        self._model = SuggestionModel(self)
+        completer = Completer(self, caseSensitivity=QtCore.Qt.CaseInsensitive)
+        completer.setModel(self._model)
+        lineedit = QtWidgets.QLineEdit()
+        lineedit.setCompleter(completer)
+        label = QtWidgets.QLabel()
+        self._model.error.connect(label.setText)
+        lay = QtWidgets.QFormLayout(self)
+        lay.addRow("Location: ", lineedit)
+        lay.addRow("Error: ", label)
+
+
+if __name__ == "__main__":
+    import sys
+
+    app = QtWidgets.QApplication(sys.argv)
+    w = Widget()
+    w.resize(400, w.sizeHint().height())
+    w.show()
+    sys.exit(app.exec_())

@@ -1,4 +1,8 @@
 import os
+from dotenv import load_dotenv
+import aiohttp
+import asyncio
+import httpx
 from PyQt5.QtWidgets import (
     QApplication, QTableWidget, QTableWidgetItem, QHeaderView, QVBoxLayout, QDialog, QLabel, QPushButton,QHBoxLayout, QRadioButton, QPushButton
 )
@@ -22,14 +26,61 @@ class SearchWidget(QDialog):
         #getting the search bar
         autoComplete_widget = AutocompleteWidget(self)
         self.horizontalLayout.addWidget(autoComplete_widget)
+
+        #adding change event to line edit
+        autoComplete_widget.lineedit.textChanged.connect(
+        lambda text, d=self.data: self.searchVerse(d, text)
+        )
+
+        
         
         # version.currentIndexChanged.connect(self.searchVerse)
         current_text = self.version.currentText()
 
+        load_dotenv()
+        self.api_key = os.getenv('API_KEY')
+        self.engine_id = os.getenv('SEARCH_ENGINE_ID')
+    def searchVerse(self, data=None, query=None, enter=False):
+        """
+        Handles search logic when the user types in the search bar.
+        """
+        num_space = query.count(' ')
 
+        # Ensure the query is valid for searching
+        if num_space >= 3 or enter:
+            # Perform the search
+            try:
+                results = self.google_srch(query=query, api_key=self.api_key, engine_id=self.engine_id)
+                # print('results', results['items'])
+                #result items contains title, snippet
+                all_results = results['items']
+                for result in all_results:
+                    print('title',result['title'])
+                    print()
+                    print('snippet',result['snippet'])
+                    print()
+                    print('link',result['link'])
+                    print()
 
+            except Exception as e:
+                print('Error during search:', e)
+        else:
+            print("Insufficient input for search.")
 
+    def google_srch(self, query, api_key, engine_id, num_results=10):
+        """
+        Performs a Google Custom Search API request.
+        """
+        print(f'{query=}, {api_key=}, {engine_id=}, {num_results=}')
+        url = 'https://customsearch.googleapis.com/customsearch/v1'
+        params = {
+            "key": api_key,
+            "cx": engine_id,
+            "q": f'{query}  site:biblegateway.com',
+            "num": num_results
+        }
         
-
-
-
+        # Perform the synchronous HTTP request
+        response = httpx.get(url, params=params)
+        response.raise_for_status()  # Raise an exception for HTTP errors
+        return response.json()

@@ -63,7 +63,7 @@ class Welcome(QDialog):
             datapane.addWidget(no_autos)
         else:
             datapane = self.verticalLayout.layout()
-            print(datapane)
+            # print(datapane)
             
           
             # deleteing prev radio buttons
@@ -91,7 +91,7 @@ class Welcome(QDialog):
     def toggledradio(self, data = None, button_name = None):
          # Find the specific automaton by button_name
         self.selected = [automaton for automaton in data["Automata"] if automaton["name"] == button_name][0]['actions']
-        print(self.selected)
+        # print(self.selected)
         
     def delete(self, data = None, button_name = None):
         # button = self.sender() #getting the button triggering the event
