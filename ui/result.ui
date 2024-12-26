@@ -15,7 +15,7 @@
   </property>
   <layout class="QGridLayout" name="gridLayout">
    <item row="0" column="0">
-    <layout class="QVBoxLayout" name="verticalLayout">
+    <layout class="QVBoxLayout" name="result">
      <item>
       <widget class="QWidget" name="widget_2" native="true">
        <property name="maximumSize">
@@ -64,12 +64,21 @@
        </property>
        <layout class="QVBoxLayout" name="verticalLayout_2">
         <item>
-         <widget class="QPushButton" name="pushButton">
+         <widget class="QPushButton" name="save">
           <property name="maximumSize">
            <size>
             <width>200</width>
             <height>60</height>
            </size>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">    border-style: outset;
+    border-width: 2px;
+    border-radius: 15px;
+    border-color: black;
+    padding: 4px;
+font:20px
+</string>
           </property>
           <property name="text">
            <string>Save</string>

@@ -1,105 +1,160 @@
 import os
 from dotenv import load_dotenv
-import util.getReference as getReference
-import aiohttp
-import asyncio
 from PyQt5.uic import loadUi
 import httpx
-from PyQt5.QtWidgets import (
-    QApplication, QTableWidget, QTableWidgetItem, QHeaderView, QVBoxLayout, QDialog, QLabel, QPushButton,QHBoxLayout, QRadioButton, QPushButton
-)
-from PyQt5.uic import loadUi
+from PyQt5.QtWidgets import QDialog, QApplication
+from collections import OrderedDict
+import util.getReference as getReference
 from widgets.SearchBar import AutocompleteWidget
-import  util.savedVerses as savedVerses
+from PyQt5.QtCore import QThread, pyqtSignal
+import asyncio
+from functools import partial
+from typing import Dict, Optional
+
+class SearchThread(QThread):
+    finished = pyqtSignal(dict, str)
+
+    def __init__(self, api_key: str, engine_id: str, query: str):
+        super().__init__()
+        self.api_key = api_key
+        self.engine_id = engine_id
+        self.query = query
+
+    def run(self):
+        url = 'https://customsearch.googleapis.com/customsearch/v1'
+        params = {
+            "key": self.api_key,
+            "cx": self.engine_id,
+            "q": f'{self.query} ',
+            "num": 10
+        }
+        response = httpx.get(url, params=params)
+        response.raise_for_status()
+        self.finished.emit(response.json(), self.query)
+
 class SearchWidget(QDialog):
-    def __init__(self, data = None):
+    def __init__(self, data=None):
         super().__init__()
         ui_path = os.path.join(os.path.dirname(__file__), '../ui/search.ui')
         assert os.path.exists(ui_path), f"UI file not found: {ui_path}"
-
         loadUi(ui_path, self)
 
-        #adding action event to the version
         self.version.addItems(['','KJV', 'NIV', 'ESV'])
         self.version.setCurrentIndex(0)
         self.data = data
-        print('data in search widget', data)    
+        self.verse_tracker = OrderedDict()
+        self.verse_widgets: Dict[str, QDialog] = {}  # Store widget references
+        self.search_thread: Optional[SearchThread] = None
+        self.last_query_time = 0
         
-        #getting the search bar
         autoComplete_widget = AutocompleteWidget(self)
         self.horizontalLayout.addWidget(autoComplete_widget)
-
-        #adding change event to line edit
         autoComplete_widget.lineedit.textChanged.connect(
-        lambda text, d=self.data: self.searchVerse(d, text)
+            lambda text, d=self.data: self.handle_search(d, text)
         )
-
-        
-        
-        # version.currentIndexChanged.connect(self.searchVerse)
-        current_text = self.version.currentText()
 
         load_dotenv()
         self.api_key = os.getenv('API_KEY')
         self.engine_id = os.getenv('SEARCH_ENGINE_ID')
-    def searchVerse(self, data=None, query=None, enter=False):
-        """
-        Handles search logic when the user types in the search bar.
-        """
-        num_space = query.count(' ')
 
-        # Ensure the query is valid for searching
-        if num_space >= 3 or enter:
-            # Perform the search
-            try:
-                link = os.path.join(os.path.dirname(__file__), '../ui/result.ui')
-                results = self.google_srch(query=query, api_key=self.api_key, engine_id=self.engine_id)
-                # print('results', results['items'])
-                #result items contains title, snippet
-                all_results = results['items']
-                all_results = all_results[::-1]
-                for result in all_results:
-                    #loading the vere panel from result
-                    single_result = loadUi(link)
-                    title_array = getReference.getReference(result['title'])
+    def update_verse_tracker(self, new_results, query):
+        for result in new_results[:10]:
+            title_array = getReference.getReference(result['title'])
+            if not title_array:
+                continue
+            
+            verse_key = title_array[0]
+            if verse_key in self.verse_tracker:
+                self.verse_tracker.move_to_end(verse_key)
+                self.verse_tracker[verse_key]['priority'] += 1
+                # Update existing widget
+                if verse_key in self.verse_widgets:
                     body = getReference.boldedText(result['snippet'], query)
-                    if len(title_array) == 0:
-                        continue
-                    title = title_array[0]
-                    single_result.body.setText(body)
-                    single_result.title.setText(title)
+                    self.verse_widgets[verse_key].body.setText(body)
+            else:
+                if len(self.verse_tracker) < 10:
+                    self.verse_tracker[verse_key] = {
+                        'priority': 1,
+                        'data': result,
+                        'query': query
+                    }
+                    self.add_verse_widget(verse_key, result, query)
+                else:
+                    lowest_key = next(iter(self.verse_tracker))
+                    if self.verse_tracker[lowest_key]['priority'] < 1:
+                        # Remove lowest priority widget
+                        if lowest_key in self.verse_widgets:
+                            widget = self.verse_widgets.pop(lowest_key)
+                            self.searchPane.removeWidget(widget)
+                            widget.deleteLater()
+                        
+                        self.verse_tracker.popitem(last=False)
+                        self.verse_tracker[verse_key] = {
+                            'priority': 1,
+                            'data': result,
+                            'query': query
+                        }
+                        self.add_verse_widget(verse_key, result, query)
 
-                    self.searchPane.addWidget(single_result)
-                    # print('title',title)
-                    # print()
-                    # print('body',body)
-                    # single_result.title.setText(getReference.getReference(result['title']))
-                    # print('title',result['title'])
-                    # print()
-                    # print('snippet',result['snippet'])
-                    # print()
-                    # print('link',result['link'])
-                    # print()
-
-            except Exception as e:
-                print('Error during search:', e)
-        else:
-            print("Insufficient input for search.")
-
-    def google_srch(self, query, api_key, engine_id, num_results=10):
-        """
-        Performs a Google Custom Search API request.
-        """
-        print(f'{query=}, {api_key=}, {engine_id=}, {num_results=}')
-        url = 'https://customsearch.googleapis.com/customsearch/v1'
-        params = {
-            "key": api_key,
-            "cx": engine_id,
-            "q": f'{query}  site:biblegateway.com',
-            "num": num_results
-        }
+    def add_verse_widget(self, verse_key, result, query):
+        link = os.path.join(os.path.dirname(__file__), '../ui/result.ui')
+        single_result = loadUi(link)
+        body = getReference.boldedText(result['snippet'], query)
+        single_result.body.setText(body)
+        single_result.title.setText(verse_key)
         
-        # Perform the synchronous HTTP request
-        response = httpx.get(url, params=params)
-        response.raise_for_status()  # Raise an exception for HTTP errors
-        return response.json()
+        single_result.save.clicked.connect(lambda t=verse_key, b=body: self.savedVerses(t, b))
+        self.searchPane.addWidget(single_result)
+        self.verse_widgets[verse_key] = single_result
+        def mouse_click(event):
+            self.present(verse_key, single_result)
+            print('the result was clicked')
+        single_result.title.mousePressEvent = mouse_click
+        
+        # self.searchPane.single_result.clicked.connect(self.present)  
+
+    def handle_search(self, data=None, query=None):
+        if query == "":
+            while self.searchPane.count():
+                widget = self.searchPane.takeAt(0).widget()
+                if widget:
+                    widget.deleteLater()
+            self.verse_tracker = OrderedDict()
+            self.verse_widgets: Dict[str, QDialog] = {}  # Store widget references
+            self.search_thread: Optional[SearchThread] = None
+            self.last_query_time = 0
+            return
+        print('here is the query', query)
+
+        if not query or query.count(' ') < 3:
+            return
+
+        # Cancel any existing search
+        if self.search_thread and self.search_thread.isRunning():
+            self.search_thread.terminate()
+            self.search_thread.wait()
+
+        # Start new search thread
+        self.search_thread = SearchThread(self.api_key, self.engine_id, query)
+        self.search_thread.finished.connect(
+            lambda results, q: self.handle_search_results(results, q)
+        )
+        self.search_thread.start()
+
+    def handle_search_results(self, results, query):
+        if 'items' in results:
+            self.update_verse_tracker(results['items'], query)
+
+    def savedVerses(self, title, body):
+        pass
+
+    def present(self, title, automata):
+        #getting the originator of the event
+        # clicked_widget = self.sender()
+        # verse_reference = clicked_widget.title.text()
+        clipboard = QApplication.clipboard()
+        clipboard.setText(title)
+        print(title)
+        print('copied to clipboard')
+
+        pass
