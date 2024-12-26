@@ -10,6 +10,7 @@ from PyQt5.QtCore import QThread, pyqtSignal
 import asyncio
 from functools import partial
 from typing import Dict, Optional
+import util.Simulate as Simulate
 
 class SearchThread(QThread):
     finished = pyqtSignal(dict, str)
@@ -42,6 +43,7 @@ class SearchWidget(QDialog):
         self.version.addItems(['','KJV', 'NIV', 'ESV'])
         self.version.setCurrentIndex(0)
         self.data = data
+        # print('data', data)
         self.verse_tracker = OrderedDict()
         self.verse_widgets: Dict[str, QDialog] = {}  # Store widget references
         self.search_thread: Optional[SearchThread] = None
@@ -107,9 +109,10 @@ class SearchWidget(QDialog):
         self.searchPane.addWidget(single_result)
         self.verse_widgets[verse_key] = single_result
         def mouse_click(event):
-            self.present(verse_key, single_result)
+            self.present(verse_key, self.data)
             print('the result was clicked')
         single_result.title.mousePressEvent = mouse_click
+        single_result.body.mousePressEvent = mouse_click
         
         # self.searchPane.single_result.clicked.connect(self.present)  
 
@@ -156,5 +159,15 @@ class SearchWidget(QDialog):
         clipboard.setText(title)
         print(title)
         print('copied to clipboard')
-
-        pass
+        print(automata)
+        #using simulating the automata
+        for action in automata:
+            if action['action'] == 'click':
+                x_coord = action['location'][0]
+                y_coord = action['location'][1]
+                button = action['button']
+                Simulate.simClick(x_coord, y_coord, button, True)
+            elif action['action'] == 'paste':
+                Simulate.simPaste('v', True)
+        print("done")
+ 
