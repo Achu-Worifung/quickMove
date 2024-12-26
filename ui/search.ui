@@ -33,32 +33,11 @@
              <height>569</height>
             </rect>
            </property>
-           <widget class="QLabel" name="label_2">
-            <property name="geometry">
-             <rect>
-              <x>10</x>
-              <y>10</y>
-              <width>151</width>
-              <height>31</height>
-             </rect>
-            </property>
-            <property name="text">
-             <string>Search Results</string>
-            </property>
-           </widget>
-           <widget class="QLabel" name="no_results">
-            <property name="geometry">
-             <rect>
-              <x>10</x>
-              <y>50</y>
-              <width>151</width>
-              <height>31</height>
-             </rect>
-            </property>
-            <property name="text">
-             <string>Search Results</string>
-            </property>
-           </widget>
+           <layout class="QVBoxLayout" name="verticalLayout_2">
+            <item>
+             <layout class="QVBoxLayout" name="searchPane"/>
+            </item>
+           </layout>
           </widget>
          </widget>
         </item>

@@ -1,7 +1,9 @@
 import os
 from dotenv import load_dotenv
+import util.getReference as getReference
 import aiohttp
 import asyncio
+from PyQt5.uic import loadUi
 import httpx
 from PyQt5.QtWidgets import (
     QApplication, QTableWidget, QTableWidgetItem, QHeaderView, QVBoxLayout, QDialog, QLabel, QPushButton,QHBoxLayout, QRadioButton, QPushButton
@@ -50,17 +52,34 @@ class SearchWidget(QDialog):
         if num_space >= 3 or enter:
             # Perform the search
             try:
+                link = os.path.join(os.path.dirname(__file__), '../ui/result.ui')
                 results = self.google_srch(query=query, api_key=self.api_key, engine_id=self.engine_id)
                 # print('results', results['items'])
                 #result items contains title, snippet
                 all_results = results['items']
+                all_results = all_results[::-1]
                 for result in all_results:
-                    print('title',result['title'])
-                    print()
-                    print('snippet',result['snippet'])
-                    print()
-                    print('link',result['link'])
-                    print()
+                    #loading the vere panel from result
+                    single_result = loadUi(link)
+                    title_array = getReference.getReference(result['title'])
+                    body = getReference.boldedText(result['snippet'], query)
+                    if len(title_array) == 0:
+                        continue
+                    title = title_array[0]
+                    single_result.body.setText(body)
+                    single_result.title.setText(title)
+
+                    self.searchPane.addWidget(single_result)
+                    # print('title',title)
+                    # print()
+                    # print('body',body)
+                    # single_result.title.setText(getReference.getReference(result['title']))
+                    # print('title',result['title'])
+                    # print()
+                    # print('snippet',result['snippet'])
+                    # print()
+                    # print('link',result['link'])
+                    # print()
 
             except Exception as e:
                 print('Error during search:', e)
