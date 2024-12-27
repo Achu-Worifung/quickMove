@@ -1,116 +1,105 @@
-"""
-This module creates a new automaton by tracking mouse and keyboard events."""
-
 from pynput import keyboard, mouse
+from PyQt5.QtCore import QObject, pyqtSignal
 
-def create_new_automaton(edit=False):
-    """
-    Create a new automaton by tracking mouse and keyboard events.
 
-    Args:
-        edit (bool): If True, stop tracking after the first event.
+class EventTracker(QObject):
+    event_recorded = pyqtSignal(dict)  # Signal for new events
+    tracking_finished = pyqtSignal(list)  # Signal for complete action list
 
-    Returns:
-        list: List of tracked actions.
-    """
-    # Store actions in a list
-    actionList = []
+    def __init__(self):
+        super().__init__()
+        self.actionList = []
+        self.tracking = False
+        self.current_keys = set()
+        self.click_listener = None
+        self.keyboard_listener = None
 
-    # Tracking state
-    tracking = True
-    event_logged = False  # Flag to ensure at least one event is logged in edit mode
+    def create_new_automaton(self, edit=False):
+        """
+        Start tracking mouse and keyboard events to create a new automaton.
 
-    # All acceptable hotkey combinations
-    combination = [
-        {keyboard.Key.ctrl_l, keyboard.KeyCode(char='v')},
-        {keyboard.Key.ctrl_r, keyboard.KeyCode(char='v')},
-        {keyboard.Key.ctrl_r, keyboard.KeyCode(char='V')},
-        {keyboard.Key.ctrl_l, keyboard.KeyCode(char='V')}
-    ]
-    current = set()
+        Args:
+            edit (bool): If True, stop after logging the first event.
 
-    def on_copy():
-        """Log copy/paste action."""
-        nonlocal tracking, event_logged
-        actionList.append({
+        Returns:
+            list: List of tracked actions.
+        """
+        self.tracking = True
+        self.current_keys.clear()
+
+        def on_mouse_click(x, y, button, pressed):
+            if not self.tracking:
+                return False
+            if pressed:
+                event = {
+                    'action': 'click',
+                    'location': (x, y),
+                    'button': str(button)
+                }
+                self.actionList.append(event)
+                self.event_recorded.emit(event)
+                print(f"Mouse clicked at {x}, {y} with {button}")
+                if edit:
+                    self.stop_tracking()
+
+        def on_keyboard_press(key):
+            if not self.tracking:
+                return False
+            try:
+                if key == keyboard.Key.esc:
+                    print("ESC pressed. Stopping tracking.")
+                    self.stop_tracking()
+                    return False
+                self.current_keys.add(key)
+                if self.is_paste_combination():
+                    self.log_paste_event(edit)
+            except Exception as e:
+                print(f"Keyboard press error: {e}")
+
+        def on_keyboard_release(key):
+            try:
+                self.current_keys.discard(key)
+            except Exception as e:
+                print(f"Keyboard release error: {e}")
+
+        # Initialize listeners
+        self.click_listener = mouse.Listener(on_click=on_mouse_click)
+        self.keyboard_listener = keyboard.Listener(on_press=on_keyboard_press, on_release=on_keyboard_release)
+
+        self.click_listener.start()
+        self.keyboard_listener.start()
+
+        print("Listeners started. Tracking events...")
+        while self.tracking:
+            pass
+
+    def stop_tracking(self):
+        """Stop tracking events and terminate listeners."""
+        self.tracking = False
+        if self.click_listener and self.click_listener.running:
+            self.click_listener.stop()
+        if self.keyboard_listener and self.keyboard_listener.running:
+            self.keyboard_listener.stop()
+        self.tracking_finished.emit(self.actionList)
+        print("Tracking stopped and listeners terminated.")
+
+    def is_paste_combination(self):
+        """Check if the current keys match a paste (Ctrl+V) combination."""
+        paste_combinations = [
+            {keyboard.Key.ctrl_l, keyboard.KeyCode(char='v')},
+            {keyboard.Key.ctrl_r, keyboard.KeyCode(char='v')}
+        ]
+        return any(all(k in self.current_keys for k in combo) for combo in paste_combinations)
+
+    def log_paste_event(self, edit):
+        """Log a paste event."""
+        event = {
             'action': 'paste',
             'button': 'ctrl+v',
             'location': 'clipboard'
-        })
+        }
+        self.actionList.append(event)
+        self.event_recorded.emit(event)
         print("Ctrl + V detected and logged!")
-        event_logged = True  # Mark that an event has been logged
         if edit:
-            tracking = False  # Stop tracking
-
-    def on_mouse_click(x, y, button, pressed):
-        """Log mouse click events."""
-        nonlocal tracking, event_logged
-        if pressed:
-            actionList.append({
-                'action': 'click',
-                'location': (x, y),
-                'button': str(button)
-            })
-            print(f"Mouse clicked at {x}, {y} with {button}")
-            event_logged = True  # Mark that an event has been logged
-            if edit:
-                tracking = False  # Stop tracking
-
-    def on_keyboard_press(key):
-        nonlocal current, tracking, event_logged
-        try:
-            # Handle Escape key to stop tracking
-            if key == keyboard.Key.esc:
-                print("Stopping listeners...")
-                tracking = False
-                return False
-            
-            # Check if the pressed key is part of any combination
-            if any([key in comb for comb in combination]):
-                current.add(key)
-                
-                # Check if any complete combination is pressed
-                if any(all(k in current for k in comb) for comb in combination):
-                    on_copy()
-        except AttributeError:
-            pass
-
-    def on_keyboard_release(key):
-        nonlocal current
-        try:
-            # Remove the key from current set if it was part of a combination
-            if any([key in comb for comb in combination]):
-                if key in current:
-                    current.remove(key)
-        except AttributeError:
-            pass
-
-    # Start listeners
-    click_listener = mouse.Listener(on_click=on_mouse_click)
-    keyboard_listener = keyboard.Listener(
-        on_press=on_keyboard_press,
-        on_release=on_keyboard_release
-    )
-
-    # Start and join listeners
-    click_listener.start()
-    keyboard_listener.start()
-
-    try:
-        while tracking:
-            if edit and event_logged:
-                # Stop tracking if in edit mode and an event has been logged
-                break
-    except Exception as e:
-        print(f"An exception occurred: {e}")
-    finally:
-        # Stop listeners
-        click_listener.stop()
-        keyboard_listener.stop()
-
-    return actionList
-
-# Can be used for standalone testing
-if __name__ == '__main__':
-    actions = create_new_automaton(edit=True)
-    print("Tracked Actions:", actions)
+            self.stop_tracking()

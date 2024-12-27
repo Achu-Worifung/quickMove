@@ -1,56 +1,61 @@
+# noauto.py
 from PyQt5 import *
 from PyQt5.QtCore import QThread, pyqtSignal
-from PyQt5.QtWidgets import QDialog
+from PyQt5.QtWidgets import QDialog, QVBoxLayout, QLabel
 from PyQt5.uic import loadUi
-from util import event_tracker, walk, Message as msg
-import util.clearLayout as clearLayout
+from util import walk, Message as msg
+
 from widgets.editAutomata import editAutomata
 import os
-class noAutomata(QDialog):
-    def __init__(self, label = None):
-        super(noAutomata, self).__init__()
-        ui_path = os.path.join(os.path.dirname(__file__), '../ui/no_autos.ui')
+from util.event_tracker import EventTracker  # Update import path as needed
 
+class noAutomata(QDialog):
+    def __init__(self, label=None):
+        super(noAutomata, self).__init__()
+        ui_path = os.path.join(os.path.dirname(__file__), '../ui/create_automata.ui')
         loadUi(ui_path, self)
-        #adding action event to button
-        self.create_auto.clicked.connect(self.start_tracking)
-        if label:
-            self.label_4.setText("Create new automata")
         
-    # def start_tracking(self):
-    #     # Show tracking started message
-    #     start = msg.informationBox(self, "StartTracking", 'Press Ok to start tracking and ESC to stop')
-        
-    #     if start :
-    #         # start tracking
-    #         print("Tracking started")
-    
+        # Initialize UI
+        self.record.clicked.connect(self.start_tracking)
+        self.tracking = False
+        self.stop.clicked.connect(self.stop_tracking)
+
     def start_tracking(self):
-        # Show tracking started message
+        if self.tracking:
+            return
         ok = msg.questionBox(self, "StartTracking", 'Press YES to start tracking and ESC to stop')
         
-        if ok :
-            # start tracking
+        if ok:
             print("Tracking started")
-            # Create and start the event tracker thread
             self.event_tracker_thread = EventTrackerThread()
-            self.event_tracker_thread.tracking_finished.connect(self.on_tracking_finished)
+            self.event_tracker_thread.tracker.event_recorded.connect(self.on_event_recorded)
+            self.event_tracker_thread.tracker.tracking_finished.connect(self.on_tracking_finished)
             self.event_tracker_thread.start()
-
+            self.tracking = True
+    def stop_tracking(self):
+        if not self.tracking:
+            msg.warningBox(self, "Stop Tracking", "Tracking is not active")
+            return
+        #modifying the action list to remove last click
+        self.event_tracker_thread.tracker.actionList = self.event_tracker_thread.tracker.actionList[:-1]
+        self.event_tracker_thread.tracker.stop_tracking()
+        print('in stop tracking')
+    def on_event_recorded(self, event):
+        """Handle new events as they come in"""
+        self.plainTextEdit.appendPlainText("New event recorded: {event}.\n".format(event=event))
 
     def on_tracking_finished(self, action_list):
-        mainwindow = self.parent().layout()
+        from util.clearLayout import clearLayout
+        """Handle completion of tracking"""
+        print("Tracking finished")
+        mainwindow = self.layout()
+        clearLayout(mainwindow)
         mainwindow.addWidget(editAutomata(action_list, 'Automata'))
 
-
-
 class EventTrackerThread(QThread):
-    """
-    A QThread to handle event tracking without blocking the main UI
-    """
-    tracking_finished = pyqtSignal(list)
-    
+    def __init__(self):
+        super().__init__()
+        self.tracker = EventTracker()
+        
     def run(self):
-        # Call the tracking function and get results
-        action_list = event_tracker.create_new_automaton()
-        self.tracking_finished.emit(action_list)
+        self.tracker.create_new_automaton()
