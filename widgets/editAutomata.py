@@ -22,6 +22,7 @@ class editAutomata(QDialog):
         loadUi(ui_path, self)
 
         self.popTable(data, name)
+        
         # check if data is being passed
 
     # def getSelectedRow(self):
@@ -31,13 +32,14 @@ class editAutomata(QDialog):
     #  # select_row = self.table.removeRow(select_row) #removes the selected row
     #   print(select_row)
     def popTable(self, data, name):
+
         # editing the title
         self.title.setText("Editing Automata: " + name)
+
         # data only contains the actions
         # setting the row and name in the table
         self.table.setRowCount(len(data) + 1)
 
-        print("len of data ", len(data))
         self.table.setItem(0, 0, QtWidgets.QTableWidgetItem("Name"))
         self.table.setItem(0, 1, QtWidgets.QTableWidgetItem(name))
         # populating the rest of the table

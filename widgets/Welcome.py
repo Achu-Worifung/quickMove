@@ -8,10 +8,9 @@ from PyQt5.QtWidgets import (
     QApplication, QTableWidget, QTableWidgetItem, QHeaderView, QVBoxLayout, QDialog, QLabel, QPushButton,QHBoxLayout, QRadioButton, QPushButton
 )
 # from widgets import noAutomata, editAutomata
-from widgets.noAutomata import noAutomata
 from widgets.SearchWidget import SearchWidget
-from widgets.editAutomata import editAutomata
-from util import clearLayout, walk
+# from util import clearLayout, walk
+import util.walk as walk
 # from util.walk import get_data
 from util.clearLayout import clearLayout
 class Welcome(QDialog):
@@ -46,7 +45,8 @@ class Welcome(QDialog):
         self.start()
 
     def start(self, data = None):
-      
+        from widgets.noAutomata import noAutomata
+
            
         if not data:
             data = walk.get_data()
@@ -63,7 +63,7 @@ class Welcome(QDialog):
             datapane.addWidget(no_autos)
         else:
             datapane = self.verticalLayout.layout()
-            # print(datapane)
+            print(datapane)
             
           
             # deleteing prev radio buttons
@@ -91,7 +91,7 @@ class Welcome(QDialog):
     def toggledradio(self, data = None, button_name = None):
          # Find the specific automaton by button_name
         self.selected = [automaton for automaton in data["Automata"] if automaton["name"] == button_name][0]['actions']
-        # print(self.selected)
+        print(self.selected)
         
     def delete(self, data = None, button_name = None):
         # button = self.sender() #getting the button triggering the event
@@ -133,6 +133,8 @@ class Welcome(QDialog):
             
             #issue several button that edit the data but each button access to the data doesn't affect the other
     def mod(self, data = None, button_name = None): #data = entire json file
+        from widgets.editAutomata import editAutomata
+        
         if not data:
             msg.warningBox(self, "Error", "No data found")
             return 
@@ -154,7 +156,9 @@ class Welcome(QDialog):
                     
 
     def createAutomata(self):
-        no_autos = noAutomata()
+        from widgets.noAutomata import noAutomata
+
+        no_autos = noAutomata('Create new automata')
             
         # Clear current layout and add no_autos widget
         datapane = self.scrollPane.layout()
