@@ -7,6 +7,8 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.setCentralWidget(Welcome())
         self.setGeometry(100, 100, 800, 800)
+        self.setWindowTitle("Automata Simulator")
+        # self.seti
 
 def main():
     app = QApplication(sys.argv)

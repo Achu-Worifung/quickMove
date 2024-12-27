@@ -104,8 +104,9 @@ class SearchWidget(QDialog):
         body = getReference.boldedText(result['snippet'], query)
         single_result.body.setText(body)
         single_result.title.setText(verse_key)
+        print('verse_key', verse_key)
         
-        single_result.save.clicked.connect(lambda t=verse_key, b=body: self.savedVerses(t, b))
+        single_result.save.clicked.connect(lambda checked=False,t=verse_key, b=body: self.savedVerses(t, b))
         self.searchPane.addWidget(single_result)
         self.verse_widgets[verse_key] = single_result
         def mouse_click(event):
@@ -149,7 +150,17 @@ class SearchWidget(QDialog):
             self.update_verse_tracker(results['items'], query)
 
     def savedVerses(self, title, body):
-        pass
+        print('title', title)
+        print('body', body)
+        link = os.path.join(os.path.dirname(__file__), '../ui/result.ui')
+        saved = loadUi(link)
+        saved.title.setText(title)
+        saved.body.setText(body)
+        # len = len(self.verse_widgets)
+        #add one to len latter
+
+        self.searchPane.insertWidget(len, saved) #index 0 is the label widget
+        
 
     def present(self, title, automata):
         #getting the originator of the event
