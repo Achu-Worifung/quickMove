@@ -11,6 +11,8 @@ import asyncio
 from functools import partial
 from typing import Dict, Optional
 import util.Simulate as Simulate
+from PyQt5.QtCore import QPropertyAnimation, QEasingCurve
+
 
 class SearchThread(QThread):
     finished = pyqtSignal(dict, str)
@@ -50,6 +52,7 @@ class SearchWidget(QDialog):
         self.last_query_time = 0
         
         autoComplete_widget = AutocompleteWidget(self)
+        autoComplete_widget.setStyleSheet('height: 50px; border-radius: 15px; font-size: 20px;')
         self.horizontalLayout.addWidget(autoComplete_widget)
         autoComplete_widget.lineedit.textChanged.connect(
             lambda text, d=self.data: self.handle_search(d, text)
@@ -101,6 +104,7 @@ class SearchWidget(QDialog):
     def add_verse_widget(self, verse_key, result, query):
         link = os.path.join(os.path.dirname(__file__), '../ui/result.ui')
         single_result = loadUi(link)
+        
         body = getReference.boldedText(result['snippet'], query)
         single_result.body.setText(body)
         single_result.title.setText(verse_key)

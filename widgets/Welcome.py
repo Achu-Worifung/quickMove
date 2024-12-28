@@ -9,6 +9,7 @@ from PyQt5.QtWidgets import (
 )
 # from widgets import noAutomata, editAutomata
 from widgets.SearchWidget import SearchWidget
+from PyQt5.QtCore import Qt
 # from util import clearLayout, walk
 import util.walk as walk
 # from util.walk import get_data
@@ -52,15 +53,13 @@ class Welcome(QDialog):
             data = walk.get_data()
         
         if not data:
-            no_autos = noAutomata()
+            datapane = self.verticalLayout.layout()
+            label = QLabel("No automata found\nClick on the 'Create New Automata' button to create a new automata")
+            label.setStyleSheet("font-size: 12pt; color: red;") # Changed em to px
+            label.setAlignment(Qt.AlignCenter)  # Changed self.label to label
+            datapane.addWidget(label)
             
-            # Clear current layout and add no_autos widget
-            datapane = self.scrollPane.layout()
-            # print(datapane)
-            #clearing the layout
-            clearLayout(datapane)
-            
-            datapane.addWidget(no_autos)
+ 
         else:
             datapane = self.verticalLayout.layout()
             print(datapane)
