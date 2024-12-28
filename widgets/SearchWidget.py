@@ -111,7 +111,7 @@ class SearchWidget(QDialog):
         print('verse_key', verse_key)
         
         single_result.save.clicked.connect(lambda checked=False,t=verse_key, b=body: self.savedVerses(t, b))
-        self.searchPane.addWidget(single_result)
+        self.searchPane.insertWidget(0, single_result)
         self.verse_widgets[verse_key] = single_result
         def mouse_click(event):
             self.present(verse_key, self.data)
@@ -156,16 +156,26 @@ class SearchWidget(QDialog):
     def savedVerses(self, title, body):
         print('title', title)
         print('body', body)
-        link = os.path.join(os.path.dirname(__file__), '../ui/result.ui')
+        current_size = len(self.verse_widgets)
+        link = os.path.join(os.path.dirname(__file__), '../ui/saved.ui')
         saved = loadUi(link)
         saved.title.setText(title)
         saved.body.setText(body)
-        # len = len(self.verse_widgets)
+        saved.delete_2.clicked.connect(lambda checked=False: self.delete(saved))
         #add one to len latter
 
-        self.searchPane.insertWidget(len, saved) #index 0 is the label widget
+        self.searchPane.insertWidget(current_size+1, saved) #index 0 is the label widget
         
-
+    #deleting function for saved verses
+    def delete(self, saved):
+        print('deleting', saved)
+        #finding the saved pane and deleting it
+        index = self.searchPane.indexOf(saved)
+        if index != -1:  # Widget found
+            item = self.searchPane.takeAt(index)
+            if item.widget():
+                item.widget().deleteLater()
+        pass
     def present(self, title, automata):
         #getting the originator of the event
         # clicked_widget = self.sender()
