@@ -40,6 +40,12 @@
         </property>
         <item>
          <widget class="QWidget" name="widget_2" native="true">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="maximumSize">
            <size>
             <width>16777215</width>
@@ -120,25 +126,31 @@
         </item>
         <item>
          <widget class="QWidget" name="widget_3" native="true">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="maximumSize">
            <size>
             <width>16777215</width>
-            <height>50</height>
+            <height>200</height>
            </size>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_2">
            <item>
             <widget class="QPushButton" name="save">
              <property name="sizePolicy">
-              <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+              <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
                <horstretch>0</horstretch>
                <verstretch>0</verstretch>
               </sizepolicy>
              </property>
              <property name="maximumSize">
               <size>
-               <width>200</width>
-               <height>100</height>
+               <width>201</width>
+               <height>16777215</height>
               </size>
              </property>
              <property name="font">
@@ -152,10 +164,10 @@
              <property name="styleSheet">
               <string notr="true">    border-style: outset;
     border-width: 2px;
-    border-radius: 15px;
+    border-radius: 10px;
     border-color: black;
-font:20px
-</string>
+    padding: 4px;
+font:20px</string>
              </property>
              <property name="text">
               <string>Save</string>
