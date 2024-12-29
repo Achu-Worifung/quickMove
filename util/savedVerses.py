@@ -3,7 +3,7 @@ import json
 dir_path = os.path.expanduser("~/Quick move")  # This resolves to something like C:\Users\<username>\Quick move
 
 file_path = os.path.join(dir_path, "savedVerses.json")
-def getSavedVerses(verse):
+def getSavedVerses():
     global dir_path, file_path
 
     try:
