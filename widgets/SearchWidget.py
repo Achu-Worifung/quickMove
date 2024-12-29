@@ -97,7 +97,7 @@ class SearchWidget(QDialog):
         new_saved_verse = self.savedVerse['savedVerses']
         new_saved_verse.insert(0,{'title': title, 'body': body})
         self.savedVerse['savedVerses'] = new_saved_verse
-        savedVerses.saveVerse(new_saved_verse)
+        savedVerses.saveVerse(self.savedVerse)
 
 
     def update_verse_tracker(self, new_results, query):
@@ -161,18 +161,30 @@ class SearchWidget(QDialog):
 
     def handle_search(self, data=None, query=None):
         if query == "":
-            while self.searchPane.count():
-                widget = self.searchPane.takeAt(0).widget()
+            # Keep track if we've found the label
+            found_label = False
+            # Store widgets to delete
+            widgets_to_delete = []
+            
+            # First pass: identify widgets to delete
+            for i in range(self.searchPane.count()):
+                widget = self.searchPane.itemAt(i).widget()
                 if isinstance(widget, QLabel):
-                    break
-                if widget:
-                    print('deleting widget', widget)
-                    widget.deleteLater()
-            self.verse_tracker = OrderedDict()
-            self.verse_widgets: Dict[str, QDialog] = {}  # Store widget references
-            self.search_thread: Optional[SearchThread] = None
-            self.last_query_time = 0
-            return
+                    found_label = True
+                    continue
+                if not found_label and widget:
+                    widgets_to_delete.append(widget)
+            
+            # Second pass: delete the identified widgets
+            for widget in widgets_to_delete:
+                print('deleting widget', widget)
+                self.searchPane.removeWidget(widget)
+                widget.deleteLater()
+                self.verse_tracker = OrderedDict()
+                self.verse_widgets: Dict[str, QDialog] = {}  # Store widget references
+                self.search_thread: Optional[SearchThread] = None
+                self.last_query_time = 0
+                return
         # print('here is the query', query)
 
         if not query or query.count(' ') < 3:
@@ -197,8 +209,6 @@ class SearchWidget(QDialog):
 
     #function to add saved verses to the saved pane
     def savedVerses(self, title, body):
-        print('title', title)
-        print('body', body)
         current_size = len(self.verse_widgets)
         link = os.path.join(os.path.dirname(__file__), '../ui/saved.ui')
         saved = loadUi(link)
@@ -214,13 +224,14 @@ class SearchWidget(QDialog):
         
     #deleting function for saved verses
     def delete(self, saved):
-        print('deleting', saved)
+        print('deleting', saved.title.text())
         #finding the saved pane and deleting it
-        index = self.searchane.indexOf(saved)
+        index = self.searchPane.indexOf(saved)
         if index != -1:  # Widget found
             item = self.searchPane.takeAt(index)
             if item.widget():
                 item.widget().deleteLater()
+                self.delete_saved_verse(saved.title.text())
         pass
     def present(self, title, automata):
         #getting the originator of the event
