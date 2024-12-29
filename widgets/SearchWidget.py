@@ -68,6 +68,9 @@ class SearchWidget(QDialog):
         self.api_key = os.getenv('API_KEY')
         self.engine_id = os.getenv('SEARCH_ENGINE_ID')
 
+        #adding action listerner to change auto button
+        self.pushButton.clicked.connect(lambda checked=False: self.changeAuto())
+
         self.pop_saved_verse()
         self.pop = False
     def pop_saved_verse(self):
@@ -252,4 +255,19 @@ class SearchWidget(QDialog):
             elif action['action'] == 'paste':
                 Simulate.simPaste('v', True)
         print("done")
+    
+    #change auto function
+    def changeAuto(self):
+        #importing the change auto pane
+        from widgets.Welcome import Welcome
+        from util.clearLayout import clearLayout
+
+
+        curr_pane = self.parent().layout()
+
+        clearLayout(curr_pane)
+        
+        curr_pane.addWidget(Welcome())
+        print('curr_pane', curr_pane)
+        pass
  

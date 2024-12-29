@@ -19,6 +19,63 @@
      <item row="0" column="0">
       <widget class="QWidget" name="widget" native="true">
        <layout class="QGridLayout" name="gridLayout_4">
+        <item row="0" column="0">
+         <layout class="QHBoxLayout" name="horizontalLayout"/>
+        </item>
+        <item row="1" column="0">
+         <widget class="QWidget" name="widget_2" native="true">
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>50</height>
+           </size>
+          </property>
+          <layout class="QHBoxLayout" name="horizontalLayout_2">
+           <item>
+            <widget class="QComboBox" name="version">
+             <property name="maximumSize">
+              <size>
+               <width>200</width>
+               <height>16777215</height>
+              </size>
+             </property>
+             <property name="styleSheet">
+              <string notr="true">    border-width: 2px 0 2px 0;
+    border-radius: 15px 0 15px 0;
+    border-color: black;
+    padding: 4px;
+font:20px
+</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPushButton" name="pushButton">
+             <property name="maximumSize">
+              <size>
+               <width>200</width>
+               <height>16777215</height>
+              </size>
+             </property>
+             <property name="styleSheet">
+              <string notr="true">
+
+    border-style: outset;
+    border-width: 2px;
+    border-radius: 10px;
+    border-color: black;
+    padding: 4px;
+font:20px
+</string>
+             </property>
+             <property name="text">
+              <string>Change Automata</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </item>
         <item row="2" column="0">
          <widget class="QScrollArea" name="scrollArea">
           <property name="widgetResizable">
@@ -30,7 +87,7 @@
              <x>0</x>
              <y>0</y>
              <width>793</width>
-             <height>567</height>
+             <height>547</height>
             </rect>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -60,27 +117,6 @@
             </item>
            </layout>
           </widget>
-         </widget>
-        </item>
-        <item row="0" column="0">
-         <layout class="QHBoxLayout" name="horizontalLayout"/>
-        </item>
-        <item row="1" column="0">
-         <widget class="QComboBox" name="version">
-          <property name="maximumSize">
-           <size>
-            <width>200</width>
-            <height>16777215</height>
-           </size>
-          </property>
-          <property name="styleSheet">
-           <string notr="true">    border-width: 2px 0 2px 0;
-    border-radius: 15px 0 15px 0;
-    border-color: black;
-    padding: 4px;
-font:20px
-</string>
-          </property>
          </widget>
         </item>
        </layout>
