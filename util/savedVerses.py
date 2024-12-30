@@ -1,5 +1,6 @@
 import os
 import json
+import util.Message as msg
 dir_path = os.path.expanduser("~/Quick move")  # This resolves to something like C:\Users\<username>\Quick move
 
 file_path = os.path.join(dir_path, "savedVerses.json")
@@ -27,11 +28,15 @@ def getSavedVerses():
             return json.loads(file_content)
 
     except OSError as e:
-        print(f"An error occurred: {e}")
+        msg.warningBox(None, "Error", f"An error occurred while getting saved verse: {str(e)}")
         return {}  # Return an empty dictionary if an error occurs
 def saveVerse(verse):
     global file_path
-    with open(file_path, "w") as f:
-        json.dump(verse, f)
+    try:
+        with open(file_path, "w") as f:
+            json.dump(verse, f)
+    except OSError as e:
+        msg.warningBox(None, "Error", f"An error occurred while trying to write to the saved verses file: {str(e)}")
+        return
 
 

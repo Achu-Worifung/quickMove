@@ -1,6 +1,6 @@
 from pynput import keyboard, mouse
 from PyQt5.QtCore import QObject, pyqtSignal
-
+import util.Message as msg
 
 class EventTracker(QObject):
     event_recorded = pyqtSignal(dict)  # Signal for new events
@@ -54,13 +54,13 @@ class EventTracker(QObject):
                 if self.is_paste_combination():
                     self.log_paste_event(edit)
             except Exception as e:
-                print(f"Keyboard press error: {e}")
+                 msg.warningBox(None, "Error", f"Keyboard press error: {str(e)}")
 
         def on_keyboard_release(key):
             try:
                 self.current_keys.discard(key)
             except Exception as e:
-                print(f"Keyboard release error: {e}")
+                 msg.warningBox(None, "Error", f"Keyboard release error: {str(e)}")
 
         # Initialize listeners
         self.click_listener = mouse.Listener(on_click=on_mouse_click)

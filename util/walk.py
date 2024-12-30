@@ -6,6 +6,10 @@ This module provides a function to retrieve and write  data from a JSON file in 
 
 import os
 import json
+import util.Message as msg
+
+
+
 
 # Use a user-accessible directory
 dir_path = os.path.expanduser("~/Quick move")  # This resolves to something like C:\Users\<username>\Quick move
@@ -32,12 +36,15 @@ def get_data():
                 print("File is empty. Returning empty dictionary.")
                 return {}
             return json.loads(file_content)
-
+    
+    # Catch OSError
     except OSError as e:
-        print(f"An error occurred: {e}")
+        msg.warningBox(None, "Error", f"An error occurred while trying to access the automata.json file: {str(e)}")
         return {}  # Return an empty dictionary if an error occurs
-    except json.JSONDecodeError:
-        print("Failed to decode JSON. Returning empty dictionary.")
+    
+    # Catch JSONDecodeError
+    except json.JSONDecodeError as e:
+        msg.warningBox(None, "Error", f"An error occurred while decoding the JSON: {str(e)}")
         return {}
 
 # Example usage
@@ -46,8 +53,12 @@ def get_data():
 
 def write_data(data):
     global file_path
-    with open(file_path, "w") as f:
-        json.dump(data, f) 
+    try:
+      with open(file_path, "w") as f:
+        json.dump(data, f)
+    except OSError as e:
+        msg.warningBox(None, "Error", f"An error occurred while trying to write to the automata.json file: {str(e)}")
+        return 
 
 def main():
     data = {"Automata": [
