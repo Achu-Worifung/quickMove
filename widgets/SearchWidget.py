@@ -13,6 +13,7 @@ from typing import Dict, Optional
 import util.Simulate as Simulate
 from PyQt5.QtCore import QPropertyAnimation, QEasingCurve
 import util.savedVerses as savedVerses
+import util.webScraping as webScraping
 
 
 class SearchThread(QThread):
@@ -115,8 +116,15 @@ class SearchWidget(QDialog):
                 self.verse_tracker[verse_key]['priority'] += 1
                 # Update existing widget
                 if verse_key in self.verse_widgets:
-                    body = getReference.boldedText(result['snippet'], query)
-                    self.verse_widgets[verse_key].body.setText(body)
+                    if self.version.currentIndex() == 0: #if no version is selected
+                        print('here is the verse key', verse_key)
+                        body = getReference.boldedText(result['snippet'], query)
+                        self.verse_widgets[verse_key].body.setText(body)
+                    else:
+                        selected_version = self.version.currentText()
+                        body = webScraping.get_verse(verse_key, selected_version)
+                        bolded_body = getReference.boldedText(body, query)
+                        self.verse_widgets[verse_key].body.setText(bolded_body)
             else:
                 if len(self.verse_tracker) < 10:
                     self.verse_tracker[verse_key] = {
@@ -145,8 +153,15 @@ class SearchWidget(QDialog):
     def add_verse_widget(self, verse_key, result, query):
         link = os.path.join(os.path.dirname(__file__), '../ui/result.ui')
         single_result = loadUi(link)
-        
-        body = getReference.boldedText(result['snippet'], query)
+        body = ''
+        if self.version.currentIndex() == 0: #if no version is selected
+            # print('here is the verse key', verse_key)
+            body = getReference.boldedText(result['snippet'], query)
+        else:
+            selected_version = self.version.currentText()
+            scraped_verse = webScraping.get_verse(verse_key, selected_version)
+            body = getReference.boldedText(scraped_verse, query)
+        # body = getReference.boldedText(result['snippet'], query)
         single_result.body.setText(body)
         single_result.title.setText(verse_key)
         # print('verse_key', verse_key)

@@ -1,0 +1,3 @@
+dependecies
+httpx
+.env

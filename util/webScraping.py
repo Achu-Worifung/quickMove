@@ -1,19 +1,28 @@
 import requests
 from bs4 import BeautifulSoup
+import re
 
 
-def get_verse(verse, version= "NIV"):
+def get_verse(verse, version="NIV"):
     url = f"https://www.biblegateway.com/passage/?search={verse}&version={version}"
 
-    #making the request
+    # Making the request
     r = requests.get(url)
 
-    #parsing the html
+    # Parsing the HTML
     soup = BeautifulSoup(r.content, "html.parser")
 
-    s = soup.find('span', class_='woj')
-    content = soup.find_all('#text')
+    # Locate the desired section containing the verse
+    desired_section = soup.find_all('div', class_="std-text")
+    
+    if desired_section:
+        # Extract text from the desired section and remove occurrences like "(A)"
+        raw_text = desired_section[0].text
+        cleaned_text = re.sub(r"\([A-Z]\)", '', raw_text)  # Remove patterns like "(A)"
+        cleaned_text = re.sub(r"\s{2,}", ' ', cleaned_text).strip()  # Clean up extra spaces
 
-    print(content)
+        return cleaned_text
+    
 
-get_verse("John 3:16", 'NIV')
+
+
