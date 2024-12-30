@@ -6,8 +6,7 @@ from PyQt5.QtWidgets import QDialog, QApplication, QLabel
 from collections import OrderedDict
 import util.getReference as getReference
 from widgets.SearchBar import AutocompleteWidget
-from PyQt5.QtCore import QThread, pyqtSignal
-import asyncio
+from PyQt5.QtCore import QThread, pyqtSignal, Qt
 from functools import partial
 from typing import Dict, Optional
 import util.Simulate as Simulate
@@ -50,6 +49,10 @@ class SearchWidget(QDialog):
         self.pop = True
 
         self.version.setCurrentIndex(0)
+        #centering the lines in the combox box
+        line_edit = self.version.lineEdit()
+        line_edit.setAlignment(Qt.AlignCenter)
+        line_edit.setReadOnly(True)
         self.data = data
         # print('data', data)
         self.verse_tracker = OrderedDict()
@@ -58,7 +61,7 @@ class SearchWidget(QDialog):
         self.last_query_time = 0
         
         autoComplete_widget = AutocompleteWidget(self)
-        autoComplete_widget.setStyleSheet('height: 50px; border-radius: 10px; font-size: 20px;')
+        autoComplete_widget.setStyleSheet('height: 50px; border-radius: 10px; font-size: 20px; text-align: center;')
         autoComplete_widget.lineedit.setPlaceholderText('   Search for a verse')
         self.horizontalLayout.addWidget(autoComplete_widget)
         autoComplete_widget.lineedit.textChanged.connect(
@@ -178,6 +181,7 @@ class SearchWidget(QDialog):
         # self.searchPane.single_result.clicked.connect(self.present)  
 
     def handle_search(self, data=None, query=None):
+        
         if query == "":
             # Keep track if we've found the label
             found_label = False
@@ -188,21 +192,20 @@ class SearchWidget(QDialog):
             for i in range(self.searchPane.count()):
                 widget = self.searchPane.itemAt(i).widget()
                 if isinstance(widget, QLabel):
-                    found_label = True
-                    continue
-                if not found_label and widget:
+                    break
+                else:
                     widgets_to_delete.append(widget)
-            
+            print('widgets to delete', widgets_to_delete)
             # Second pass: delete the identified widgets
             for widget in widgets_to_delete:
                 print('deleting widget', widget)
                 self.searchPane.removeWidget(widget)
                 widget.deleteLater()
-                self.verse_tracker = OrderedDict()
-                self.verse_widgets: Dict[str, QDialog] = {}  # Store widget references
-                self.search_thread: Optional[SearchThread] = None
-                self.last_query_time = 0
-                return
+            self.verse_tracker = OrderedDict()
+            self.verse_widgets: Dict[str, QDialog] = {}  # Store widget references
+            self.search_thread: Optional[SearchThread] = None
+            self.last_query_time = 0
+            return
         # print('here is the query', query)
 
         if not query or query.count(' ') < 3:

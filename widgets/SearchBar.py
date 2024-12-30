@@ -61,6 +61,7 @@ class AutocompleteWidget(QtWidgets.QWidget):
         
         # Create the QLineEdit and set the completer
         self.lineedit = QtWidgets.QLineEdit(self)
+        self.lineedit.setAlignment(QtCore.Qt.AlignCenter)
         self.lineedit.setCompleter(completer)
 
         # Layout to add the QLineEdit to the widget
