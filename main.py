@@ -1,6 +1,7 @@
 import sys
 from PyQt5.QtWidgets import QApplication, QMainWindow
 from widgets.Welcome import Welcome  # Correctly import the Welcome class
+from PyQt5.QtGui import QIcon 
 
 class MainWindow(QMainWindow):
     def __init__(self):  # Corrected the method name to __init__
@@ -8,6 +9,7 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(Welcome())
         self.setGeometry(100, 100, 800, 800)
         self.setWindowTitle("Automata Simulator")
+        self.setWindowIcon(QIcon("icon.png")) #put icon in the same directory as the main.py file
         # self.seti
 
 def main():
