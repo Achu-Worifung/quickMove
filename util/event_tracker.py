@@ -41,6 +41,7 @@ class EventTracker(QObject):
                 print(f"Mouse clicked at {x}, {y} with {button}")
                 if edit:
                     self.stop_tracking()
+                   
 
         def on_keyboard_press(key):
             if not self.tracking:
@@ -75,6 +76,7 @@ class EventTracker(QObject):
 
     def stop_tracking(self):
         """Stop tracking events and terminate listeners."""
+        print('stop tracking here is action list:', self.actionList)
         self.tracking = False
         if self.click_listener and self.click_listener.running:
             self.click_listener.stop()

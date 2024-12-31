@@ -2,7 +2,8 @@ from PyQt5 import QtWidgets
 from PyQt5.QtCore import QThread, pyqtSignal
 from PyQt5.QtWidgets import QDialog, QTableWidget, QTableWidgetItem
 from PyQt5.uic import loadUi
-from util import event_tracker, Simulate, Message as msg, dataMod, walk
+from util import  Simulate, Message as msg, dataMod, walk
+from util.event_tracker import EventTracker
 # from util.walk import get_data
 import os
 
@@ -252,28 +253,52 @@ class editAutomata(QDialog):
             )
 
             if response:
-                event_tracker.create_new_automaton(True)
+                # event_tracker.create_new_automaton(True)
                 # call the event tracker to record only 1 event
-                event = event_tracker.create_new_automaton(True)
+                event_tracker = EventTracker()
+                def handler_tracking_finished(event):
+                    print('here is the event', event)
+                    type = event[0]["action"]
+                    button = event[0]["button"]
+                    location = event[0]["location"]
+                    self.data = dataMod.editrow(
+                        data,
+                        name,
+                        curr_row - 1,
+                        {"action": type, "button": button, "location": location},
+                    )
+                    # updating the table
+                    self.table.setItem(curr_row, 0, QtWidgets.QTableWidgetItem(type))
+                    self.table.setItem(
+                        curr_row,
+                        1,
+                        QtWidgets.QTableWidgetItem(f"{button} @ location:{location}"),
+                    )
+                #connecting signal to the slot
+                event_tracker.tracking_finished.connect(handler_tracking_finished)
+                
+                #starting the thread
+                event_tracker.create_new_automaton(True)
                 # print("here is the event", event)
                   # nothing is being returned
-                type = event[0]["action"]
-                button = event[0]["button"]
-                location = event[0]["location"]
-                self.data = dataMod.editrow(
-                    data,
-                    name,
-                    curr_row - 1,
-                    {"action": type, "button": button, "location": location},
-                )
-                # updating the table
-                self.table.setItem(curr_row, 0, QtWidgets.QTableWidgetItem(type))
-                self.table.setItem(
-                    curr_row,
-                    1,
-                    QtWidgets.QTableWidgetItem(f"{button} @ location:{location}"),
-                )
-                print('here is the new data', self.data)
+                # print('here is the event', event)
+                # type = event[0]["action"]
+                # button = event[0]["button"]
+                # location = event[0]["location"]
+                # self.data = dataMod.editrow(
+                #     data,
+                #     name,
+                #     curr_row - 1,
+                #     {"action": type, "button": button, "location": location},
+                # )
+                # # updating the table
+                # self.table.setItem(curr_row, 0, QtWidgets.QTableWidgetItem(type))
+                # self.table.setItem(
+                #     curr_row,
+                #     1,
+                #     QtWidgets.QTableWidgetItem(f"{button} @ location:{location}"),
+                # )
+                # print('here is the new data', self.data)
             
 
     def deleteCell(self, data=None, name=None):
