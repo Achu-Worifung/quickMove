@@ -27,7 +27,7 @@
           <property name="minimumSize">
            <size>
             <width>0</width>
-            <height>90</height>
+            <height>140</height>
            </size>
           </property>
           <property name="styleSheet">
@@ -68,6 +68,9 @@ text-alignment:center
                <height>16777215</height>
               </size>
              </property>
+             <property name="cursor">
+              <cursorShape>OpenHandCursor</cursorShape>
+             </property>
              <property name="styleSheet">
               <string notr="true">
 
@@ -89,6 +92,9 @@ font:20px
         </item>
         <item row="2" column="0">
          <widget class="QScrollArea" name="scrollArea">
+          <property name="styleSheet">
+           <string notr="true"/>
+          </property>
           <property name="widgetResizable">
            <bool>true</bool>
           </property>
@@ -98,7 +104,7 @@ font:20px
              <x>0</x>
              <y>0</y>
              <width>793</width>
-             <height>512</height>
+             <height>462</height>
             </rect>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_2">

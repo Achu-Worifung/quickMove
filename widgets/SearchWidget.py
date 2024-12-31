@@ -6,13 +6,13 @@ from PyQt5.QtWidgets import QDialog, QApplication, QLabel
 from collections import OrderedDict
 import util.getReference as getReference
 from widgets.SearchBar import AutocompleteWidget
-from PyQt5.QtCore import QThread, pyqtSignal, Qt
+from PyQt5.QtCore import QThread, pyqtSignal
+import asyncio
 from functools import partial
 from typing import Dict, Optional
 import util.Simulate as Simulate
 from PyQt5.QtCore import QPropertyAnimation, QEasingCurve
 import util.savedVerses as savedVerses
-import util.webScraping as webScraping
 
 
 class SearchThread(QThread):
@@ -29,7 +29,7 @@ class SearchThread(QThread):
         params = {
             "key": self.api_key,
             "cx": self.engine_id,
-            "q": f'{self.query} ',
+            "q": f'{self.query} site:biblehub.com',
             "num": 10
         }
         response = httpx.get(url, params=params)
@@ -49,10 +49,6 @@ class SearchWidget(QDialog):
         self.pop = True
 
         self.version.setCurrentIndex(0)
-        #centering the lines in the combox box
-        line_edit = self.version.lineEdit()
-        line_edit.setAlignment(Qt.AlignCenter)
-        line_edit.setReadOnly(True)
         self.data = data
         # print('data', data)
         self.verse_tracker = OrderedDict()
@@ -61,7 +57,7 @@ class SearchWidget(QDialog):
         self.last_query_time = 0
         
         autoComplete_widget = AutocompleteWidget(self)
-        autoComplete_widget.setStyleSheet('height: 50px; border-radius: 10px; font-size: 20px; text-align: center;')
+        autoComplete_widget.setStyleSheet('height: 50px; border-radius: 10px; font-size: 20px;')
         autoComplete_widget.lineedit.setPlaceholderText('   Search for a verse')
         self.horizontalLayout.addWidget(autoComplete_widget)
         autoComplete_widget.lineedit.textChanged.connect(
@@ -71,9 +67,6 @@ class SearchWidget(QDialog):
         load_dotenv()
         self.api_key = os.getenv('API_KEY')
         self.engine_id = os.getenv('SEARCH_ENGINE_ID')
-
-        #adding action listerner to change auto button
-        self.pushButton.clicked.connect(lambda checked=False: self.changeAuto())
 
         self.pop_saved_verse()
         self.pop = False
@@ -119,15 +112,8 @@ class SearchWidget(QDialog):
                 self.verse_tracker[verse_key]['priority'] += 1
                 # Update existing widget
                 if verse_key in self.verse_widgets:
-                    if self.version.currentIndex() == 0: #if no version is selected
-                        print('here is the verse key', verse_key)
-                        body = getReference.boldedText(result['snippet'], query)
-                        self.verse_widgets[verse_key].body.setText(body)
-                    else:
-                        selected_version = self.version.currentText()
-                        body = webScraping.get_verse(verse_key, selected_version)
-                        bolded_body = getReference.boldedText(body, query)
-                        self.verse_widgets[verse_key].body.setText(bolded_body)
+                    body = getReference.boldedText(result['snippet'], query)
+                    self.verse_widgets[verse_key].body.setText(body)
             else:
                 if len(self.verse_tracker) < 10:
                     self.verse_tracker[verse_key] = {
@@ -139,7 +125,7 @@ class SearchWidget(QDialog):
                 else:
                     lowest_key = next(iter(self.verse_tracker))
                     if self.verse_tracker[lowest_key]['priority'] < 1:
-                        # Remove lowest priority widget
+                         # Remove lowest priority widget
                         if lowest_key in self.verse_widgets:
                             widget = self.verse_widgets.pop(lowest_key)
                             self.searchPane.removeWidget(widget)
@@ -156,15 +142,8 @@ class SearchWidget(QDialog):
     def add_verse_widget(self, verse_key, result, query):
         link = os.path.join(os.path.dirname(__file__), '../ui/result.ui')
         single_result = loadUi(link)
-        body = ''
-        if self.version.currentIndex() == 0: #if no version is selected
-            # print('here is the verse key', verse_key)
-            body = getReference.boldedText(result['snippet'], query)
-        else:
-            selected_version = self.version.currentText()
-            scraped_verse = webScraping.get_verse(verse_key, selected_version)
-            body = getReference.boldedText(scraped_verse, query)
-        # body = getReference.boldedText(result['snippet'], query)
+        
+        body = getReference.boldedText(result['snippet'], query)
         single_result.body.setText(body)
         single_result.title.setText(verse_key)
         # print('verse_key', verse_key)
@@ -181,7 +160,6 @@ class SearchWidget(QDialog):
         # self.searchPane.single_result.clicked.connect(self.present)  
 
     def handle_search(self, data=None, query=None):
-        
         if query == "":
             # Keep track if we've found the label
             found_label = False
@@ -192,20 +170,21 @@ class SearchWidget(QDialog):
             for i in range(self.searchPane.count()):
                 widget = self.searchPane.itemAt(i).widget()
                 if isinstance(widget, QLabel):
-                    break
-                else:
+                    found_label = True
+                    continue
+                if not found_label and widget:
                     widgets_to_delete.append(widget)
-            print('widgets to delete', widgets_to_delete)
+            
             # Second pass: delete the identified widgets
             for widget in widgets_to_delete:
                 print('deleting widget', widget)
                 self.searchPane.removeWidget(widget)
                 widget.deleteLater()
-            self.verse_tracker = OrderedDict()
-            self.verse_widgets: Dict[str, QDialog] = {}  # Store widget references
-            self.search_thread: Optional[SearchThread] = None
-            self.last_query_time = 0
-            return
+                self.verse_tracker = OrderedDict()
+                self.verse_widgets: Dict[str, QDialog] = {}  # Store widget references
+                self.search_thread: Optional[SearchThread] = None
+                self.last_query_time = 0
+                return
         # print('here is the query', query)
 
         if not query or query.count(' ') < 3:
@@ -225,7 +204,9 @@ class SearchWidget(QDialog):
 
     def handle_search_results(self, results, query):
         if 'items' in results:
-            print('results', results)
+            #reversing items
+            results['items'] = results['items'][::-1]
+            # print('results', results)
             self.update_verse_tracker(results['items'], query)
 
     #function to add saved verses to the saved pane
@@ -273,19 +254,4 @@ class SearchWidget(QDialog):
             elif action['action'] == 'paste':
                 Simulate.simPaste('v', True)
         print("done")
-    
-    #change auto function
-    def changeAuto(self):
-        #importing the change auto pane
-        from widgets.Welcome import Welcome
-        from util.clearLayout import clearLayout
-
-
-        curr_pane = self.parent().layout()
-
-        clearLayout(curr_pane)
-        
-        curr_pane.addWidget(Welcome())
-        print('curr_pane', curr_pane)
-        pass
  

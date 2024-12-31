@@ -161,9 +161,9 @@ class AnotherWidget(QtWidgets.QWidget):
         # Set the popup width to match the line edit
         self.autocomplete_widget.setPopupWidth(self.autocomplete_widget.lineedit.width())
         
-    def handle_search(self, data, text):
-        # Implement your search handling here
-        pass
+    # def handle_search(self, data, text):
+    #     # Implement your search handling here
+    #     pass
 
 
 if __name__ == "__main__":

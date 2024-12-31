@@ -11,8 +11,8 @@ def getReference(text):
 
 def boldedText(text, enteredText):
 
-    print('text', text)
-    print('enteredText', enteredText.split())
+    # print('text', text)
+    # print('enteredText', enteredText.split())
     # Get text and words to bold
    
     words = enteredText.split()
