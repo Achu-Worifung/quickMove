@@ -14,8 +14,12 @@ def deleteRow(data, name, row):
 
 #inserts a new action above the selected row
 def insertRow(data, name, row, newAction):
-    data = data[:row] + [newAction] + data[row:]
+    if row >= len(data):  # If row is out of bounds, append at the end
+        data.append(newAction)
+    else:  # Otherwise, insert at the specified index
+        data = data[:row] + [newAction] + data[row:]
     return data
+
 
 def editrow(data, name, row, newAction): 
        

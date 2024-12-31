@@ -196,6 +196,9 @@ class editAutomata(QDialog):
         import ast
         for row in range(1,self.table.rowCount()):
             item = self.table.item(row, 1 ) #1 is the column index
+            if 'clipboard' in item.text():
+                Simulate.simPaste("v", True)
+                continue
             list = ast.literal_eval(item.text())
             print('item', list[2][1])
             if 'Button' in list[0]: #check if its a click
@@ -203,8 +206,7 @@ class editAutomata(QDialog):
                 y_coord = list[2][1]
                 button = list[0]
                 Simulate.simClick(x_coord, y_coord, button, True)
-            elif 'Paste' in list[0]: #check if its a paste
-                Simulate.simPaste('v', True)
+           
         
 
     def insertCell(self, data=None, name=None):

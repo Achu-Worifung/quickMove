@@ -74,14 +74,20 @@
               </property>
               <property name="sizeHint" stdset="0">
                <size>
-                <width>10</width>
-                <height>10</height>
+                <width>1</width>
+                <height>1</height>
                </size>
               </property>
              </spacer>
             </item>
             <item>
              <widget class="QPushButton" name="modify">
+              <property name="minimumSize">
+               <size>
+                <width>75</width>
+                <height>0</height>
+               </size>
+              </property>
               <property name="maximumSize">
                <size>
                 <width>16777215</width>
