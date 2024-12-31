@@ -221,7 +221,7 @@ class editAutomata(QDialog):
     def simulate(self, data=None, name=None):
         cell_index = self.table.currentRow()
         if cell_index == -1:
-            msg.warningBox(self, "Error", "No row selected")
+            msg.warningBox(self, "Error", "Cannot simulate because No row selected")
             return
         else:
             sim = data[cell_index - 1]  # getting the action
@@ -288,7 +288,7 @@ class editAutomata(QDialog):
         # print('here is the data from delete', data)
         curr_row = self.table.currentRow()
         if curr_row == -1:
-            msg.warningBox(self, "Error", "No row selected")
+            msg.warningBox(self, "Error", "Cannot delete because deleted cell was not selected")
             return
         row_data = self.getCellInfo()
         if row_data[0] == "name":
