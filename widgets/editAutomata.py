@@ -199,6 +199,9 @@ class editAutomata(QDialog):
             if 'clipboard' in item.text():
                 Simulate.simPaste("v", True)
                 continue
+            if 'ctrl+a' in item.text():
+                Simulate.simSelectAll(True)
+                continue
             list = ast.literal_eval(item.text())
             print('item', list[2][1])
             if 'Button' in list[0]: #check if its a click

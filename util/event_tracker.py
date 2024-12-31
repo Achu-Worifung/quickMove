@@ -54,6 +54,8 @@ class EventTracker(QObject):
                 self.current_keys.add(key)
                 if self.is_paste_combination():
                     self.log_paste_event(edit)
+                elif self.is_select_all_combination():
+                    self.log_select_all_event(edit)
             except Exception as e:
                  msg.warningBox(None, "Error", f"Keyboard press error: {str(e)}")
 
@@ -92,7 +94,26 @@ class EventTracker(QObject):
             {keyboard.Key.ctrl_r, keyboard.KeyCode(char='v')}
         ]
         return any(all(k in self.current_keys for k in combo) for combo in paste_combinations)
-
+    def is_select_all_combination(self):
+        """Check if the current keys match a select all (Ctrl+A) combination."""
+        select_all_combinations = [
+            {keyboard.Key.ctrl_l, keyboard.KeyCode(char='a')},
+            {keyboard.Key.ctrl_r, keyboard.KeyCode(char='a')}
+        ]
+        return any(all(k in self.current_keys for k in combo) for combo in select_all_combinations)
+    
+    def log_select_all_event(self, edit):
+        """Log a select all event."""
+        event = {
+            'action': 'select all',
+            'button': 'ctrl+a',
+            'location': 'keyboard'
+        }
+        self.actionList.append(event)
+        self.event_recorded.emit(event)
+        print("Ctrl + V detected and logged!")
+        if edit:
+            self.stop_tracking()
     def log_paste_event(self, edit):
         """Log a paste event."""
         event = {

@@ -41,3 +41,8 @@ def simPaste(key, pressed=True):
     keyboard_controller.press("v")
     keyboard_controller.release("v")
     keyboard_controller.release(Key.ctrl_r.value)
+def simSelectAll(pressed=True):
+    keyboard_controller.press(Key.ctrl_r.value)
+    keyboard_controller.press("a")
+    keyboard_controller.release("a")
+    keyboard_controller.release(Key.ctrl_r.value)

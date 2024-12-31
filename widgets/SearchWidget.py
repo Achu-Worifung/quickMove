@@ -283,6 +283,8 @@ class SearchWidget(QDialog):
                 Simulate.simClick(x_coord, y_coord, button, True)
             elif action['action'] == 'paste':
                 Simulate.simPaste('v', True)
+            elif action['action'] == 'select all':
+                Simulate.simSelectAll(True)
         print("done")
     #change auto function
      #change auto function
