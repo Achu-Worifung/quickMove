@@ -29,8 +29,10 @@ class SearchThread(QThread):
         params = {
             "key": self.api_key,
             "cx": self.engine_id,
-            "q": f'{self.query} site:biblehub.com',
-            "num": 10
+            "q": f'"{self.query}" site:biblehub.com',
+            "allintitle": self.query,
+            "allintext": self.query,
+
         }
         response = httpx.get(url, params=params)
         response.raise_for_status()
@@ -101,43 +103,68 @@ class SearchWidget(QDialog):
 
 
     def update_verse_tracker(self, new_results, query):
+        print('verse tracker', self.verse_tracker, '\n\n\n')
+        print('verse widgets', self.verse_widgets, '\n\n\n')
+        print('top ten results', new_results[:10])
+
+        new_results = new_results[::-1]
+        new_keys = []
+
         for result in new_results[:10]:
             title_array = getReference.getReference(result['title'])
             if not title_array:
                 continue
-            
             verse_key = title_array[0]
-            if verse_key in self.verse_tracker:
-                self.verse_tracker.move_to_end(verse_key)
-                self.verse_tracker[verse_key]['priority'] += 1
-                # Update existing widget
-                if verse_key in self.verse_widgets:
-                    body = getReference.boldedText(result['snippet'], query)
-                    self.verse_widgets[verse_key].body.setText(body)
+            new_keys.append(verse_key)
+
+            if verse_key in self.verse_widgets:
+                # Update existing widget content
+                body = getReference.boldedText(result['snippet'], query)
+                self.verse_widgets[verse_key].body.setText(body)
             else:
-                if len(self.verse_tracker) < 10:
-                    self.verse_tracker[verse_key] = {
-                        'priority': 1,
-                        'data': result,
-                        'query': query
-                    }
-                    self.add_verse_widget(verse_key, result, query)
-                else:
-                    lowest_key = next(iter(self.verse_tracker))
-                    if self.verse_tracker[lowest_key]['priority'] < 1:
-                         # Remove lowest priority widget
-                        if lowest_key in self.verse_widgets:
-                            widget = self.verse_widgets.pop(lowest_key)
-                            self.searchPane.removeWidget(widget)
-                            widget.deleteLater()
+                # Add new widget for the verse
+                self.add_verse_widget(verse_key, result, query)
+
+        # Remove widgets not in the latest results
+        for verse_key in list(self.verse_widgets.keys()):
+            if verse_key not in new_keys:
+                widget = self.verse_widgets.pop(verse_key)
+                self.searchPane.removeWidget(widget)
+                widget.deleteLater()
+
+            
+            # verse_key = title_array[0]
+            # if verse_key in self.verse_tracker:
+            #     self.verse_tracker.move_to_end(verse_key)
+            #     self.verse_tracker[verse_key]['priority'] += 1
+            #     # Update existing widget
+            #     if verse_key in self.verse_widgets:
+            #         body = getReference.boldedText(result['snippet'], query)
+            #         self.verse_widgets[verse_key].body.setText(body)
+            # else:
+            #     if len(self.verse_tracker) < 10:
+            #         self.verse_tracker[verse_key] = {
+            #             'priority': 1,
+            #             'data': result,
+            #             'query': query
+            #         }
+            #         self.add_verse_widget(verse_key, result, query)
+            #     else:
+            #         lowest_key = next(iter(self.verse_tracker))
+            #         if self.verse_tracker[lowest_key]['priority'] < 1:
+            #              # Remove lowest priority widget
+            #             if lowest_key in self.verse_widgets:
+            #                 widget = self.verse_widgets.pop(lowest_key)
+            #                 self.searchPane.removeWidget(widget)
+            #                 widget.deleteLater()
                         
-                        self.verse_tracker.popitem(last=False)
-                        self.verse_tracker[verse_key] = {
-                            'priority': 1,
-                            'data': result,
-                            'query': query
-                        }
-                        self.add_verse_widget(verse_key, result, query)
+            #             self.verse_tracker.popitem(last=False)
+            #             self.verse_tracker[verse_key] = {
+            #                 'priority': 1,
+            #                 'data': result,
+            #                 'query': query
+            #             }
+            #             self.add_verse_widget(verse_key, result, query)
 
     def add_verse_widget(self, verse_key, result, query):
         link = os.path.join(os.path.dirname(__file__), '../ui/result.ui')
@@ -153,7 +180,7 @@ class SearchWidget(QDialog):
         self.verse_widgets[verse_key] = single_result
         def mouse_click(event):
             self.present(verse_key, self.data)
-            print('the result was clicked')
+           
         single_result.title.mousePressEvent = mouse_click
         single_result.body.mousePressEvent = mouse_click
         
@@ -180,11 +207,11 @@ class SearchWidget(QDialog):
                 print('deleting widget', widget)
                 self.searchPane.removeWidget(widget)
                 widget.deleteLater()
-                self.verse_tracker = OrderedDict()
-                self.verse_widgets: Dict[str, QDialog] = {}  # Store widget references
-                self.search_thread: Optional[SearchThread] = None
-                self.last_query_time = 0
-                return
+            self.verse_tracker = OrderedDict()
+            self.verse_widgets: Dict[str, QDialog] = {}  # Store widget references
+            self.search_thread: Optional[SearchThread] = None
+            self.last_query_time = 0
+            return
         # print('here is the query', query)
 
         if not query or query.count(' ') < 3:
