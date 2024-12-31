@@ -193,17 +193,19 @@ class editAutomata(QDialog):
                 main_layout.addWidget(Welcome())
             
     def run(self, data=None, name=None):
-        print('here is the data ', self.data)
-        for todo in data:
-            if todo["action"] == "click":  # simulating a click
-                x_coord = todo["location"][0]
-                y_coord = todo["location"][1]
-                button = todo["button"]
-                print(f"button: {button} @ location: {x_coord}, {y_coord}")
+        import ast
+        for row in range(1,self.table.rowCount()):
+            item = self.table.item(row, 1 ) #1 is the column index
+            list = ast.literal_eval(item.text())
+            print('item', list[2][1])
+            if 'Button' in list[0]: #check if its a click
+                x_coord = list[2][0]
+                y_coord = list[2][1]
+                button = list[0]
                 Simulate.simClick(x_coord, y_coord, button, True)
-            elif todo["action"] == "paste":  # simulating a paste
+            elif 'Paste' in list[0]: #check if its a paste
                 Simulate.simPaste('v', True)
-            #pa
+        
 
     def insertCell(self, data=None, name=None):
         row_index = self.table.currentRow()
@@ -279,37 +281,18 @@ class editAutomata(QDialog):
                 
                 #starting the thread
                 event_tracker.create_new_automaton(True)
-                # print("here is the event", event)
-                  # nothing is being returned
-                # print('here is the event', event)
-                # type = event[0]["action"]
-                # button = event[0]["button"]
-                # location = event[0]["location"]
-                # self.data = dataMod.editrow(
-                #     data,
-                #     name,
-                #     curr_row - 1,
-                #     {"action": type, "button": button, "location": location},
-                # )
-                # # updating the table
-                # self.table.setItem(curr_row, 0, QtWidgets.QTableWidgetItem(type))
-                # self.table.setItem(
-                #     curr_row,
-                #     1,
-                #     QtWidgets.QTableWidgetItem(f"{button} @ location:{location}"),
-                # )
-                # print('here is the new data', self.data)
+               
             
 
     def deleteCell(self, data=None, name=None):
         # print('here is the data from delete', data)
         curr_row = self.table.currentRow()
+        if curr_row == -1:
+            msg.warningBox(self, "Error", "No row selected")
+            return
         row_data = self.getCellInfo()
         if row_data[0] == "name":
             msg.warningBox(self, "Error", "Cannot delete the name row")
-            return
-        if curr_row == -1:
-            msg.warningBox(self, "Error", "No row selected")
             return
         else:
             response = msg.questionBox(
