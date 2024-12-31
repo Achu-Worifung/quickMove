@@ -41,7 +41,7 @@
           <widget class="QWidget" name="widget" native="true">
            <property name="minimumSize">
             <size>
-             <width>574</width>
+             <width>400</width>
              <height>0</height>
             </size>
            </property>
@@ -56,29 +56,13 @@
              <widget class="QRadioButton" name="name">
               <property name="font">
                <font>
-                <pointsize>14</pointsize>
+                <pointsize>12</pointsize>
                </font>
               </property>
               <property name="text">
                <string>RadioButton</string>
               </property>
              </widget>
-            </item>
-            <item>
-             <spacer name="horizontalSpacer">
-              <property name="orientation">
-               <enum>Qt::Horizontal</enum>
-              </property>
-              <property name="sizeType">
-               <enum>QSizePolicy::Minimum</enum>
-              </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>1</width>
-                <height>1</height>
-               </size>
-              </property>
-             </spacer>
             </item>
             <item>
              <widget class="QPushButton" name="modify">

@@ -18,6 +18,8 @@ class noAutomata(QDialog):
         # Initialize UI
         self.record.clicked.connect(self.start_tracking)
         self.tracking = False
+        #making sure stop cannot be clicked before tracking is started
+        self.stop.setEnabled(False)
         self.stop.clicked.connect(self.stop_tracking)
 
     def start_tracking(self):
@@ -32,14 +34,13 @@ class noAutomata(QDialog):
             self.event_tracker_thread.tracker.tracking_finished.connect(self.on_tracking_finished)
             self.event_tracker_thread.start()
             self.tracking = True
+            self.stop.setEnabled(True)
     def stop_tracking(self):
-        if not self.tracking:
-            msg.warningBox(self, "Stop Tracking", "Tracking is not active")
-            return
+       
         #modifying the action list to remove last click
         self.event_tracker_thread.tracker.actionList = self.event_tracker_thread.tracker.actionList[:-1]
         self.event_tracker_thread.tracker.stop_tracking()
-        print('in stop tracking')
+        
     def on_event_recorded(self, event):
         """Handle new events as they come in"""
         self.plainTextEdit.appendPlainText("New event recorded: {event}.\n".format(event=event))
