@@ -61,6 +61,30 @@ text-alignment:center
             </widget>
            </item>
            <item alignment="Qt::AlignTop">
+            <widget class="QPushButton" name="prev_verse">
+             <property name="maximumSize">
+              <size>
+               <width>200</width>
+               <height>16777215</height>
+              </size>
+             </property>
+             <property name="styleSheet">
+              <string notr="true">
+
+    border-style: outset;
+    border-width: 2px;
+    border-radius: 10px;
+    border-color: black;
+    padding: 4px;
+font:20px
+</string>
+             </property>
+             <property name="text">
+              <string>Present Prev Verse</string>
+             </property>
+            </widget>
+           </item>
+           <item alignment="Qt::AlignTop">
             <widget class="QPushButton" name="pushButton">
              <property name="maximumSize">
               <size>
