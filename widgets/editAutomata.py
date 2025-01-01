@@ -193,21 +193,15 @@ class editAutomata(QDialog):
                 main_layout.addWidget(Welcome())
             
     def run(self, data=None, name=None):
-        import ast
-        for row in range(1,self.table.rowCount()):
-            item = self.table.item(row, 1 ) #1 is the column index
-            if 'clipboard' in item.text():
+        for row in self.data:
+            if row['action'] == 'paste':
                 Simulate.simPaste("v", True)
-                continue
-            if 'ctrl+a' in item.text():
+            elif row['action'] == 'select all':
                 Simulate.simSelectAll(True)
-                continue
-            list = ast.literal_eval(item.text())
-            print('item', list[2][1])
-            if 'Button' in list[0]: #check if its a click
-                x_coord = list[2][0]
-                y_coord = list[2][1]
-                button = list[0]
+            elif row['action'] == 'click':
+                x_coord = row['location'][0]
+                y_coord = row['location'][1]
+                button = row['button']
                 Simulate.simClick(x_coord, y_coord, button, True)
            
         

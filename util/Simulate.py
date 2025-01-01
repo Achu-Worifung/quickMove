@@ -42,7 +42,10 @@ def simPaste(key, pressed=True):
     keyboard_controller.release("v")
     keyboard_controller.release(Key.ctrl_r.value)
 def simSelectAll(pressed=True):
+    """the select all function will be followed by the cut function for ease of use in the display prev verse"""
     keyboard_controller.press(Key.ctrl_r.value)
     keyboard_controller.press("a")
     keyboard_controller.release("a")
+    keyboard_controller.press('x')
+    keyboard_controller.release('x')
     keyboard_controller.release(Key.ctrl_r.value)

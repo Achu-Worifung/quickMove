@@ -8,10 +8,10 @@ def findVerseBox_location():
     settings = QSettings("MyApp", "AutomataSimulator")
     search_area = settings.value("search_area", None)  # Use None as default if not set
 
-    home_button = pyautogui.locateOnScreen(image, region=search_area)
+    x,y = pyautogui.locateCenterOnScreen(image,confidence=0.8, region=search_area)
 
-    if home_button:
-        print("Found the home button at:", home_button)
+    if x and y:
+        print("Found the home button at:", x, y)
     else:
         print("Could not find the home button")
     pass
