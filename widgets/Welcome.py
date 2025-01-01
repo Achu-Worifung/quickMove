@@ -207,7 +207,7 @@ class Welcome(QDialog):
                 return
             # Save the search area to QSettings
             self.settings = QSettings("MyApp", "AutomataSimulator")
-            self.settings.setValue("search_area", [left, top, right, bottom])
+            self.settings.setValue("search_area", tuple([left, top, right, bottom]))
 
 
 

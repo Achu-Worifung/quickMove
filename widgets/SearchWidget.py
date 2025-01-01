@@ -13,6 +13,8 @@ from typing import Dict, Optional
 import util.Simulate as Simulate
 from PyQt5.QtCore import QPropertyAnimation, QEasingCurve
 import util.savedVerses as savedVerses
+from PyQt5.QtCore import QSettings
+
 
 
 class SearchThread(QThread):
@@ -68,6 +70,8 @@ class SearchWidget(QDialog):
          #adding action listerner to change auto button
         self.pushButton.clicked.connect(lambda checked=False: self.changeAuto())
 
+        self.prev_verse.clicked.connect(lambda checked=False: self.prevVerse())
+
 
         load_dotenv()
         self.api_key = os.getenv('API_KEY')
@@ -75,6 +79,10 @@ class SearchWidget(QDialog):
 
         self.pop_saved_verse()
         self.pop = False
+    
+    def prevVerse(self):
+        import util.findVerseBox as findVerseBox
+        findVerseBox.findVerseBox_location()
     def pop_saved_verse(self):
         
         get_saved_verse = savedVerses.getSavedVerses()
