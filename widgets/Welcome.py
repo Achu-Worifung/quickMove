@@ -7,6 +7,8 @@ from util import event_tracker,Simulate, Message as msg, dataMod
 from PyQt5.QtWidgets import (
     QApplication, QTableWidget, QTableWidgetItem, QHeaderView, QVBoxLayout, QDialog, QLabel, QPushButton,QHBoxLayout, QRadioButton, QPushButton
 )
+from PyQt5.QtCore import QSettings
+
 # from widgets import noAutomata, editAutomata
 from widgets.SearchWidget import SearchWidget
 from PyQt5.QtCore import Qt
@@ -39,6 +41,7 @@ class Welcome(QDialog):
 
         # Initialize event tracker thread
         self.event_tracker_thread = None
+        self.search_area.clicked.connect(self.configure_search_area)
 
         # Load data into the UI
         # self.loaddata()
@@ -187,6 +190,30 @@ class Welcome(QDialog):
     
     
 
-        
+    def configure_search_area(self):
+        #use event tracker to establish the search area
+        from util.event_tracker import EventTracker
+        msg.informationBox(self, 'search area', "Configure the searcharea. Click Ok to get started.1st click on the top left corner of the search area\n2nd click on the bottom right corner of the search area\nPress 'ESC' to stop")
+        def setup_search_area(event):
+            print('here is the event ', event)
+            if len(event) >=2:
+                left = event[0]['location'][0]
+                top = event[0]['location'][1]
+                right = event[1]['location'][0]
+                bottom = event[1]['location'][1]
+                print(left, top, right, bottom)
+            else:
+                msg.warningBox(self, 'Error', 'Please select the search area')
+                return
+            # Save the search area to QSettings
+            self.settings = QSettings("MyApp", "AutomataSimulator")
+            self.settings.setValue("search_area", [left, top, right, bottom])
+
+
+
+            # pass
+        self.event_tracker_thread = EventTracker()
+        self.event_tracker_thread.tracking_finished.connect(setup_search_area)
+        self.event_tracker_thread.create_new_automaton()
         
       

@@ -86,16 +86,33 @@ layoutAlignment: AlignCenter;
             </property>
            </widget>
           </item>
-          <item row="1" column="0" colspan="2">
-           <widget class="Line" name="line">
+          <item row="5" column="0">
+           <widget class="QPushButton" name="create_auto">
             <property name="minimumSize">
              <size>
-              <width>500</width>
-              <height>10</height>
+              <width>210</width>
+              <height>30</height>
              </size>
             </property>
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
+            <property name="maximumSize">
+             <size>
+              <width>240</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <property name="styleSheet">
+             <string notr="true">
+
+    border-style: outset;
+    border-width: 2px;
+    border-radius: 15px;
+    border-color: black;
+    padding: 4px;
+font:20px
+</string>
+            </property>
+            <property name="text">
+             <string>Create New Automata</string>
             </property>
            </widget>
           </item>
@@ -128,23 +145,23 @@ font:20px
             </property>
            </widget>
           </item>
-          <item row="5" column="0">
-           <widget class="QPushButton" name="create_auto">
+          <item row="1" column="0" colspan="2">
+           <widget class="Line" name="line">
             <property name="minimumSize">
              <size>
-              <width>210</width>
-              <height>30</height>
+              <width>500</width>
+              <height>10</height>
              </size>
             </property>
-            <property name="maximumSize">
-             <size>
-              <width>240</width>
-              <height>16777215</height>
-             </size>
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
             </property>
+           </widget>
+          </item>
+          <item row="5" column="2">
+           <widget class="QPushButton" name="search_area">
             <property name="styleSheet">
              <string notr="true">
-
     border-style: outset;
     border-width: 2px;
     border-radius: 15px;
@@ -154,7 +171,7 @@ font:20px
 </string>
             </property>
             <property name="text">
-             <string>Create New Automata</string>
+             <string>Configure search Area</string>
             </property>
            </widget>
           </item>
