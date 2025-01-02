@@ -24,3 +24,5 @@ soupsieve          2.6
 typing_extensions  4.12.2
 urllib3            2.3.0
 wheel              0.45.1
+pyautogui         for locating highlighted versebox on the screen 
+pyperclip         control keyboard clipboard

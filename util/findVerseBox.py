@@ -15,3 +15,5 @@ def findVerseBox_location():
     else:
         print("Could not find the home button")
     pass
+#return the x and y coordinates
+    return x,y

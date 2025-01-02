@@ -10,7 +10,7 @@ mouse_controller = MouseController()
 keyboard_controller = KeyboardController()
 mouse_button = Button
 
-def simClick(x, y, button, pressed):
+def simClick(x, y, button = Button.left, pressed = True):
     """
     Simulate a mouse click at the specified coordinates.
     
@@ -36,11 +36,26 @@ def simClick(x, y, button, pressed):
     # Perform the click
     mouse_controller.click(button)
     
-def simPaste(key, pressed=True):
-    keyboard_controller.press(Key.ctrl_r.value)
-    keyboard_controller.press("v")
-    keyboard_controller.release("v")
-    keyboard_controller.release(Key.ctrl_r.value)
+def simPaste(key, pressed=True, returning=False):
+    #pasting the second element in the clipboard
+    import pyperclip
+    from PyQt5.QtCore import QSettings
+
+    settings = QSettings("MyApp", "AutomataSimulator")
+
+    clicked_verse = settings.value("verse", None)  # Use None as default if not set
+
+    keyboard_controller.type(clicked_verse) #putting the verse in program search bar
+
+    #get the bar location from where the paste occurs
+    settings.setValue('bar_location', mouse_controller.position)
+    
+
+
+    # keyboard_controller.press(Key.ctrl_r.value)
+    # keyboard_controller.press("v")
+    # keyboard_controller.release("v")
+    # keyboard_controller.release(Key.ctrl_r.value)
 def simSelectAll(pressed=True):
     """the select all function will be followed by the cut function for ease of use in the display prev verse"""
     keyboard_controller.press(Key.ctrl_r.value)
@@ -49,3 +64,5 @@ def simSelectAll(pressed=True):
     keyboard_controller.press('x')
     keyboard_controller.release('x')
     keyboard_controller.release(Key.ctrl_r.value)
+
+

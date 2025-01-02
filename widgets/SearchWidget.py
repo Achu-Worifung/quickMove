@@ -72,6 +72,8 @@ class SearchWidget(QDialog):
 
         self.prev_verse.clicked.connect(lambda checked=False: self.prevVerse())
 
+        #initialize qsetting to store clipboard history
+        self.settings = QSettings("MyApp", "AutomataSimulator")
 
         load_dotenv()
         self.api_key = os.getenv('API_KEY')
@@ -79,10 +81,32 @@ class SearchWidget(QDialog):
 
         self.pop_saved_verse()
         self.pop = False
-    
-    def prevVerse(self):
+
+    #this function will run after the search bar is unfocused
+    def get_prev_verse_coordinates(self):
         import util.findVerseBox as findVerseBox
-        findVerseBox.findVerseBox_location()
+        self.x, self.y = findVerseBox.findVerseBox_location()
+
+    
+    #so when a verse result is clicked the current verse references is saved to clipboard
+    #we have location of x and y of highlighted verse box
+    def prevVerse(self):
+        import pyperclip
+
+        #the select all will copy the prev verse to clipboard
+
+        #movign to the search bar location
+        bar_location = self.settings.value("bar_location", None)
+        print('bar location', bar_location)
+        if bar_location:
+            #moving the cursor to the bars location
+            Simulate.simClick(bar_location[0], bar_location[1])
+            #using pyperclip to paste at index of 0
+            pyperclip.paste()
+            #getting the moving the mouse to the highlighted verse box
+            Simulate.simClick(self.x, self.y)
+
+
     def pop_saved_verse(self):
         
         get_saved_verse = savedVerses.getSavedVerses()
@@ -279,9 +303,11 @@ class SearchWidget(QDialog):
         # verse_reference = clicked_widget.title.text()
         clipboard = QApplication.clipboard()
         clipboard.setText(title)
-        print(title)
-        print('copied to clipboard')
-        print(automata)
+        #storing the verse to the qsetting clipboard history
+        self.settings.setValue("verse", title)
+        # print(title)
+        # print('copied to clipboard')
+        # print(automata)
         #using simulating the automata
         for action in automata:
             if action['action'] == 'click':
