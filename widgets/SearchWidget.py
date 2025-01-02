@@ -63,6 +63,8 @@ class SearchWidget(QDialog):
         autoComplete_widget = AutocompleteWidget(self)
         autoComplete_widget.setStyleSheet('height: 50px; border-radius: 10px; font-size: 20px;')
         autoComplete_widget.lineedit.setPlaceholderText('   Search for a verse')
+        #adding an unfocused listerner to get the location of the search bar
+        autoComplete_widget.lineedit.focusOutEvent = self.get_prev_verse_coordinates
         self.horizontalLayout.addWidget(autoComplete_widget)
         autoComplete_widget.lineedit.textChanged.connect(
             lambda text, d=self.data: self.handle_search(d, text)
@@ -83,9 +85,11 @@ class SearchWidget(QDialog):
         self.pop = False
 
     #this function will run after the search bar is unfocused
-    def get_prev_verse_coordinates(self):
+    def get_prev_verse_coordinates(self, event):
         import util.findVerseBox as findVerseBox
         self.x, self.y = findVerseBox.findVerseBox_location()
+        
+        print('x and y', self.x, self.y)
 
     
     #so when a verse result is clicked the current verse references is saved to clipboard
@@ -93,9 +97,9 @@ class SearchWidget(QDialog):
     def prevVerse(self):
         import pyperclip
 
-        #the select all will copy the prev verse to clipboard
+        #the select all will copy the currently displayed verse to clipboard
 
-        #movign to the search bar location
+        #movign to the search bar location(you need to simulate 1st before being able to use pre verse)
         bar_location = self.settings.value("bar_location", None)
         print('bar location', bar_location)
         if bar_location:
@@ -166,40 +170,6 @@ class SearchWidget(QDialog):
                 widget = self.verse_widgets.pop(verse_key)
                 self.searchPane.removeWidget(widget)
                 widget.deleteLater()
-
-            
-            # verse_key = title_array[0]
-            # if verse_key in self.verse_tracker:
-            #     self.verse_tracker.move_to_end(verse_key)
-            #     self.verse_tracker[verse_key]['priority'] += 1
-            #     # Update existing widget
-            #     if verse_key in self.verse_widgets:
-            #         body = getReference.boldedText(result['snippet'], query)
-            #         self.verse_widgets[verse_key].body.setText(body)
-            # else:
-            #     if len(self.verse_tracker) < 10:
-            #         self.verse_tracker[verse_key] = {
-            #             'priority': 1,
-            #             'data': result,
-            #             'query': query
-            #         }
-            #         self.add_verse_widget(verse_key, result, query)
-            #     else:
-            #         lowest_key = next(iter(self.verse_tracker))
-            #         if self.verse_tracker[lowest_key]['priority'] < 1:
-            #              # Remove lowest priority widget
-            #             if lowest_key in self.verse_widgets:
-            #                 widget = self.verse_widgets.pop(lowest_key)
-            #                 self.searchPane.removeWidget(widget)
-            #                 widget.deleteLater()
-                        
-            #             self.verse_tracker.popitem(last=False)
-            #             self.verse_tracker[verse_key] = {
-            #                 'priority': 1,
-            #                 'data': result,
-            #                 'query': query
-            #             }
-            #             self.add_verse_widget(verse_key, result, query)
 
     def add_verse_widget(self, verse_key, result, query):
         link = os.path.join(os.path.dirname(__file__), '../ui/result.ui')

@@ -26,3 +26,4 @@ urllib3            2.3.0
 wheel              0.45.1
 pyautogui         for locating highlighted versebox on the screen 
 pyperclip         control keyboard clipboard
+opencv            for pyautogui to have a confidence level when searching for image
