@@ -1,9 +1,14 @@
 """
 This file is used to run the simulation of mouse and keyboard inputs.
 """
+from PyQt5.QtWidgets import QApplication
 from pynput import mouse, keyboard
 from pynput.mouse import Button, Controller as MouseController
 from pynput.keyboard import Key, Controller as KeyboardController
+import pyperclip
+from PyQt5.QtCore import QSettings
+import time
+import keyboard
 
 # Create controllers
 mouse_controller = MouseController()
@@ -38,31 +43,45 @@ def simClick(x, y, button = Button.left, pressed = True):
     
 def simPaste(key, pressed=True, returning=False):
     #pasting the second element in the clipboard
-    import pyperclip
-    from PyQt5.QtCore import QSettings
+    
 
     settings = QSettings("MyApp", "AutomataSimulator")
 
     clicked_verse = settings.value("verse", None)  # Use None as default if not set
 
-    keyboard_controller.type(clicked_verse) #putting the verse in program search bar
+    # keyboard_controller.type(clicked_verse) #putting the verse in program search bar
+    keyboard.send('ctrl+v')
+    
+    #typing enter key
+    keyboard_controller.tap(Key.enter.value)
 
     #get the bar location from where the paste occurs
     settings.setValue('bar_location', mouse_controller.position)
     
+    
 
 
-    # keyboard_controller.press(Key.ctrl_r.value)
-    # keyboard_controller.press("v")
-    # keyboard_controller.release("v")
-    # keyboard_controller.release(Key.ctrl_r.value)
 def simSelectAll(pressed=True):
     """the select all function will be followed by the cut function for ease of use in the display prev verse"""
-    keyboard_controller.press(Key.ctrl_r.value)
-    keyboard_controller.press("a")
-    keyboard_controller.release("a")
-    keyboard_controller.press('x')
-    keyboard_controller.release('x')
-    keyboard_controller.release(Key.ctrl_r.value)
+    settings = QSettings("MyApp", "AutomataSimulator")
+    next_verse =settings.value('next_verse')
+    
+    keyboard.send('ctrl+a', 'crtl+c')
+    #saving the current verse 
+    # prev_verse = pyperclip.paste()
+    time.sleep(0.5)
+    # settings.setValue('prev_verse', prev_verse)
+    # pyperclip.copy(next_verse)
+    
+    # #putting the next verse back at the top of the clipboard
+    # Update clipboard with the next verse
+    # clipboard = QApplication.clipboard()
+    # clipboard.setText(next_verse)
+    # print('here is the pre verse', prev_verse)
+    
+    print(f'next verse is {next_verse} and prev verse is {settings.value("prev_verse")}')
+    
+    
+    
 
 

@@ -13,7 +13,7 @@ def findVerseBox_location():
 
         if x and y:
             print("Found the home button at:", x, y)
-            pyautogui.moveTo(x, y, duration=1)
+            # pyautogui.moveTo(x, y, duration=1)
         else:
             print("Could not find the home button")
         pass

@@ -17,17 +17,7 @@
    <item>
     <widget class="QWidget" name="container" native="true">
      <property name="styleSheet">
-      <string notr="true">#container {
-    border: 1px solid black;
-    border-radius: 15px;
-    transition: all 0.3s ease; /* Smooth animation */
-}
-
-#container:hover {
-    cursor: pointer;
-    transform: scale(1.05); /* Slightly expand */
-}
-</string>
+      <string notr="true"/>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_3">
       <item>

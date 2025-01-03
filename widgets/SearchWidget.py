@@ -274,7 +274,9 @@ class SearchWidget(QDialog):
         clipboard = QApplication.clipboard()
         clipboard.setText(title)
         #storing the verse to the qsetting clipboard history
-        self.settings.setValue("verse", title)
+        self.settings.setValue("next_verse", title)
+        
+            
         # print(title)
         # print('copied to clipboard')
         # print(automata)
