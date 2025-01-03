@@ -183,11 +183,12 @@ class SearchWidget(QDialog):
         single_result.save.clicked.connect(lambda checked=False,t=verse_key, b=body: self.savedVerses(t, b))
         self.searchPane.insertWidget(0, single_result)
         self.verse_widgets[verse_key] = single_result
-        def mouse_click(event):
+        def mouse_click(event, verse_key):
             self.present(verse_key, self.data)
            
-        single_result.title.mousePressEvent = mouse_click
-        single_result.body.mousePressEvent = mouse_click
+        # Bind `verse_key` explicitly
+        single_result.title.mousePressEvent = partial(mouse_click, verse_key=verse_key)
+        single_result.body.mousePressEvent = partial(mouse_click, verse_key=verse_key)
         
         # self.searchPane.single_result.clicked.connect(self.present)  
 
@@ -288,7 +289,7 @@ class SearchWidget(QDialog):
                 button = action['button']
                 Simulate.simClick(x_coord, y_coord, button, True)
             elif action['action'] == 'paste':
-                Simulate.simPaste('v', True)
+                Simulate.simPaste(title, True)
             elif action['action'] == 'select all':
                 Simulate.simSelectAll(True)
         print("done")

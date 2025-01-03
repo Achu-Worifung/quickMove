@@ -40,48 +40,78 @@ def simClick(x, y, button = Button.left, pressed = True):
     
     # Perform the click
     mouse_controller.click(button)
+    mouse_controller.click(button)
+    reset_keys()
     
 def simPaste(key, pressed=True, returning=False):
-    #pasting the second element in the clipboard
-    
-
+    """
+    Simulate pasting content from the clipboard.
+    """
     settings = QSettings("MyApp", "AutomataSimulator")
-
     clicked_verse = settings.value("verse", None)  # Use None as default if not set
 
-    # keyboard_controller.type(clicked_verse) #putting the verse in program search bar
-    keyboard.send('ctrl+v')
-    
-    #typing enter key
-    keyboard_controller.tap(Key.enter.value)
+    try:
+        # Press and release 'Ctrl+V' explicitly
+        keyboard.press('ctrl')
+        keyboard.press('v')
+        keyboard.release('v')
+        keyboard.release('ctrl')
 
-    #get the bar location from where the paste occurs
-    settings.setValue('bar_location', mouse_controller.position)
+        # Simulate pressing Enter
+        keyboard_controller.tap(Key.enter.value)
+
+        # Save the bar location
+        settings.setValue('bar_location', mouse_controller.position)
+        reset_keys()
+    except Exception as e:
+        print(f"Error during simPaste: {e}")
+        reset_keys()
+
     
     
 
 
 def simSelectAll(pressed=True):
-    """the select all function will be followed by the cut function for ease of use in the display prev verse"""
+    """
+    Simulate 'Select All' and 'Copy' actions.
+    """
     settings = QSettings("MyApp", "AutomataSimulator")
-    next_verse =settings.value('next_verse')
-    
-    keyboard.send('ctrl+a', 'crtl+c')
-    #saving the current verse 
-    # prev_verse = pyperclip.paste()
-    time.sleep(0.5)
-    # settings.setValue('prev_verse', prev_verse)
-    # pyperclip.copy(next_verse)
-    
-    # #putting the next verse back at the top of the clipboard
-    # Update clipboard with the next verse
-    # clipboard = QApplication.clipboard()
-    # clipboard.setText(next_verse)
-    # print('here is the pre verse', prev_verse)
-    
-    print(f'next verse is {next_verse} and prev verse is {settings.value("prev_verse")}')
-    
+    next_verse = settings.value('next_verse')
+
+    try:
+        print("Sending Ctrl+A to select all.")
+        keyboard.press('ctrl')
+        keyboard.press('a')
+        keyboard.release('a')
+        keyboard.release('ctrl')
+
+        time.sleep(0.1)  # Small delay to ensure selection occurs
+
+        print("Sending Ctrl+C to copy.")
+        keyboard.press('ctrl')
+        keyboard.press('c')
+        keyboard.release('c')
+        keyboard.release('ctrl')
+
+        time.sleep(0.1)  # Small delay to ensure copy operation completes
+
+        clipboard_content = pyperclip.paste()  # Get clipboard content
+        print(f"Clipboard content after copy: {clipboard_content}")
+        print(f"Next verse is {next_verse} and prev verse is {settings.value('prev_verse')}")
+
+        reset_keys()
+    except Exception as e:
+        print(f"Error during simSelectAll: {e}")
+        reset_keys()
+
     
     
 
 
+def reset_keys():
+    try:
+        for key in ['ctrl', 'shift', 'alt']:
+            keyboard.release(key)
+        print("All keys reset.")
+    except Exception as e:
+        print(f"Error resetting keys: {e}")
