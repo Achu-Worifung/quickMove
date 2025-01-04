@@ -27,3 +27,6 @@ wheel              0.45.1
 pyautogui         for locating highlighted versebox on the screen 
 pyperclip         control keyboard clipboard
 opencv            for pyautogui to have a confidence level when searching for image
+
+
+***disable clipboard history to avoid errors with  qapplication.clipboard

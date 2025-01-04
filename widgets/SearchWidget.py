@@ -41,7 +41,11 @@ class SearchThread(QThread):
         self.finished.emit(response.json(), self.query)
 
 class locateVerseBoxThread(QThread):
-    finished = pyqtSignal(int, int)
+    finished = pyqtSignal(tuple)
+
+    def run(self):
+        import util.findVerseBox as findVerseBox
+        self.finished.emit(findVerseBox.findVerseBox_location())
 
 
 class SearchWidget(QDialog):
@@ -62,6 +66,7 @@ class SearchWidget(QDialog):
         self.verse_tracker = OrderedDict()
         self.verse_widgets: Dict[str, QDialog] = {}  # Store widget references
         self.search_thread: Optional[SearchThread] = None
+        self.locate_box_thread: Optional[locateVerseBoxThread] = None
         self.last_query_time = 0
         
         autoComplete_widget = AutocompleteWidget(self)
@@ -90,10 +95,20 @@ class SearchWidget(QDialog):
 
     #this function will run after the search bar is unfocused
     def get_prev_verse_coordinates(self, event):
-        import util.findVerseBox as findVerseBox
-        self.boxCordx, self.boxCordy = findVerseBox.findVerseBox_location()
-        
-        print('x and y', self.boxCordx, self.boxCordy)
+        # Ensure the thread is only started once
+        if self.locate_box_thread is None or not self.locate_box_thread.isRunning():
+            self.locate_box_thread = locateVerseBoxThread()
+            self.locate_box_thread.finished.connect(self.handle_locate_results)
+            self.locate_box_thread.start()
+
+        # Call the default focusOutEvent
+        # autoComplete_widget.lineedit.focusOutEvent(self.autoComplete_lineedit, event)
+
+    def handle_locate_results(self, result):
+        """
+        Slot to process the results from locateVerseBoxThread.
+        """
+        print(f"Verse box coordinates found: {result}")
 
     
     #so when a verse result is clicked the current verse references is saved to clipboard
