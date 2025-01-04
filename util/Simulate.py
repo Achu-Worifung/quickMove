@@ -16,6 +16,8 @@ keyboard_controller = KeyboardController()
 mouse_button = Button
 
 def simClick(x, y, button = Button.left, pressed = True):
+
+    
     """
     Simulate a mouse click at the specified coordinates.
     
@@ -72,9 +74,6 @@ def simPaste(key, pressed=True, returning=False):
 
 
 def simSelectAll(pressed=True):
-    """
-    Simulate 'Select All' and 'Copy' actions.
-    """
     settings = QSettings("MyApp", "AutomataSimulator")
     next_verse = settings.value('next_verse')
 
@@ -85,7 +84,7 @@ def simSelectAll(pressed=True):
         keyboard.release('a')
         keyboard.release('ctrl')
 
-        time.sleep(0.1)  # Small delay to ensure selection occurs
+        time.sleep(0.1)  # Ensure selection occurs
 
         print("Sending Ctrl+C to copy.")
         keyboard.press('ctrl')
@@ -93,16 +92,27 @@ def simSelectAll(pressed=True):
         keyboard.release('c')
         keyboard.release('ctrl')
 
-        time.sleep(0.1)  # Small delay to ensure copy operation completes
+        time.sleep(0.2)  # Wait for clipboard to update
 
-        clipboard_content = pyperclip.paste()  # Get clipboard content
-        print(f"Clipboard content after copy: {clipboard_content}")
-        print(f"Next verse is {next_verse} and prev verse is {settings.value('prev_verse')}")
+        QApplication.processEvents()  # Ensure clipboard changes are processed
+        clipboard = QApplication.clipboard()
+        prev_verse = clipboard.text()
+        print(f"Copied text: {prev_verse}")
+
+        if prev_verse:
+            settings.setValue('prev_verse', prev_verse)
+            print(f"Saved previous verse: {prev_verse}")
+        else:
+            print("No text copied to clipboard.")
+
+        clipboard.setText(next_verse)
+        print(f"Set next verse: {next_verse}")
 
         reset_keys()
     except Exception as e:
         print(f"Error during simSelectAll: {e}")
         reset_keys()
+
 
     
     
@@ -110,7 +120,7 @@ def simSelectAll(pressed=True):
 
 def reset_keys():
     try:
-        for key in ['ctrl', 'shift', 'alt']:
+        for key in ['ctrl', 'shift', 'alt', 'a', 'c', 'v']:
             keyboard.release(key)
         print("All keys reset.")
     except Exception as e:

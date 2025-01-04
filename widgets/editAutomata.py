@@ -84,6 +84,7 @@ class editAutomata(QDialog):
         )
         self.cancelButton.clicked.connect(self.cancel)
     def save(self, data=None, name=None):
+        print('here is the data', data)
         name = self.table.item(0, 1).text()
         if name == "Automata":
             msg.warningBox(self, "Error", "Name cannot be 'Automata'")

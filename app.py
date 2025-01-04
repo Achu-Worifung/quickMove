@@ -12,7 +12,7 @@ from PyQt5.QtWidgets import (
     QApplication, QTableWidget, QTableWidgetItem, QHeaderView, QVBoxLayout, QDialog, QLabel, QPushButton
 )
 import util.dataMod as dataMod
-import util.Simulate as Simulate
+# import util.Simulate as Simulate
 from PyQt5.QtWidgets import *
 import util.walk as walk  # Placeholder for automata.json data retrieval logic
 import util.event_tracker as event_tracker  # Renamed from Together for clarity

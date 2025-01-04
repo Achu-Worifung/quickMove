@@ -87,9 +87,9 @@ class SearchWidget(QDialog):
     #this function will run after the search bar is unfocused
     def get_prev_verse_coordinates(self, event):
         import util.findVerseBox as findVerseBox
-        self.x, self.y = findVerseBox.findVerseBox_location()
+        self.boxCordx, self.boxCordy = findVerseBox.findVerseBox_location()
         
-        print('x and y', self.x, self.y)
+        print('x and y', self.boxCordx, self.boxCordy)
 
     
     #so when a verse result is clicked the current verse references is saved to clipboard
@@ -101,7 +101,8 @@ class SearchWidget(QDialog):
 
         #movign to the search bar location(you need to simulate 1st before being able to use pre verse)
         bar_location = self.settings.value("bar_location", None)
-        print('bar location', bar_location)
+        # self.x,self.y = bar_location
+        # print(f"Simulating click at ({x}, {y}) in searchwidget")
         if bar_location:
             #moving the cursor to the bars location
             Simulate.simClick(bar_location[0], bar_location[1])
@@ -142,14 +143,14 @@ class SearchWidget(QDialog):
 
 
     def update_verse_tracker(self, new_results, query):
-        print('verse tracker', self.verse_tracker, '\n\n\n')
-        print('verse widgets', self.verse_widgets, '\n\n\n')
-        print('top ten results', new_results[:10])
+        # print('verse tracker', self.verse_tracker, '\n\n\n')
+        # print('verse widgets', self.verse_widgets, '\n\n\n')
+        # print('top ten results', new_results[:10])
 
         new_results = new_results[::-1]
         new_keys = []
 
-        for result in new_results[:10]:
+        for result in new_results[:15]:
             title_array = getReference.getReference(result['title'])
             if not title_array:
                 continue
@@ -272,8 +273,8 @@ class SearchWidget(QDialog):
         #getting the originator of the event
         # clicked_widget = self.sender()
         # verse_reference = clicked_widget.title.text()
-        clipboard = QApplication.clipboard()
-        clipboard.setText(title)
+        # clipboard = QApplication.clipboard()
+        # clipboard.setText(title)
         #storing the verse to the qsetting clipboard history
         self.settings.setValue("next_verse", title)
         
