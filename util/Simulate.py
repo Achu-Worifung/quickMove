@@ -92,9 +92,10 @@ def simSelectAll(pressed=True):
         keyboard.release('c')
         keyboard.release('ctrl')
 
-        time.sleep(0.2)  # Wait for clipboard to update
+       
 
         QApplication.processEvents()  # Ensure clipboard changes are processed
+        time.sleep(0.2)  # Wait for clipboard to update
         clipboard = QApplication.clipboard()
         prev_verse = clipboard.text()
         print(f"Copied text: {prev_verse}")

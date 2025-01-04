@@ -40,6 +40,10 @@ class SearchThread(QThread):
         response.raise_for_status()
         self.finished.emit(response.json(), self.query)
 
+class locateVerseBoxThread(QThread):
+    finished = pyqtSignal(int, int)
+
+
 class SearchWidget(QDialog):
     def __init__(self, data=None):
         super().__init__()
@@ -95,21 +99,38 @@ class SearchWidget(QDialog):
     #so when a verse result is clicked the current verse references is saved to clipboard
     #we have location of x and y of highlighted verse box
     def prevVerse(self):
-        import pyperclip
+        QApplication.processEvents()  # Ensure clipboard changes are processed
+        clipboard = QApplication.clipboard()
 
-        #the select all will copy the currently displayed verse to clipboard
+        # Get the previous verse from QSettings
+        prev_verse = self.settings.value('prev_verse')
+        if not prev_verse:
+            print("Error: No previous verse found in settings.")
+            return
+        print('Previous verse:', prev_verse)
+        
 
-        #movign to the search bar location(you need to simulate 1st before being able to use pre verse)
+       
+
+        # Get the search bar location from QSettings
         bar_location = self.settings.value("bar_location", None)
-        # self.x,self.y = bar_location
-        # print(f"Simulating click at ({x}, {y}) in searchwidget")
-        if bar_location:
-            #moving the cursor to the bars location
-            Simulate.simClick(bar_location[0], bar_location[1])
-            #using pyperclip to paste at index of 0
-            pyperclip.paste()
-            #getting the moving the mouse to the highlighted verse box
-            Simulate.simClick(self.x, self.y)
+        if not bar_location or len(bar_location) != 2:
+            print("Error: Invalid or missing bar location.")
+            return
+        print(f"Bar location: {bar_location}")
+
+        # Move the cursor to the bar location
+        Simulate.simClick(bar_location[0], bar_location[1])
+
+        # Simulate select all, then paste
+        Simulate.simSelectAll()
+         # Set the previous verse to the clipboard
+        clipboard.setText(prev_verse)
+        QApplication.processEvents()  # Ensure clipboard changes are processed
+        import time
+        time.sleep(0.1)  # Small delay to ensure the clipboard update is ready
+        Simulate.simPaste('key')
+
 
 
     def pop_saved_verse(self):
