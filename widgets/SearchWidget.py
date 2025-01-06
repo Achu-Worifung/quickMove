@@ -1,4 +1,5 @@
 import os
+import sys
 from dotenv import load_dotenv
 from PyQt5.uic import loadUi
 import httpx
@@ -6,7 +7,7 @@ from PyQt5.QtWidgets import QDialog, QApplication, QLabel
 from collections import OrderedDict
 import util.getReference as getReference
 from widgets.SearchBar import AutocompleteWidget
-from PyQt5.QtCore import QThread, pyqtSignal
+from PyQt5.QtCore import QThread, pyqtSignal, QMimeData, QTimer
 import asyncio
 from functools import partial
 from typing import Dict, Optional
@@ -14,6 +15,7 @@ import util.Simulate as Simulate
 from PyQt5.QtCore import QPropertyAnimation, QEasingCurve
 import util.savedVerses as savedVerses
 from PyQt5.QtCore import QSettings
+
 
 
 
@@ -81,7 +83,7 @@ class SearchWidget(QDialog):
          #adding action listerner to change auto button
         self.pushButton.clicked.connect(lambda checked=False: self.changeAuto())
 
-        self.prev_verse.clicked.connect(lambda checked=False: self.prevVerse())
+        self.prev_verse.clicked.connect(lambda checked=False:   QTimer.singleShot(0, lambda: Simulate.present_prev_verse()))
 
         #initialize qsetting to store clipboard history
         self.settings = QSettings("MyApp", "AutomataSimulator")
@@ -114,38 +116,8 @@ class SearchWidget(QDialog):
     #so when a verse result is clicked the current verse references is saved to clipboard
     #we have location of x and y of highlighted verse box
     def prevVerse(self):
-        QApplication.processEvents()  # Ensure clipboard changes are processed
-        clipboard = QApplication.clipboard()
 
-        # Get the previous verse from QSettings
-        prev_verse = self.settings.value('prev_verse')
-        if not prev_verse:
-            print("Error: No previous verse found in settings.")
-            return
-        print('Previous verse:', prev_verse)
-        
-
-       
-
-        # Get the search bar location from QSettings
-        bar_location = self.settings.value("bar_location", None)
-        if not bar_location or len(bar_location) != 2:
-            print("Error: Invalid or missing bar location.")
-            return
-        print(f"Bar location: {bar_location}")
-
-        # Move the cursor to the bar location
-        Simulate.simClick(bar_location[0], bar_location[1])
-
-        # Simulate select all, then paste
-        Simulate.simSelectAll()
-         # Set the previous verse to the clipboard
-        prev_verse = prev_verse.strip()
-        clipboard.setText(prev_verse)
-        QApplication.processEvents()  # Ensure clipboard changes are processed
-        # import time
-        # time.sleep(0.1)  # Small delay to ensure the clipboard update is ready
-        Simulate.simPaste('key')
+       Simulate.present_prev_verse()
 
 
 
@@ -222,7 +194,8 @@ class SearchWidget(QDialog):
         self.searchPane.insertWidget(0, single_result)
         self.verse_widgets[verse_key] = single_result
         def mouse_click(event, verse_key):
-            self.present(verse_key, self.data)
+            QTimer.singleShot(0, lambda: self.present(verse_key, self.data))
+
            
         # Bind `verse_key` explicitly
         single_result.title.mousePressEvent = partial(mouse_click, verse_key=verse_key)
@@ -314,6 +287,8 @@ class SearchWidget(QDialog):
         # clipboard.setText(title)
         #storing the verse to the qsetting clipboard history
         self.settings.setValue("next_verse", title)
+        #setting up the clipboard
+        
         
             
         # print(title)

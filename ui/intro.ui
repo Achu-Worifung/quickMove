@@ -66,10 +66,7 @@ font:20px
           </size>
          </property>
          <property name="styleSheet">
-          <string notr="true">#widget 
-{
-layoutAlignment: AlignCenter;
-}</string>
+          <string notr="true"/>
          </property>
          <layout class="QGridLayout" name="gridLayout_3">
           <item row="4" column="1">
@@ -140,7 +137,7 @@ font:20px
     border-radius: 15px;
     border-color: black;
     padding: 4px;
-font:20px
+font:17px
 </string>
             </property>
             <property name="text">
@@ -148,7 +145,7 @@ font:20px
             </property>
            </widget>
           </item>
-          <item row="0" column="0" colspan="3">
+          <item row="0" column="0" colspan="3" alignment="Qt::AlignHCenter">
            <widget class="QLabel" name="label">
             <property name="font">
              <font>

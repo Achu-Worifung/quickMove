@@ -20,5 +20,5 @@ def findVerseBox_location():
     #return the x and y coordinates
         return x,y
     except Exception as e:
-        print("An error occurred:", e)
+        print("An error occurred while finding the verse box location:", e)
         return None, None

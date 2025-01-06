@@ -37,9 +37,10 @@ class noAutomata(QDialog):
             self.stop.setEnabled(True)
     def stop_tracking(self):
        
-        #modifying the action list to remove last click
+        # modifying the action list to remove last click
         self.event_tracker_thread.tracker.actionList = self.event_tracker_thread.tracker.actionList[:-1]
         self.event_tracker_thread.tracker.stop_tracking()
+
         
     def on_event_recorded(self, event):
         """Handle new events as they come in"""
@@ -50,7 +51,7 @@ class noAutomata(QDialog):
         """Handle completion of tracking"""
         print("Tracking finished")
         mainwindow = self.layout()
-        clearLayout(mainwindow)
+        clearLayout(mainwindow.parent().layout())
         mainwindow.addWidget(editAutomata(action_list, 'Automata'))
 
 class EventTrackerThread(QThread):

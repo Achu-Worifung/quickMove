@@ -144,7 +144,7 @@ font:20px
         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;hello there&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
        <property name="styleSheet">
-        <string notr="true">text-align:center</string>
+        <string notr="true"/>
        </property>
        <property name="readOnly">
         <bool>true</bool>

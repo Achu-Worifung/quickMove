@@ -27,7 +27,7 @@ class noAutomata(QDialog):
     
     def start_tracking(self):
         # Show tracking started message
-        ok = msg.questionBox(self, "StartTracking", 'Press YES to start tracking and ESC to stop')
+        ok = msg.questionBox(self, "StartTracking", 'Press YES to start tracking and STOP to stop')
         
         if ok :
             # start tracking

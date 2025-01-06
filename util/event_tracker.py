@@ -46,6 +46,7 @@ class EventTracker(QObject):
             if not self.tracking:
                 return False
             self.current_keys.add(key)
+            print('Current keys:', self.current_keys)
             try:
                 if self.is_paste_combination():
                     self.log_paste_event(edit)
@@ -53,6 +54,8 @@ class EventTracker(QObject):
                     self.log_select_all_event(edit)
                 elif self.is_shift_a_combination():
                     self.log_shift_a_event(edit)
+                elif key == keyboard.Key.esc:
+                    self.stop_tracking()
             except Exception as e:
                 msg.warningBox(None, "Error", f"Keyboard press error: {str(e)}")
 
