@@ -84,7 +84,7 @@ def simSelectAll(pressed=True):
         keyboard.release('a')
         keyboard.release('ctrl')
 
-        time.sleep(0.1)  # Ensure selection occurs
+        time.sleep(0.01)  # Ensure selection occurs
 
         print("Sending Ctrl+C to copy.")
         keyboard.press('ctrl')
@@ -95,7 +95,7 @@ def simSelectAll(pressed=True):
        
 
         QApplication.processEvents()  # Ensure clipboard changes are processed
-        time.sleep(0.2)  # Wait for clipboard to update
+        time.sleep(0.1)  # Wait for clipboard to update
         clipboard = QApplication.clipboard()
         prev_verse = clipboard.text()
         print(f"Copied text: {prev_verse}")
@@ -105,8 +105,9 @@ def simSelectAll(pressed=True):
             print(f"Saved previous verse: {prev_verse}")
         else:
             print("No text copied to clipboard.")
-
+        next_verse = next_verse.strip()
         clipboard.setText(next_verse)
+        QApplication.processEvents()
         print(f"Set next verse: {next_verse}")
 
         reset_keys()

@@ -140,10 +140,11 @@ class SearchWidget(QDialog):
         # Simulate select all, then paste
         Simulate.simSelectAll()
          # Set the previous verse to the clipboard
+        prev_verse = prev_verse.strip()
         clipboard.setText(prev_verse)
         QApplication.processEvents()  # Ensure clipboard changes are processed
-        import time
-        time.sleep(0.1)  # Small delay to ensure the clipboard update is ready
+        # import time
+        # time.sleep(0.1)  # Small delay to ensure the clipboard update is ready
         Simulate.simPaste('key')
 
 
