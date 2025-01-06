@@ -100,6 +100,9 @@
                <pointsize>12</pointsize>
               </font>
              </property>
+             <property name="styleSheet">
+              <string notr="true">text-overflow: ellipsis</string>
+             </property>
              <property name="lineWidth">
               <number>1</number>
              </property>

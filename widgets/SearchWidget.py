@@ -262,6 +262,15 @@ class SearchWidget(QDialog):
         saved.body.setText(body)
         saved.delete_2.clicked.connect(lambda checked=False: self.delete(saved))
         #add one to len latter
+        
+        #adding action listener to title and body
+        def mouse_click(event, verse_key):
+            QTimer.singleShot(0, lambda: self.present(verse_key, self.data))
+
+           
+        # Bind `verse_key` explicitly
+        saved.title.mousePressEvent = partial(mouse_click, verse_key=title)
+        saved.body.mousePressEvent = partial(mouse_click, verse_key=title)
 
         self.searchPane.insertWidget(current_size+1, saved) #index 0 is the label widget
         if self.pop:

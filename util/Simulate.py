@@ -57,7 +57,8 @@ def simPaste(keyvalue, pressed=True, returning=False):
     """
     QApplication.processEvents()
     settings = QSettings("MyApp", "AutomataSimulator")
-    presenting_verse = settings.value("next_verse", None).strip()  # Use None as default if not set
+    presenting_verse = settings.value("next_verse", "")  # Use None as default if not set
+    presenting_verse = presenting_verse.strip()
     clipboard.setText(presenting_verse)
     
 
