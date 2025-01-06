@@ -9,7 +9,7 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.setCentralWidget(Welcome())
         self.setWindowTitle("Automata Simulator")
-        self.setWindowIcon(QIcon("icon.png"))  # Ensure icon.png is in the same directory as this script
+        self.setWindowIcon(QIcon("logo.webp"))  # Ensure icon.png is in the same directory as this script
         self.area = None
 
         # Initialize QSettings for storing geometry and search area
