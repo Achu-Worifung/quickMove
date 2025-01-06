@@ -32,8 +32,8 @@ class SearchThread(QThread):
             "key": self.api_key,
             "cx": self.engine_id,
             "q": f'"{self.query}" site:biblehub.com',
-            "allintitle": self.query,
-            "allintext": self.query,
+            # "allintitle": self.query,
+            # "allintext": self.query,
 
         }
         response = httpx.get(url, params=params)
