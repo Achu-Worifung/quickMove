@@ -18,6 +18,7 @@ class editAutomata(QDialog):
 
         # storing the data and name for this specific instance (automata)
         self.data = data
+        print('here is the origin data', self.data)
         self.name = name
 
         loadUi(ui_path, self)
@@ -45,7 +46,7 @@ class editAutomata(QDialog):
         self.table.setItem(0, 1, QtWidgets.QTableWidgetItem(name))
         # populating the rest of the table
         row_index = 1
-        print ("data", data)
+        # print ("data", data)
         for row in data:
             self.table.setItem(row_index, 0, QtWidgets.QTableWidgetItem(row["action"]))
             if row["button"] == "" and row["location"] == [] and row["action"] == "":
@@ -84,7 +85,7 @@ class editAutomata(QDialog):
         )
         self.cancelButton.clicked.connect(self.cancel)
     def save(self, data=None, name=None):
-        print('here is the data', data)
+        # print('here is the data', data)
         name = self.table.item(0, 1).text()
         if name == "Automata":
             msg.warningBox(self, "Error", "Name cannot be 'Automata'")
@@ -98,8 +99,9 @@ class editAutomata(QDialog):
         # print('data', self.data)
         # print('name', self.name)
 
-        if saved_data is None:
+        if len(saved_data) == 0 or 'Automata' not in saved_data['Automata']:
             # Initialize saved_data if it's None
+            print('data is none')
             saved_data = {"Automata": []}
 
         # Flag to track whether the automata was modified
@@ -216,6 +218,7 @@ class editAutomata(QDialog):
             self.table.insertRow(row_index + 1)
             #updating the data
             self.data = dataMod.insertRow(self.data, self.name, row_index, {'action':'', 'button': '', 'location': []})
+            print('data after insertion', self.data)
             return
 
     def simulate(self, data=None, name=None):
@@ -237,7 +240,7 @@ class editAutomata(QDialog):
 
     def editcell(self, data=None, name=None):
         curr_row = self.table.currentRow()
-        # editting the name of the automata
+        
         if curr_row == -1:
             msg.warningBox(self, "Error", "No row selected")
             return
@@ -245,43 +248,38 @@ class editAutomata(QDialog):
             text, ok = msg.inputDialogBox(self, "Rename Automata", "Enter new Name:")
             if ok:
                 self.table.setItem(0, 1, QtWidgets.QTableWidgetItem(text))
-                # updating the data
                 self.name = text
-                #updating the label
                 self.title.setText("Editing Automata: " + text)
         else:
-            response = msg.questionBox(
-                self, "Edit Cell", f"Click Yes to edit cell and record 1 I/O event."
-            )
-
+            response = msg.questionBox(self, "Edit Cell", "Click Yes to edit cell and record 1 I/O event.")
+            
             if response:
-                # event_tracker.create_new_automaton(True)
-                # call the event tracker to record only 1 event
                 event_tracker = EventTracker()
-                def handler_tracking_finished(event):
-                    print('here is the event', event)
-                    type = event[0]["action"]
-                    button = event[0]["button"]
-                    location = event[0]["location"]
-                    self.data = dataMod.editrow(
-                        data,
-                        name,
-                        curr_row - 1,
-                        {"action": type, "button": button, "location": location},
-                    )
-                    # updating the table
-                    self.table.setItem(curr_row, 0, QtWidgets.QTableWidgetItem(type))
-                    self.table.setItem(
-                        curr_row,
-                        1,
-                        QtWidgets.QTableWidgetItem(f"{button} @ location:{location}"),
-                    )
-                #connecting signal to the slot
-                event_tracker.tracking_finished.connect(handler_tracking_finished)
                 
-                #starting the thread
+                # Define the handler function inline and properly connect it
+                def handler_tracking_finished(event):
+                    # print('Event received:', event)
+                    event_data = event[0]
+                    type = event_data["action"]
+                    button = event_data["button"]
+                    location = event_data["location"]
+                    
+                    # Ensure data modification is applied
+                    newModdata = dataMod.editrow(
+                        self.data, name, curr_row - 1, 
+                        {"action": type, "button": button, "location": location}
+                    )
+
+                    # Update the table visually
+                    self.table.setItem(curr_row, 0, QtWidgets.QTableWidgetItem(type))
+                    self.table.setItem(curr_row, 1, QtWidgets.QTableWidgetItem(f"{button} @ location: {location}"))
+
+                # Correctly connect the signal with the handler
+                event_tracker.tracking_finished.connect(handler_tracking_finished)
+
+                # Start the event tracking thread
                 event_tracker.create_new_automaton(True)
-               
+
             
 
     def deleteCell(self, data=None, name=None):
@@ -304,6 +302,7 @@ class editAutomata(QDialog):
                 self.data = dataMod.deleteRow(
                     self.data, name, curr_row - 1
                 )  # curr_row -1 becuse name is  0 index
+
         
         # print('data after deleting row', self.data)
 

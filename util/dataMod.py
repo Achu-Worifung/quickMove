@@ -24,5 +24,6 @@ def insertRow(data, name, row, newAction):
 def editrow(data, name, row, newAction): 
        
     data[row] = newAction
+    print('data after editing', data)
 
     return data
