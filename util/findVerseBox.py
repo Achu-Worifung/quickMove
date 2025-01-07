@@ -2,14 +2,17 @@
 
 import pyautogui
 from PyQt5.QtCore import QSettings #for the search area
+import os
+
 
 def findVerseBox_location():
     try:
-        image = 'images/test2.png'
         settings = QSettings("MyApp", "AutomataSimulator")
+        basedir = settings.value("basedir", None)
+        image_location = os.path.join(basedir, 'images', 'test2.png')
         search_area = settings.value("search_area", None)  # Use None as default if not set
 
-        x,y = pyautogui.locateCenterOnScreen(image,confidence=0.9, region=search_area)
+        x,y = pyautogui.locateCenterOnScreen(image_location,confidence=0.9, region=search_area)
 
         if x and y:
             print("Found the home button at:", x, y)

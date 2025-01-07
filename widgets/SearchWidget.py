@@ -239,7 +239,7 @@ class SearchWidget(QDialog):
             return
         # print('here is the query', query)
 
-        if not query or query.count(' ') < 3:
+        if not query or query.count(' ') < 3 or query[len(query)-1] != ' ':
             return
 
         # Cancel any existing search

@@ -1,15 +1,24 @@
-import sys
+import sys, os
 from PyQt5.QtWidgets import QApplication, QMainWindow
 from widgets.Welcome import Welcome  # Correctly import the Welcome class
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import QSettings
+
+basedir = os.path.dirname(__file__)
+
+try:
+    from ctypes import windll
+    myappid = 'amc.quickmove.automatasimulator'  # arbitrary string
+    windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
+except ImportError:
+    pass
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setCentralWidget(Welcome())
         self.setWindowTitle("Automata Simulator")
-        self.setWindowIcon(QIcon("images/logo.webp"))  # Ensure icon.png is in the same directory as this script
+        self.setWindowIcon(QIcon(os.path.join(basedir,"logo.ico")))  # Ensure icon.png is in the same directory as this script
         self.area = None
 
         # Initialize QSettings for storing geometry and search area
@@ -19,6 +28,9 @@ class MainWindow(QMainWindow):
         
         #reseting the search bar area
         self.settings.setValue("bar_location", None)
+        
+        #setting the basedirectory in the settings
+        self.settings.setValue("basedir", basedir)
 
     def closeEvent(self, event):
         # Save the current geometry when the app is closed

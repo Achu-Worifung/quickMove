@@ -4,9 +4,10 @@
 a = Analysis(
     ['main.py'],
     pathex=[],
-    binaries=[],
-    datas=[],
-    hiddenimports=[],
+    binaries=[('python312.dll', '.')],
+    datas=[('ui/*.ui', 'ui/'), ('images/*.png', 'images/'), ('logo.ico', '.'),('python312.dll', '.')],
+    hiddenimports=['PyQt5.sip', 'win32api', 'pynput.keyboard', 'pynput.mouse', 
+                   'pyautogui', 'cv2'],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
@@ -21,17 +22,18 @@ exe = EXE(
     a.scripts,
     [],
     exclude_binaries=True,
-    name='main',
+    name='QuickMove',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
     upx=True,
-    console=True,
+    console=False, #do not show console 
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
+    icon= 'logo.ico'
 )
 coll = COLLECT(
     exe,
