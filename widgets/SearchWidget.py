@@ -81,9 +81,9 @@ class SearchWidget(QDialog):
         
         autoComplete_widget = AutocompleteWidget(self)
         autoComplete_widget.setStyleSheet('height: 50px; border-radius: 10px; font-size: 20px;')
-        autoComplete_widget.lineedit.setPlaceholderText('   Search for a verse')
+        autoComplete_widget.lineedit.setPlaceholderText('Search for a verse')
         #adding an unfocused listerner to get the location of the search bar
-        autoComplete_widget.lineedit.focusOutEvent = self.get_prev_verse_coordinates
+        # autoComplete_widget.lineedit.focusOutEvent = self.get_prev_verse_coordinates  disableing this for now
         self.horizontalLayout.addWidget(autoComplete_widget)
         autoComplete_widget.lineedit.textChanged.connect(
             lambda text, d=self.data: self.handle_search(d, text)
@@ -105,6 +105,7 @@ class SearchWidget(QDialog):
 
     #this function will run after the search bar is unfocused
     def get_prev_verse_coordinates(self, event):
+        return # Disable for now
         # Ensure the thread is only started once
         if self.locate_box_thread is None or not self.locate_box_thread.isRunning():
             self.locate_box_thread = locateVerseBoxThread()
@@ -305,23 +306,25 @@ class SearchWidget(QDialog):
         #storing the verse to the qsetting clipboard history
         self.settings.setValue("next_verse", title)
         #setting up the clipboard
-        
-        
-            
-        # print(title)
-        # print('copied to clipboard')
-        # print(automata)
+        prev_action = ''
         #using simulating the automata
-        for action in automata:
+        for index, action in enumerate(automata):
+            print('prev action', prev_action)
+
             if action['action'] == 'click':
                 x_coord = action['location'][0]
                 y_coord = action['location'][1]
                 button = action['button']
-                Simulate.simClick(x_coord, y_coord, button, True)
+                Simulate.simClick(x_coord, y_coord, button)
+                
+
             elif action['action'] == 'paste':
+                print('pasting')
                 Simulate.simPaste(title, True)
+
             elif action['action'] == 'select all':
                 Simulate.simSelectAll(True)
+
         print("done")
     #change auto function
      #change auto function

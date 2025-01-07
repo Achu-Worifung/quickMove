@@ -4,10 +4,9 @@
 a = Analysis(
     ['main.py'],
     pathex=[],
-    binaries=[('python312.dll', '.')],
-    datas=[('ui/*.ui', 'ui/'), ('images/*.png', 'images/'), ('logo.ico', '.'),('python312.dll', '.')],
-    hiddenimports=['PyQt5.sip', 'win32api', 'pynput.keyboard', 'pynput.mouse', 
-                   'pyautogui', 'cv2'],
+    binaries=[],
+    datas=[('ui/*.ui', 'ui/'), ('images/*.png', 'images/'), ('logo.ico', '.')],
+    hiddenimports=[],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
@@ -27,7 +26,7 @@ exe = EXE(
     bootloader_ignore_signals=False,
     strip=False,
     upx=True,
-    console=False, #do not show console 
+    console=True, #do not show console 
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,

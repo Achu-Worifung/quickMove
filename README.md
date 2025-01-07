@@ -30,3 +30,5 @@ opencv            for pyautogui to have a confidence level when searching for im
 
 
 ***disable clipboard history to avoid errors with  qapplication.clipboard
+
+disabled the finde verse box 

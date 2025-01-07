@@ -21,7 +21,7 @@ app = QApplication(sys.argv)
 
 # Now, initialize clipboard and settings
 clipboard = app.clipboard()
-def simClick(x, y, button = Button.left, pressed = True):
+def simClick(x, y, button = Button.left, pressed = False):
 
     
     """
@@ -46,9 +46,9 @@ def simClick(x, y, button = Button.left, pressed = True):
         else:
             raise ValueError(f"Unknown button type: {button}")
     
-    # Perform the click
-    mouse_controller.click(button)
-    mouse_controller.click(button)
+   
+    mouse_controller.click(button, 2)
+
     reset_keys()
     
 def simPaste(keyvalue, pressed=True, returning=False):
