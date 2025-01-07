@@ -3,3 +3,5 @@ googlesearch.py
 googlesuggest/
 index.html
 .env
+dist/*
+build/*

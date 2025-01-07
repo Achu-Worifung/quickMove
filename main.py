@@ -9,13 +9,16 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.setCentralWidget(Welcome())
         self.setWindowTitle("Automata Simulator")
-        self.setWindowIcon(QIcon("logo.webp"))  # Ensure icon.png is in the same directory as this script
+        self.setWindowIcon(QIcon("images/logo.webp"))  # Ensure icon.png is in the same directory as this script
         self.area = None
 
         # Initialize QSettings for storing geometry and search area
         self.settings = QSettings("MyApp", "AutomataSimulator")
         self.restore_previous_geometry()
         self.search_area()  # Retrieve the saved search area setting
+        
+        #reseting the search bar area
+        self.settings.setValue("bar_location", None)
 
     def closeEvent(self, event):
         # Save the current geometry when the app is closed

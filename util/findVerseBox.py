@@ -5,7 +5,7 @@ from PyQt5.QtCore import QSettings #for the search area
 
 def findVerseBox_location():
     try:
-        image = './test.png'
+        image = 'images/test2.png'
         settings = QSettings("MyApp", "AutomataSimulator")
         search_area = settings.value("search_area", None)  # Use None as default if not set
 

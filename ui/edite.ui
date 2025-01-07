@@ -112,6 +112,9 @@ border:none;
            <attribute name="horizontalHeaderStretchLastSection">
             <bool>true</bool>
            </attribute>
+           <attribute name="verticalHeaderVisible">
+            <bool>false</bool>
+           </attribute>
            <attribute name="verticalHeaderStretchLastSection">
             <bool>false</bool>
            </attribute>
@@ -186,6 +189,9 @@ border:none;
                 <bold>false</bold>
                </font>
               </property>
+              <property name="cursor">
+               <cursorShape>PointingHandCursor</cursorShape>
+              </property>
               <property name="styleSheet">
                <string notr="true">
 
@@ -222,6 +228,9 @@ font:20px
                 <height>0</height>
                </size>
               </property>
+              <property name="cursor">
+               <cursorShape>PointingHandCursor</cursorShape>
+              </property>
               <property name="styleSheet">
                <string notr="true">    border-style: outset;
     border-width: 2px;
@@ -255,6 +264,9 @@ font:20px
                 <width>55</width>
                 <height>0</height>
                </size>
+              </property>
+              <property name="cursor">
+               <cursorShape>PointingHandCursor</cursorShape>
               </property>
               <property name="styleSheet">
                <string notr="true">
@@ -292,6 +304,9 @@ font:20px
                 <height>0</height>
                </size>
               </property>
+              <property name="cursor">
+               <cursorShape>PointingHandCursor</cursorShape>
+              </property>
               <property name="styleSheet">
                <string notr="true">
 
@@ -328,6 +343,9 @@ font:20px
                 <height>0</height>
                </size>
               </property>
+              <property name="cursor">
+               <cursorShape>PointingHandCursor</cursorShape>
+              </property>
               <property name="styleSheet">
                <string notr="true">    border-style: outset;
     border-width: 2px;
@@ -348,6 +366,9 @@ font:20px</string>
                 <width>55</width>
                 <height>0</height>
                </size>
+              </property>
+              <property name="cursor">
+               <cursorShape>PointingHandCursor</cursorShape>
               </property>
               <property name="styleSheet">
                <string notr="true">    border-style: outset;
@@ -370,6 +391,9 @@ font:20px
                 <width>55</width>
                 <height>0</height>
                </size>
+              </property>
+              <property name="cursor">
+               <cursorShape>PointingHandCursor</cursorShape>
               </property>
               <property name="styleSheet">
                <string notr="true">    border-style: outset;

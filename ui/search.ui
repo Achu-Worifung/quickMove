@@ -52,7 +52,7 @@ padding-bottom:40px</string>
     border-color: black;
     padding: 4px;
 font:20px;
-text-alignment:center
+
 </string>
              </property>
              <property name="editable">
@@ -67,6 +67,9 @@ text-alignment:center
                <width>200</width>
                <height>16777215</height>
               </size>
+             </property>
+             <property name="cursor">
+              <cursorShape>PointingHandCursor</cursorShape>
              </property>
              <property name="styleSheet">
               <string notr="true">

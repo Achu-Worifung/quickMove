@@ -15,6 +15,7 @@ import util.Simulate as Simulate
 from PyQt5.QtCore import QPropertyAnimation, QEasingCurve
 import util.savedVerses as savedVerses
 from PyQt5.QtCore import QSettings
+from urllib.parse import quote_plus
 
 
 
@@ -33,14 +34,21 @@ class SearchThread(QThread):
         params = {
             "key": self.api_key,
             "cx": self.engine_id,
-            "q": f'"{self.query}" site:biblehub.com',
-            # "allintitle": self.query,
-            # "allintext": self.query,
-
+            "q": quote_plus(self.query),  
+            "siteSearch": "biblegateway.com",  # Optional
+            # "safe": "active",  # Optional
         }
-        response = httpx.get(url, params=params)
+
+        # Request with proper headers
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+        }
+
+        response = httpx.get(url, params=params, headers=headers)
         response.raise_for_status()
-        self.finished.emit(response.json(), self.query)
+        results = response.json()
+        self.finished.emit(results, self.query)
+        print('here are the items',results.get("items", []))
 
 class locateVerseBoxThread(QThread):
     finished = pyqtSignal(tuple)
@@ -159,7 +167,7 @@ class SearchWidget(QDialog):
         new_results = new_results[::-1]
         new_keys = []
 
-        for result in new_results[:15]:
+        for result in new_results:
             title_array = getReference.getReference(result['title'])
             if not title_array:
                 continue
@@ -249,8 +257,8 @@ class SearchWidget(QDialog):
     def handle_search_results(self, results, query):
         if 'items' in results:
             #reversing items
-            results['items'] = results['items'][::-1]
-            # print('results', results)
+            # results['items'] = results['items'][::-1]
+            print('results', results['items'])
             self.update_verse_tracker(results['items'], query)
 
     #function to add saved verses to the saved pane
