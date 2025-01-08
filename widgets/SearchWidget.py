@@ -141,21 +141,21 @@ class SearchWidget(QDialog):
         #ensure that new_result and next verse are the same book and chapt
 
         # Get the number after the colon
-        match = re.search(r':(\d+)', new_result)
-        if match:
-            verse_number = match.group(1)  # Keeps the verse number as a string
-            print('Verse number:', verse_number)
+        # match = re.search(r':(\d+)', new_result)
+        # if match:
+        #     verse_number = match.group(1)  # Keeps the verse number as a string
+        #     print('Verse number:', verse_number)
            
-            # self.settings.setValue('verse_num', verse_number)
+        #     # self.settings.setValue('verse_num', verse_number)
           
-        else:
-            # self.settings.setValue('verse_num', None)
-            print('No verse number found in new_result')
+        # else:
+        #     # self.settings.setValue('verse_num', None)
+        #     print('No verse number found in new_result')
 
         # print('New result:', new_result)
 
         # Display the result with history information
-        self.history.setText(f'Original Reference: {next_verse} Currently Displayed Verse: {new_result}')
+        self.history.setText(f'Original Reference: {next_verse} Currently Displayed Verse: <b>{new_result}</b>')
 
 
 
