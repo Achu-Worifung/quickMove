@@ -16,6 +16,8 @@ from PyQt5.QtCore import QPropertyAnimation, QEasingCurve
 import util.savedVerses as savedVerses
 from PyQt5.QtCore import QSettings
 from urllib.parse import quote_plus
+import re
+import string
 
 
 
@@ -119,7 +121,41 @@ class SearchWidget(QDialog):
         """
         Slot to process the results from locateVerseThread.
         """
-        print(f"Verse box coordinates found: {result}")
+        
+
+          # Displaying the previous and next verse
+        next_verse = self.settings.value('next_verse')
+        prev_verse = self.settings.value('prev_verse')
+        print(f'Previous verse: {prev_verse} Next verse: {next_verse}')
+
+        # Remove '@' from the result and strip extra spaces
+        result = re.sub(r'@', '', result).strip()
+
+        # Remove all non-printable characters from the result
+        result = ''.join(char for char in result if char in string.printable)
+
+        # removing the Bible reference using regex
+        new_result = re.sub(r'\s*\([A-Z]{2,5}\)\s*', '', result).strip()
+
+        # Get the number after the colon
+        match = re.search(r':(\d+)', new_result)
+        if match:
+            verse_number = match.group(1)  # Keeps the verse number as a string
+            print('Verse number:', verse_number)
+            #completing the previouse verse reference
+            prev_verse = f'{prev_verse}-{verse_number}'
+            print('new Previous verse:', prev_verse)
+            # Save the new previous verse
+            self.settings.setValue('prev_verse', prev_verse)
+        else:
+            print('No verse number found in new_result')
+
+        # print('New result:', new_result)
+
+        # Display the result with history information
+        self.history.setText(f'Original Reference: {next_verse} Currently Displayed Verse: {new_result}')
+
+
 
     
     #so when a verse result is clicked the current verse references is saved to clipboard

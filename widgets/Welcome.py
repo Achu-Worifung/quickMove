@@ -204,10 +204,12 @@ class Welcome(QDialog):
                 print(left, top, right, bottom)
             else:
                 msg.warningBox(self, 'Error', 'Please select the search area')
+                
                 return
             # Save the search area to QSettings
             self.settings = QSettings("MyApp", "AutomataSimulator")
             self.settings.setValue("search_area", tuple([left, top, right, bottom]))
+            msg.informationBox(self, 'search area', "Search area configured successfully")
 
 
 
