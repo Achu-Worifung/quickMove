@@ -3,17 +3,9 @@ from PyQt5.QtCore import QSettings
 import pytesseract
 import cv2
 import numpy as np
-import sys
-import os
-import util.Message as msg
 
 # Set Tesseract path (Windows)
-if getattr(sys, 'frozen', False):
-    # Running as a bundled executable
-    pytesseract.pytesseract.tesseract_cmd = os.path.join(sys._MEIPASS, 'tesseract.exe')
-else:
-    # Running as a script
-    pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
+pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
 
 def findPrevDisplayedVerse():
     try:
@@ -23,7 +15,7 @@ def findPrevDisplayedVerse():
         if img_area and isinstance(img_area, (list, tuple)):  # Ensure it's a tuple or list
             # Convert list to tuple if needed
             img_area = tuple(img_area)
-            print('Image area:', img_area)
+            # print('Image area:', img_area)
             
             # Take a screenshot of the specified region using pyautogui
             screenshot = pyautogui.screenshot(region=img_area)
@@ -37,7 +29,7 @@ def findPrevDisplayedVerse():
             _, thresh = cv2.threshold(gray, 150, 255, cv2.THRESH_BINARY)
 
             # Optional: Save preprocessed image
-            cv2.imwrite("preprocessed_image.png", thresh)
+            # cv2.imwrite("preprocessed_image.png", thresh)
             
             # Perform OCR
             text = pytesseract.image_to_string(thresh)
@@ -48,7 +40,7 @@ def findPrevDisplayedVerse():
             return None
     except Exception as e:
         print("An error occurred:", e)
-        msg.warningBox(None, "Error", f"An error occurred while processing the image. {e}")
+        return None
 
 # Example usage
 if __name__ == "__main__":
