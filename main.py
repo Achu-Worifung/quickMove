@@ -28,6 +28,8 @@ class MainWindow(QMainWindow):
         
         #reseting the search bar area
         self.settings.setValue("bar_location", None)
+        self.settings.setValue("prev_verse", "")
+        self.settings.setValue("next_verse", "")
         
         #setting the basedirectory in the settings
         self.settings.setValue("basedir", basedir)

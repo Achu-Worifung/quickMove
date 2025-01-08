@@ -3,9 +3,17 @@ from PyQt5.QtCore import QSettings
 import pytesseract
 import cv2
 import numpy as np
+import sys
+import os
+import util.Message as msg
 
 # Set Tesseract path (Windows)
-pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
+if getattr(sys, 'frozen', False):
+    # Running as a bundled executable
+    pytesseract.pytesseract.tesseract_cmd = os.path.join(sys._MEIPASS, 'tesseract.exe')
+else:
+    # Running as a script
+    pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
 
 def findPrevDisplayedVerse():
     try:
@@ -40,7 +48,7 @@ def findPrevDisplayedVerse():
             return None
     except Exception as e:
         print("An error occurred:", e)
-        return None
+        msg.warningBox(None, "Error", f"An error occurred while processing the image. {e}")
 
 # Example usage
 if __name__ == "__main__":

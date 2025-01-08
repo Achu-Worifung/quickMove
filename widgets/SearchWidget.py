@@ -136,18 +136,19 @@ class SearchWidget(QDialog):
 
         # removing the Bible reference using regex
         new_result = re.sub(r'\s*\([A-Z]{2,5}\)\s*', '', result).strip()
+        
+        #ensure that new_result and next verse are the same book and chapt
 
         # Get the number after the colon
         match = re.search(r':(\d+)', new_result)
         if match:
             verse_number = match.group(1)  # Keeps the verse number as a string
             print('Verse number:', verse_number)
-            #completing the previouse verse reference
-            prev_verse = f'{prev_verse}-{verse_number}'
-            print('new Previous verse:', prev_verse)
-            # Save the new previous verse
-            self.settings.setValue('prev_verse', prev_verse)
+           
+            self.settings.setValue('verse_num', verse_number)
+          
         else:
+            self.settings.setValue('verse_num', None)
             print('No verse number found in new_result')
 
         # print('New result:', new_result)

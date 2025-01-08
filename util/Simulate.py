@@ -103,6 +103,12 @@ def simSelectAll(pressed=True):
         # Get the text from the clipboard
         prev_verse = clipboard.text()
         # print(f"Copied text: {prev_verse}")
+        
+        #getting the current displayed verse (displaced from the previous one)
+        verse_num = settings.value('verse_num')
+        if verse_num is not None:
+              prev_verse = f'{prev_verse}-{verse_num}'
+           
 
         # Save the text if there's anything copied
         if prev_verse:
