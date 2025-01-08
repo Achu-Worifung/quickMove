@@ -6,27 +6,9 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>709</width>
-    <height>261</height>
+    <width>835</width>
+    <height>346</height>
    </rect>
-  </property>
-  <property name="sizePolicy">
-   <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
-    <horstretch>0</horstretch>
-    <verstretch>0</verstretch>
-   </sizepolicy>
-  </property>
-  <property name="minimumSize">
-   <size>
-    <width>0</width>
-    <height>200</height>
-   </size>
-  </property>
-  <property name="maximumSize">
-   <size>
-    <width>16777215</width>
-    <height>270</height>
-   </size>
   </property>
   <property name="windowTitle">
    <string>Form</string>
@@ -34,12 +16,6 @@
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
     <widget class="QWidget" name="container" native="true">
-     <property name="maximumSize">
-      <size>
-       <width>16777215</width>
-       <height>240</height>
-      </size>
-     </property>
      <property name="styleSheet">
       <string notr="true"/>
      </property>
@@ -111,7 +87,7 @@
            <item row="1" column="0">
             <widget class="QLabel" name="body">
              <property name="sizePolicy">
-              <sizepolicy hsizetype="Preferred" vsizetype="Ignored">
+              <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
                <horstretch>0</horstretch>
                <verstretch>0</verstretch>
               </sizepolicy>
@@ -130,6 +106,9 @@
              <property name="cursor">
               <cursorShape>PointingHandCursor</cursorShape>
              </property>
+             <property name="styleSheet">
+              <string notr="true"/>
+             </property>
              <property name="lineWidth">
               <number>1</number>
              </property>
@@ -147,21 +126,15 @@
         <item>
          <widget class="QWidget" name="widget_3" native="true">
           <property name="sizePolicy">
-           <sizepolicy hsizetype="Preferred" vsizetype="Ignored">
+           <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
             <horstretch>0</horstretch>
             <verstretch>0</verstretch>
            </sizepolicy>
           </property>
-          <property name="minimumSize">
-           <size>
-            <width>0</width>
-            <height>40</height>
-           </size>
-          </property>
           <property name="maximumSize">
            <size>
             <width>16777215</width>
-            <height>160</height>
+            <height>200</height>
            </size>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -188,7 +161,7 @@
               </font>
              </property>
              <property name="cursor">
-              <cursorShape>PointingHandCursor</cursorShape>
+              <cursorShape>OpenHandCursor</cursorShape>
              </property>
              <property name="styleSheet">
               <string notr="true">    border-style: outset;
