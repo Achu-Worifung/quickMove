@@ -94,6 +94,7 @@ class Welcome(QDialog):
          # Find the specific automaton by button_name
         self.selected = [automaton for automaton in data["Automata"] if automaton["name"] == button_name][0]['actions']
         print(self.selected)
+        self.selected_name = button_name
         
     def delete(self, data = None, button_name = None):
         # button = self.sender() #getting the button triggering the event
@@ -179,7 +180,7 @@ class Welcome(QDialog):
         #getting the data
         
         #clearing the welcome page and moving to the search
-        search = SearchWidget(self.selected)
+        search = SearchWidget(self.selected, self.selected_name)
             
         # Clear current layout and add no_autos widget
         search_pane = self.scrollPane.layout()

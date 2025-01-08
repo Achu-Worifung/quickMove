@@ -284,7 +284,68 @@ font:20px
               </property>
              </widget>
             </item>
-            <item row="7" column="0">
+            <item row="4" column="0">
+             <widget class="QPushButton" name="insertButton">
+              <property name="sizeIncrement">
+               <size>
+                <width>55</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="cursor">
+               <cursorShape>PointingHandCursor</cursorShape>
+              </property>
+              <property name="styleSheet">
+               <string notr="true">    border-style: outset;
+    border-width: 2px;
+    border-radius: 10px;
+    border-color: black;
+    padding: 4px;
+font:20px
+</string>
+              </property>
+              <property name="text">
+               <string>insert below</string>
+              </property>
+             </widget>
+            </item>
+            <item row="6" column="0">
+             <widget class="QPushButton" name="simButton">
+              <property name="minimumSize">
+               <size>
+                <width>150</width>
+                <height>25</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>250</width>
+                <height>16777215</height>
+               </size>
+              </property>
+              <property name="sizeIncrement">
+               <size>
+                <width>55</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="cursor">
+               <cursorShape>PointingHandCursor</cursorShape>
+              </property>
+              <property name="styleSheet">
+               <string notr="true">    border-style: outset;
+    border-width: 2px;
+    border-radius: 10px;
+    border-color: black;
+    padding: 4px;
+font:20px</string>
+              </property>
+              <property name="text">
+               <string>Simulate</string>
+              </property>
+             </widget>
+            </item>
+            <item row="8" column="0">
              <widget class="QPushButton" name="saveButton">
               <property name="minimumSize">
                <size>
@@ -323,68 +384,7 @@ font:20px
               </property>
              </widget>
             </item>
-            <item row="5" column="0">
-             <widget class="QPushButton" name="simButton">
-              <property name="minimumSize">
-               <size>
-                <width>150</width>
-                <height>25</height>
-               </size>
-              </property>
-              <property name="maximumSize">
-               <size>
-                <width>250</width>
-                <height>16777215</height>
-               </size>
-              </property>
-              <property name="sizeIncrement">
-               <size>
-                <width>55</width>
-                <height>0</height>
-               </size>
-              </property>
-              <property name="cursor">
-               <cursorShape>PointingHandCursor</cursorShape>
-              </property>
-              <property name="styleSheet">
-               <string notr="true">    border-style: outset;
-    border-width: 2px;
-    border-radius: 10px;
-    border-color: black;
-    padding: 4px;
-font:20px</string>
-              </property>
-              <property name="text">
-               <string>Simulate</string>
-              </property>
-             </widget>
-            </item>
-            <item row="4" column="0">
-             <widget class="QPushButton" name="insertButton">
-              <property name="sizeIncrement">
-               <size>
-                <width>55</width>
-                <height>0</height>
-               </size>
-              </property>
-              <property name="cursor">
-               <cursorShape>PointingHandCursor</cursorShape>
-              </property>
-              <property name="styleSheet">
-               <string notr="true">    border-style: outset;
-    border-width: 2px;
-    border-radius: 10px;
-    border-color: black;
-    padding: 4px;
-font:20px
-</string>
-              </property>
-              <property name="text">
-               <string>insert below</string>
-              </property>
-             </widget>
-            </item>
-            <item row="6" column="0">
+            <item row="7" column="0">
              <widget class="QPushButton" name="cancelButton">
               <property name="sizeIncrement">
                <size>
@@ -405,6 +405,22 @@ font:20px</string>
               </property>
               <property name="text">
                <string>Cancel</string>
+              </property>
+             </widget>
+            </item>
+            <item row="5" column="0">
+             <widget class="QPushButton" name="setlocation">
+              <property name="styleSheet">
+               <string notr="true">    border-style: outset;
+    border-width: 2px;
+    border-radius: 10px;
+    border-color: black;
+    padding: 4px;
+font:20px
+</string>
+              </property>
+              <property name="text">
+               <string>set bar location</string>
               </property>
              </widget>
             </item>

@@ -1,5 +1,5 @@
 from PyQt5 import QtWidgets
-from PyQt5.QtCore import QThread, pyqtSignal
+from PyQt5.QtCore import QThread, pyqtSignal, QSettings
 from PyQt5.QtWidgets import QDialog, QTableWidget, QTableWidgetItem
 from PyQt5.uic import loadUi
 from util import  Simulate, Message as msg, dataMod, walk
@@ -24,6 +24,7 @@ class editAutomata(QDialog):
         loadUi(ui_path, self)
 
         self.popTable(data, name)
+        self.settings = QSettings("MyApp", "AutomataSimulator")
         
         # check if data is being passed
 
@@ -84,6 +85,27 @@ class editAutomata(QDialog):
             lambda checked=False, d=self.data, n=self.name: self.run(d, n)
         )
         self.cancelButton.clicked.connect(self.cancel)
+        
+        self.setlocation.clicked.connect(lambda checked=False, d=self.data, n=self.name: self.set_location(d, n))
+        
+        
+    def set_location(self, data=None, name=None):
+         cell_index = self.table.currentRow()
+         if cell_index == -1:
+             msg.warningBox(self, "Error", "No row selected")
+         elif cell_index == 0:
+             msg.warningBox(self, "Error", "Can't set name row to bar location only click actions row")
+         else:
+             row = data[cell_index - 1]
+             if row['action'] != 'click':
+                 msg.warningBox(self, "Error", "Can't set bar location to non click action")
+             else:
+                 bar_location = tuple(row['location'])
+                #  print('bar location', bar_location)
+                 self.settings.setValue(name, bar_location)
+                 msg.informationBox(self, "Success", "Bar location set to " + str(bar_location))
+                 
+    
     def save(self, data=None, name=None):
         # print('here is the data', data)
         name = self.table.item(0, 1).text()

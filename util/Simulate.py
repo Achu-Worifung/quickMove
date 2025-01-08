@@ -74,6 +74,8 @@ def simPaste(keyvalue, pressed=True, returning=False):
 
         # Save the bar location
         if settings.value('bar_location') is None:
+            
+            # time.sleep(0.05)
             settings.setValue('bar_location', mouse_controller.position)
     except Exception as e:
         print(f"Error during simPaste: {e}")
@@ -125,7 +127,8 @@ def simSelectAll(pressed=True):
 
     
     
-def present_prev_verse():
+def present_prev_verse(name = None):
+        print('presenting the previous verse', name)
      # Get the previous verse from QSettings
         next_verse = settings.value('prev_verse')
         next_verse = next_verse.strip()
@@ -141,14 +144,14 @@ def present_prev_verse():
         # clipboard.setMimeData(mine_data)
     
         # Get the search bar location from QSettings
-        bar_location = settings.value("bar_location", None)
+        bar_location = settings.value(name, None)
         if not bar_location or len(bar_location) != 2:
             print("Error: Invalid or missing bar location.")
             return
         # print(f"Bar location: {bar_location}")
 
         # Move the cursor to the bar location
-        simClick(bar_location[0], bar_location[1])
+        simClick(bar_location[0], bar_location[1]) 
 
         # Simulate select all, then paste
         simSelectAll()

@@ -61,11 +61,12 @@ class locateVerseThread(QThread):
 
 
 class SearchWidget(QDialog):
-    def __init__(self, data=None):
+    def __init__(self, data=None, name=None):
         super().__init__()
         ui_path = os.path.join(os.path.dirname(__file__), '../ui/search.ui')
         assert os.path.exists(ui_path), f"UI file not found: {ui_path}"
         loadUi(ui_path, self)
+        self.name = name
 
         self.version.addItems(['','KJV', 'NIV', 'ESV'])
         #list of saved verse
@@ -93,7 +94,7 @@ class SearchWidget(QDialog):
          #adding action listerner to change auto button
         self.pushButton.clicked.connect(lambda checked=False: self.changeAuto())
 
-        self.prev_verse.clicked.connect(lambda checked=False:   QTimer.singleShot(0, lambda: Simulate.present_prev_verse()))
+        self.prev_verse.clicked.connect(lambda checked=False:   QTimer.singleShot(0, lambda: Simulate.present_prev_verse(self.name)))
 
         #initialize qsetting to store clipboard history
         self.settings = QSettings("MyApp", "AutomataSimulator")
@@ -145,10 +146,10 @@ class SearchWidget(QDialog):
             verse_number = match.group(1)  # Keeps the verse number as a string
             print('Verse number:', verse_number)
            
-            self.settings.setValue('verse_num', verse_number)
+            # self.settings.setValue('verse_num', verse_number)
           
         else:
-            self.settings.setValue('verse_num', None)
+            # self.settings.setValue('verse_num', None)
             print('No verse number found in new_result')
 
         # print('New result:', new_result)
@@ -163,7 +164,7 @@ class SearchWidget(QDialog):
     #we have location of x and y of highlighted verse box
     def prevVerse(self):
 
-       Simulate.present_prev_verse()
+       Simulate.present_prev_verse(self.name)
 
 
 
