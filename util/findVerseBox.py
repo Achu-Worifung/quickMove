@@ -1,27 +1,47 @@
-"""this module will use pyautogui to find the location of the specified verse box in propresenter 7 using the screenshot locate function."""
-
 import pyautogui
-from PyQt5.QtCore import QSettings #for the search area
-import os
+from PyQt5.QtCore import QSettings
+import pytesseract
+import cv2
+import numpy as np
 
+# Set Tesseract path (Windows)
+pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
 
-def findVerseBox_location():
+def findPrevDisplayedVerse():
     try:
         settings = QSettings("MyApp", "AutomataSimulator")
-        basedir = settings.value("basedir", None)
-        image_location = os.path.join(basedir, 'images', 'test2.png')
-        search_area = settings.value("search_area", None)  # Use None as default if not set
+        img_area = settings.value('search_area', None)
 
-        x,y = pyautogui.locateCenterOnScreen(image_location,confidence=0.9, region=search_area)
+        if img_area and isinstance(img_area, (list, tuple)):  # Ensure it's a tuple or list
+            # Convert list to tuple if needed
+            img_area = tuple(img_area)
+            print('Image area:', img_area)
+            
+            # Take a screenshot of the specified region using pyautogui
+            screenshot = pyautogui.screenshot(region=img_area)
+            
+            # Convert the screenshot to OpenCV format
+            screenshot_np = np.array(screenshot)
+            screenshot_cv = cv2.cvtColor(screenshot_np, cv2.COLOR_RGB2BGR)
 
-        if x and y:
-            print("Found the home button at:", x, y)
-            # pyautogui.moveTo(x, y, duration=1)
+            # Preprocessing for better OCR accuracy
+            gray = cv2.cvtColor(screenshot_cv, cv2.COLOR_BGR2GRAY)
+            _, thresh = cv2.threshold(gray, 150, 255, cv2.THRESH_BINARY)
+
+            # Optional: Save preprocessed image
+            cv2.imwrite("preprocessed_image.png", thresh)
+            
+            # Perform OCR
+            text = pytesseract.image_to_string(thresh)
+            print("Extracted Text:", text)
+            return text
         else:
-            print("Could not find the home button")
-        pass
-    #return the x and y coordinates
-        return x,y
+            print("Search area not defined or invalid format.")
+            return None
     except Exception as e:
-        print("An error occurred while finding the verse box location:", e)
-        return None, None
+        print("An error occurred:", e)
+        return None
+
+# Example usage
+if __name__ == "__main__":
+    findPrevDisplayedVerse()

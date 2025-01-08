@@ -50,12 +50,12 @@ class SearchThread(QThread):
         self.finished.emit(results, self.query)
         print('here are the items',results.get("items", []))
 
-class locateVerseBoxThread(QThread):
-    finished = pyqtSignal(tuple)
+class locateVerseThread(QThread):
+    finished = pyqtSignal(str)
 
     def run(self):
         import util.findVerseBox as findVerseBox
-        self.finished.emit(findVerseBox.findVerseBox_location())
+        self.finished.emit(findVerseBox.findPrevDisplayedVerse())
 
 
 class SearchWidget(QDialog):
@@ -76,14 +76,14 @@ class SearchWidget(QDialog):
         self.verse_tracker = OrderedDict()
         self.verse_widgets: Dict[str, QDialog] = {}  # Store widget references
         self.search_thread: Optional[SearchThread] = None
-        self.locate_box_thread: Optional[locateVerseBoxThread] = None
+        self.locate_box_thread: Optional[locateVerseThread] = None
         self.last_query_time = 0
         
         autoComplete_widget = AutocompleteWidget(self)
         autoComplete_widget.setStyleSheet('height: 50px; border-radius: 10px; font-size: 20px;')
         autoComplete_widget.lineedit.setPlaceholderText('Search for a verse')
         #adding an unfocused listerner to get the location of the search bar
-        # autoComplete_widget.lineedit.focusOutEvent = self.get_prev_verse_coordinates  disableing this for now
+        autoComplete_widget.lineedit.focusOutEvent = self.get_prev_verse  #disableing this for now
         self.horizontalLayout.addWidget(autoComplete_widget)
         autoComplete_widget.lineedit.textChanged.connect(
             lambda text, d=self.data: self.handle_search(d, text)
@@ -104,11 +104,11 @@ class SearchWidget(QDialog):
         self.pop = False
 
     #this function will run after the search bar is unfocused
-    def get_prev_verse_coordinates(self, event):
-        return # Disable for now
+    def get_prev_verse(self, event):
+        # return # Disable for now
         # Ensure the thread is only started once
         if self.locate_box_thread is None or not self.locate_box_thread.isRunning():
-            self.locate_box_thread = locateVerseBoxThread()
+            self.locate_box_thread = locateVerseThread()
             self.locate_box_thread.finished.connect(self.handle_locate_results)
             self.locate_box_thread.start()
 
@@ -117,7 +117,7 @@ class SearchWidget(QDialog):
 
     def handle_locate_results(self, result):
         """
-        Slot to process the results from locateVerseBoxThread.
+        Slot to process the results from locateVerseThread.
         """
         print(f"Verse box coordinates found: {result}")
 
