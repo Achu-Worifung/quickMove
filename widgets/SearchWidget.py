@@ -20,10 +20,18 @@ import re
 import string
 
 
-
+class Tracker():
+    def __init__(self, reference, result, priority):
+        super().__init__()
+        self.reference = reference
+        self.result = result
+        self.priority = priority
+    def __repr__(self):
+        # This representation is used when printing lists of objects
+        return f"Tracker(reference='{self.reference}', priority={self.priority})"
 
 class SearchThread(QThread):
-    finished = pyqtSignal(dict, str)
+    finished = pyqtSignal(list, str)
 
     def __init__(self, api_key: str, engine_id: str, query: str):
         super().__init__()
@@ -32,25 +40,22 @@ class SearchThread(QThread):
         self.query = query
 
     def run(self):
-        url = 'https://customsearch.googleapis.com/customsearch/v1'
+        print("quote_plus(self.query)", quote_plus(self.query))
+        url = 'https://customsearch.googleapis.com/customsearch/v1?'
         params = {
             "key": self.api_key,
             "cx": self.engine_id,
             "q": quote_plus(self.query),  
-            "siteSearch": "biblegateway.com",  # Optional
             # "safe": "active",  # Optional
         }
-
-        # Request with proper headers
-        headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
-        }
-
-        response = httpx.get(url, params=params, headers=headers)
+        response = httpx.get(url, params=params)
         response.raise_for_status()
         results = response.json()
-        self.finished.emit(results, self.query)
-        print('here are the items',results.get("items", []))
+        # print('results for real', results)
+        reversed_items = results.get("items", [])[::-1]
+        # print('results reversed hello', reversed_items)
+        self.finished.emit(reversed_items, self.query)
+        # print('here are the items',results.get("items", []))
 
 class locateVerseThread(QThread):
     finished = pyqtSignal(str)
@@ -67,10 +72,12 @@ class SearchWidget(QDialog):
         assert os.path.exists(ui_path), f"UI file not found: {ui_path}"
         loadUi(ui_path, self)
         self.name = name
-
+        self.old_widget= []
+        self.saved_widgets = []
         self.version.addItems(['','KJV', 'NIV', 'ESV'])
         #list of saved verse
         self.savedVerse = []
+        self.Tracker = []
         self.pop = True
 
         self.version.setCurrentIndex(0)
@@ -81,6 +88,7 @@ class SearchWidget(QDialog):
         self.search_thread: Optional[SearchThread] = None
         self.locate_box_thread: Optional[locateVerseThread] = None
         self.last_query_time = 0
+        self.displayed_verse = []
         
         autoComplete_widget = AutocompleteWidget(self)
         autoComplete_widget.setStyleSheet('height: 50px; border-radius: 10px; font-size: 20px;')
@@ -98,8 +106,8 @@ class SearchWidget(QDialog):
 
         #initialize qsetting to store clipboard history
         self.settings = QSettings("MyApp", "AutomataSimulator")
-
-        load_dotenv()
+        basedir = self.settings.value("basedir")
+        load_dotenv(basedir + '/.env')
         self.api_key = os.getenv('API_KEY')
         self.engine_id = os.getenv('SEARCH_ENGINE_ID')
 
@@ -128,6 +136,7 @@ class SearchWidget(QDialog):
         next_verse = self.settings.value('next_verse')
         prev_verse = self.settings.value('prev_verse')
         print(f'Previous verse: {prev_verse} Next verse: {next_verse}')
+        
 
         # Remove '@' from the result and strip extra spaces
         result = re.sub(r'@', '', result).strip()
@@ -199,58 +208,69 @@ class SearchWidget(QDialog):
 
 
     def update_verse_tracker(self, new_results, query):
-        # print('verse tracker', self.verse_tracker, '\n\n\n')
-        # print('verse widgets', self.verse_widgets, '\n\n\n')
-        # print('top ten results', new_results[:10])
+        print('updating verse tracker')
+        if len(self.old_widget) > 0:
+            self.displayed_verse.clear()
+            self.Tracker.clear()
 
-        new_results = new_results[::-1]
-        new_keys = []
-
-        for result in new_results:
-            title_array = getReference.getReference(result['title'])
-            if not title_array:
-                continue
-            verse_key = title_array[0]
-            new_keys.append(verse_key)
-
-            if verse_key in self.verse_widgets:
-                # Update existing widget content
-                body = getReference.boldedText(result['snippet'], query)
-                self.verse_widgets[verse_key].body.setText(body)
-            else:
-                # Add new widget for the verse
-                self.add_verse_widget(verse_key, result, query)
-
-        # Remove widgets not in the latest results
-        for verse_key in list(self.verse_widgets.keys()):
-            if verse_key not in new_keys:
-                widget = self.verse_widgets.pop(verse_key)
+            #clearing the layout of old results
+            for widget in self.old_widget:
                 self.searchPane.removeWidget(widget)
                 widget.deleteLater()
 
-    def add_verse_widget(self, verse_key, result, query):
-        link = os.path.join(os.path.dirname(__file__), '../ui/result.ui')
-        single_result = loadUi(link)
-        
-        body = getReference.boldedText(result['snippet'], query)
-        single_result.body.setText(body)
-        single_result.title.setText(verse_key)
-        # print('verse_key', verse_key)
-        
-        single_result.save.clicked.connect(lambda checked=False,t=verse_key, b=body: self.savedVerses(t, b))
-        self.searchPane.insertWidget(0, single_result)
-        self.verse_widgets[verse_key] = single_result
-        def mouse_click(event, verse_key):
-            QTimer.singleShot(0, lambda: self.present(verse_key, self.data))
+        #adding the new results to the layout
+        for result in new_results:
+            reference = getReference.getReference(result['title'])
+            if not reference:
+                continue
+            #ensuring reference are uniqu
+            if reference in self.displayed_verse:
+                #increasing its priority
+                found_tracker = next((t for t in self.Tracker if t.reference == reference), None)
+                if found_tracker:
+                    found_tracker.priority += 1
+                    continue
 
-           
-        # Bind `verse_key` explicitly
-        single_result.title.mousePressEvent = partial(mouse_click, verse_key=verse_key)
-        single_result.body.mousePressEvent = partial(mouse_click, verse_key=verse_key)
+            self.Tracker.append(Tracker(reference, result, 1))
+            self.displayed_verse.append(reference)
+
+        self.add_verse_widget(query)
         
-        # self.searchPane.single_result.clicked.connect(self.present)  
+    
+
+            
+
+       
+
+    def add_verse_widget(self,query):
+        self.Tracker.sort(key=lambda x: x.priority, reverse=False)
+        print('verse tracker', self.Tracker)
+        #sorting based on priority
+        for tracker in self.Tracker:
+            link = os.path.join(os.path.dirname(__file__), '../ui/result.ui')
+            single_result = loadUi(link)
+            
+            body = getReference.boldedText(tracker.result['snippet'], query)
+            single_result.body.setText(body)
+            single_result.title.setText(tracker.reference)
+            # print('verse_key', verse_key)
+            
+            single_result.save.clicked.connect(lambda checked=False,t=tracker.reference, b=body: self.savedVerses(t, b))
+            self.searchPane.insertWidget(0, single_result)
+            self.old_widget.append(single_result)
+            # self.verse_widgets[verse_key] = single_result
+            def mouse_click(event, verse_key):
+                QTimer.singleShot(0, lambda: self.present(verse_key, self.data))
+
+            
+            # Bind `verse_key` explicitly
+            single_result.title.mousePressEvent = partial(mouse_click, verse_key=tracker.reference)
+            single_result.body.mousePressEvent = partial(mouse_click, verse_key=tracker.reference)
+            
+            # self.searchPane.single_result.clicked.connect(self.present)  
 
     def handle_search(self, data=None, query=None):
+        
         if query == "":
             # Keep track if we've found the label
             found_label = False
@@ -272,7 +292,9 @@ class SearchWidget(QDialog):
                 self.searchPane.removeWidget(widget)
                 widget.deleteLater()
             self.verse_tracker = OrderedDict()
-            self.verse_widgets: Dict[str, QDialog] = {}  # Store widget references
+            # self.verse_widgets: Dict[str, QDialog] = {}  # Store widget references
+            self.old_widget= None
+            self.saved_widgets = None
             self.search_thread: Optional[SearchThread] = None
             self.last_query_time = 0
             return
@@ -294,20 +316,21 @@ class SearchWidget(QDialog):
         self.search_thread.start()
 
     def handle_search_results(self, results, query):
-        if 'items' in results:
-            #reversing items
-            # results['items'] = results['items'][::-1]
-            print('results', results['items'])
-            self.update_verse_tracker(results['items'], query)
+        # print('results', results)
+        if results:
+            self.update_verse_tracker(results, query)
 
     #function to add saved verses to the saved pane
     def savedVerses(self, title, body):
-        current_size = len(self.verse_widgets)
+        # current_size = len(self.verse_widgets)
+        # saved_verses_len = len(self.saved_verse)
+        old_result_len = len (self.old_widget)
         link = os.path.join(os.path.dirname(__file__), '../ui/saved.ui')
         saved = loadUi(link)
         saved.title.setText(title)
         saved.body.setText(body)
         saved.delete_2.clicked.connect(lambda checked=False: self.delete(saved))
+        self.saved_widgets.append(saved)
         #add one to len latter
         
         #adding action listener to title and body
@@ -319,7 +342,7 @@ class SearchWidget(QDialog):
         saved.title.mousePressEvent = partial(mouse_click, verse_key=title)
         saved.body.mousePressEvent = partial(mouse_click, verse_key=title)
 
-        self.searchPane.insertWidget(current_size+1, saved) #index 0 is the label widget
+        self.searchPane.insertWidget(old_result_len+1, saved) #index 0 is the label widget
         if self.pop:
             return
         self.add_saved_verse(title, body)

@@ -9,17 +9,14 @@ a = Analysis(
     ['main.py'],
     pathex=[],
     binaries=[
-    # Include Tesseract executable and required DLLs
-    (r'C:\Program Files\Tesseract-OCR\tesseract.exe', '.'),  # Tesseract executable
-    (r'C:\Program Files\Tesseract-OCR\libtesseract-5.dll', '.'),  # Tesseract library
-    (r'C:\Program Files\Tesseract-OCR\leptonica-1.82.0.dll', '.'),  # Leptonica library
-    (r'C:\Program Files\Tesseract-OCR\zlib1.dll', '.'),  # Zlib
-    (r'C:\Program Files\Tesseract-OCR\libwebp-7.dll', '.'),  # WebP
-    (r'C:\Program Files\Tesseract-OCR\openjp2.dll', '.'),  # JPEG2000
-
-
-],
-
+        # Include Tesseract executable and required DLLs
+        (r'C:\Program Files\Tesseract-OCR\tesseract.exe', '.'),  # Tesseract executable
+        (r'C:\Program Files\Tesseract-OCR\libtesseract-5.dll', '.'),  # Tesseract library
+        (r'C:\Program Files\Tesseract-OCR\leptonica-1.82.0.dll', '.'),  # Leptonica library
+        (r'C:\Program Files\Tesseract-OCR\zlib1.dll', '.'),  # Zlib
+        (r'C:\Program Files\Tesseract-OCR\libwebp-7.dll', '.'),  # WebP
+        (r'C:\Program Files\Tesseract-OCR\openjp2.dll', '.'),  # JPEG2000
+    ],
     datas=[
         # Your existing data files
         ('ui/*.ui', 'ui/'),
@@ -27,11 +24,11 @@ a = Analysis(
         ('logo.ico', '.'),
         # Add Tesseract training data
         (os.path.join(TESSDATA_PATH, 'eng.traineddata'), 'tessdata/'),
-        # Add any other language files you need, e.g.:
-        # (os.path.join(TESSDATA_PATH, 'deu.traineddata'), 'tessdata/'),
+        # Add .env file
+        ('.env', '.'),  # Ensures the .env file is added to the root directory of the bundled app
     ],
     hiddenimports=[
-        'pytesseract'
+        'pytesseract',
     ],
     hookspath=[],
     hooksconfig={},
@@ -53,13 +50,13 @@ exe = EXE(
     bootloader_ignore_signals=False,
     strip=False,
     upx=True,
-    console=True,  # Set to False to hide console window for GUI app
+    console=False,  # Set to False to hide console window for GUI app
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon='logo.ico'
+    icon='logo.ico',
 )
 
 coll = COLLECT(

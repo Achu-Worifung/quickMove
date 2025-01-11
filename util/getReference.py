@@ -1,13 +1,14 @@
 import re
 
 def getReference(text):
-    # Regex pattern to capture Bible references
-    pattern = r'\b(?:[1-3]?\s?[A-Za-z]+)\s+\d+:\d+(?:-\d+)?(?:,\d+)*\b'
+    # Regex pattern to capture single Bible references (e.g., Genesis 1:1)
+    pattern = r'\b(?:[1-3]?\s?[A-Za-z]+)\s+\d+:\d+\b'
 
     # Find all matches in the text
     matches = re.findall(pattern, text)
 
-    return matches
+    # Return the first match or None if no match is found
+    return matches[0] if matches else None
 
 def boldedText(text, enteredText):
 
