@@ -50,6 +50,12 @@
                   <verstretch>0</verstretch>
                  </sizepolicy>
                 </property>
+                <property name="maximumSize">
+                 <size>
+                  <width>400</width>
+                  <height>16777215</height>
+                 </size>
+                </property>
                 <property name="font">
                  <font>
                   <pointsize>14</pointsize>
@@ -179,13 +185,13 @@ font:20px
           </property>
           <property name="maximumSize">
            <size>
-            <width>16777215</width>
-            <height>25</height>
+            <width>700</width>
+            <height>30</height>
            </size>
           </property>
           <property name="font">
            <font>
-            <pointsize>12</pointsize>
+            <pointsize>9</pointsize>
            </font>
           </property>
           <property name="text">

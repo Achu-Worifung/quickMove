@@ -208,7 +208,7 @@ class SearchWidget(QDialog):
 
 
     def update_verse_tracker(self, new_results, query):
-        print('updating verse tracker')
+        # print('updating verse tracker')
         if len(self.old_widget) > 0:
             self.displayed_verse.clear()
             self.Tracker.clear()
@@ -217,6 +217,9 @@ class SearchWidget(QDialog):
             for widget in self.old_widget:
                 self.searchPane.removeWidget(widget)
                 widget.deleteLater()
+
+            #clearing the old widget
+            self.old_widget.clear()
 
         #adding the new results to the layout
         for result in new_results:
@@ -293,8 +296,8 @@ class SearchWidget(QDialog):
                 widget.deleteLater()
             self.verse_tracker = OrderedDict()
             # self.verse_widgets: Dict[str, QDialog] = {}  # Store widget references
-            self.old_widget= None
-            self.saved_widgets = None
+            self.old_widget= []
+            self.saved_widgets = []
             self.search_thread: Optional[SearchThread] = None
             self.last_query_time = 0
             return
