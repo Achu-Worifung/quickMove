@@ -1,10 +1,5 @@
 # QuickMove 🎉✨🌟
 
-![GitHub repo size](https://img.shields.io/github/repo-size/scottydocs/README-template.md)
-![GitHub contributors](https://img.shields.io/github/contributors/scottydocs/README-template.md)
-![GitHub stars](https://img.shields.io/github/stars/scottydocs/README-template.md?style=social)
-![GitHub forks](https://img.shields.io/github/forks/scottydocs/README-template.md?style=social)
-
 **QuickMove** is a powerful 🛠️ designed for ProPresenter users or anyone looking for a faster ⚡ and more efficient way to present 📖 verses during services. It enables users to quickly 🔍 look up and present 📖 verses using 🎞️ software by taking control of the 🖱️ and ⌨️ for near-instantaneous ⏱️ operations. 🌟✨🔥
 
 ## Features 🎯💡✅
