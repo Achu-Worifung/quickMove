@@ -1,34 +1,86 @@
-dependecies
-httpx
-.env -store environmental variables
-anyio              4.7.0
-beautifulsoup4     4.12.3 web scrapping
-certifi            2024.12.14
-charset-normalizer 3.4.1
-h11                0.14.0
-httpcore           1.0.7
-httpx              0.28.1 for request
-idna               3.10
-pip                24.3.1
-pynput             1.7.7  for control over mouse and keyboard
-PyQt5              5.15.11 -for graphical interfaces
-PyQt5-Qt5          5.15.2
-PyQt5_sip          12.16.1
-PyQt5Designer      5.14.1
-python-dotenv      1.0.1
-requests           2.32.3 for making web request
-setuptools         75.6.0
-six                1.17.0
-sniffio            1.3.1
-soupsieve          2.6
-typing_extensions  4.12.2
-urllib3            2.3.0
-wheel              0.45.1
-pyautogui         for locating highlighted versebox on the screen 
-pyperclip         control keyboard clipboard
-opencv            for pyautogui to have a confidence level when searching for image
+# QuickMove 🎉✨🌟
 
+![GitHub repo size](https://img.shields.io/github/repo-size/scottydocs/README-template.md)
+![GitHub contributors](https://img.shields.io/github/contributors/scottydocs/README-template.md)
+![GitHub stars](https://img.shields.io/github/stars/scottydocs/README-template.md?style=social)
+![GitHub forks](https://img.shields.io/github/forks/scottydocs/README-template.md?style=social)
 
-***disable clipboard history to avoid errors with  qapplication.clipboard
+**QuickMove** is a powerful 🛠️ designed for ProPresenter users or anyone looking for a faster ⚡ and more efficient way to present 📖 verses during services. It enables users to quickly 🔍 look up and present 📖 verses using 🎞️ software by taking control of the 🖱️ and ⌨️ for near-instantaneous ⏱️ operations. 🌟✨🔥
 
-disabled the finde verse box 
+## Features 🎯💡✅
+- ⚡ **Fast Verse Lookup**: 🔍 and retrieve 📖 seamlessly.
+- 🔗 **Easy Integration**: Works with popular 🎞️ software like ProPresenter.
+- 🤖 **Automation**: Simplifies the process of presenting 📖 during live 🎤 events. 🚀💬🎵
+
+## Prerequisites 📝🔧🛠️
+Before you begin, ensure you have the following: 🎯✨📦
+
+- 🐍 **Python**: Installed with the latest version.
+- 🛠️ **Python Virtual Environment**: Set up to manage 📦.
+- 🌐 **Google API Key**: Obtain from the [Google Cloud Console](https://console.cloud.google.com/).
+- 🔎 **Google Custom Search Engine ID**: Set up via the [Google Programmable Search Engine](https://programmablesearchengine.google.com/about/). 🌟🔑📋
+
+## Getting Started 🚀💻🎉
+Follow these steps to set up and use QuickMove: 🌟✨📚
+
+### 1️⃣ Clone the Repository 🌐📂🔧
+```bash
+git clone https://github.com/Achu-Worifung/quickMove.git
+```
+
+### 2️⃣ Install Dependencies 📦💻🛠️
+```bash
+pip install -r requirements.txt
+```
+
+### 3️⃣ Set Up Environment Variables 🔐📋🌟
+Locate the `.env` file in the root directory and input the following:
+```
+API_KEY = <your_google_api_key>
+SEARCH_ENGINE_ID = <your_google_search_engine_id>
+```
+
+### 4️⃣ Run the Project ▶️🔧🎉
+To start the 🛠️:
+```bash
+python main.py
+```
+
+Alternatively, you can build an executable:
+```bash
+pyinstaller main.spec
+```
+
+## Contributing 🌍🤝💡
+Contributions are welcome! 🎉 Follow these steps to contribute: ✨💻✅
+
+1️⃣ **Fork the Repository** 🌐📂
+   ```bash
+   git fork https://github.com/Achu-Worifung/quickMove.git
+   ```
+
+2️⃣ **Create a Branch** 🌱💻🔧
+   ```bash
+   git checkout -b <branch_name>
+   ```
+
+3️⃣ **Make Changes** 🔄✨💡
+   Make your updates and commit them:
+   ```bash
+   git commit -m "<commit_message>"
+   ```
+
+4️⃣ **Push Changes** ⬆️🌐📤
+   ```bash
+   git push origin <branch_name>
+   ```
+
+5️⃣ **Submit Pull Request** 📨✨✅
+   Open a pull request on the original repository.
+
+## License 📜🛠️🌐
+This 🛠️ is open-source and available under the [📜 MIT License](LICENSE). 🌟✨📘
+
+---
+For ❓ or support, feel free to open an issue in the repository or reach out to the project maintainer. 💬✨📞
+

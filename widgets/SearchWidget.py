@@ -94,7 +94,8 @@ class SearchWidget(QDialog):
         autoComplete_widget.setStyleSheet('height: 50px; border-radius: 10px; font-size: 20px;')
         autoComplete_widget.lineedit.setPlaceholderText('Search for a verse')
         #adding an unfocused listerner to get the location of the search bar
-        autoComplete_widget.lineedit.focusOutEvent = self.get_prev_verse  #disableing this for now
+        # autoComplete_widget.lineedit.focusOutEvent = self.get_prev_verse  
+        autoComplete_widget.lineedit.focusInEvent = self.get_prev_verse
         self.horizontalLayout.addWidget(autoComplete_widget)
         autoComplete_widget.lineedit.textChanged.connect(
             lambda text, d=self.data: self.handle_search(d, text)
