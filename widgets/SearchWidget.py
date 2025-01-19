@@ -93,7 +93,7 @@ class SearchWidget(QDialog):
         autoComplete_widget = AutocompleteWidget(self)
         autoComplete_widget.setStyleSheet('height: 50px; border-radius: 10px; font-size: 20px;')
         autoComplete_widget.lineedit.setPlaceholderText('Search for a verse')
-        #adding an unfocused listerner to get the location of the search bar
+        #adding an infocuse listerner to get the location of the search bar
         # autoComplete_widget.lineedit.focusOutEvent = self.get_prev_verse  
         autoComplete_widget.lineedit.focusInEvent = self.get_prev_verse
         self.horizontalLayout.addWidget(autoComplete_widget)
@@ -115,7 +115,7 @@ class SearchWidget(QDialog):
         self.pop_saved_verse()
         self.pop = False
 
-    #this function will run after the search bar is unfocused
+    #this function will run after the search bar is in focus
     def get_prev_verse(self, event):
         # return # Disable for now
         # Ensure the thread is only started once
@@ -133,48 +133,41 @@ class SearchWidget(QDialog):
         """
         
 
-          # Displaying the previous and next verse
-        next_verse = self.settings.value('next_verse')
-        prev_verse = self.settings.value('prev_verse')
-        print(f'Previous verse: {prev_verse} Next verse: {next_verse}')
-        
-
         # Remove '@' from the result and strip extra spaces
         result = re.sub(r'@', '', result).strip()
+        print('result 1', result)
 
         # Remove all non-printable characters from the result
         result = ''.join(char for char in result if char in string.printable)
 
+        print('result 2', result)
         # removing the Bible reference using regex
-        new_result = re.sub(r'\s*\([A-Z]{2,5}\)\s*', '', result).strip()
-        
-        #ensure that new_result and next verse are the same book and chapt
-
-        # Get the number after the colon
-        # match = re.search(r':(\d+)', new_result)
-        # if match:
-        #     verse_number = match.group(1)  # Keeps the verse number as a string
-        #     print('Verse number:', verse_number)
-           
-        #     # self.settings.setValue('verse_num', verse_number)
-          
-        # else:
-        #     # self.settings.setValue('verse_num', None)
-        #     print('No verse number found in new_result')
-
-        # print('New result:', new_result)
+        new_result = re.sub(r'\).*$', '', result).strip()
+        #saving the retrieved result 
+        self.settings.setValue('displayed_reference', new_result)
 
         # Display the result with history information
-        self.history.setText(f'Original Reference: {next_verse} Currently Displayed Verse: <b>{new_result}</b>')
+        self.updateHistoryLabel()
 
 
-
+    def updateHistoryLabel(self):
+        #getting the values
+        original = self.settings.value('copied_reference')
+        displayed = self.settings.value('displayed_reference')
+        self.history.setText(f'Original Reference: {original} Currently Displayed Verse: <b>{displayed}</b>')
+        #clearing the values to avoid persistence
+        # self.settings.setValue('copied_reference', '').
+        # self.settings.setValue('displayed_reference', '')
+        
+        
     
     #so when a verse result is clicked the current verse references is saved to clipboard
     #we have location of x and y of highlighted verse box
     def prevVerse(self):
 
        Simulate.present_prev_verse(self.name)
+       #updaing the label to show the current verse
+       self.updateHistoryLabel()
 
 
 
@@ -390,7 +383,8 @@ class SearchWidget(QDialog):
             elif action['action'] == 'select all':
                 Simulate.simSelectAll(True)
 
-        print("done")
+        #updating the history label
+        self.updateHistoryLabel()
     #change auto function
      #change auto function
     def changeAuto(self):

@@ -30,6 +30,7 @@ class MainWindow(QMainWindow):
         self.settings.setValue("bar_location", None)
         self.settings.setValue("prev_verse", "")
         self.settings.setValue("next_verse", "")
+        self.settings.setValue('copied_reference', '')
         
         #setting the basedirectory in the settings
         self.settings.setValue("basedir", basedir)
