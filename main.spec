@@ -20,7 +20,6 @@ a = Analysis(
     datas=[
         # Your existing data files
         ('ui/*.ui', 'ui/'),
-        ('images/*.png', 'images/'),
         ('logo.ico', '.'),
         # Add Tesseract training data
         (os.path.join(TESSDATA_PATH, 'eng.traineddata'), 'tessdata/'),
