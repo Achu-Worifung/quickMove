@@ -266,7 +266,7 @@ font:20px</string>
      </widget>
     </item>
     <item>
-     <widget class="QWidget" name="widget_3" native="true">
+     <widget class="QWidget" name="mainContent" native="true">
       <layout class="QHBoxLayout" name="horizontalLayout_4">
        <item>
         <widget class="QWidget" name="functions" native="true">
@@ -306,6 +306,12 @@ font:20px
           </property>
           <item>
            <widget class="QPushButton" name="home">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
             <property name="styleSheet">
              <string notr="true">
     border-style: none;
@@ -333,6 +339,12 @@ selection-background-color: rgb(170, 37, 14);</string>
           </item>
           <item>
            <widget class="QPushButton" name="create">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
             <property name="styleSheet">
              <string notr="true">
     border-style: none;
@@ -358,7 +370,13 @@ font:20px</string>
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="sewarch_area">
+           <widget class="QPushButton" name="searchArea">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
             <property name="styleSheet">
              <string notr="true">
     border-style: none;
@@ -385,6 +403,12 @@ font:20px</string>
           </item>
           <item>
            <widget class="QPushButton" name="history">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
             <property name="styleSheet">
              <string notr="true">
     border-style: none;
@@ -411,6 +435,12 @@ font:20px</string>
           </item>
           <item>
            <widget class="QPushButton" name="about">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
             <property name="font">
              <font>
               <pointsize>-1</pointsize>
