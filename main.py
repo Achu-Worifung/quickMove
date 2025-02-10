@@ -81,6 +81,14 @@ class MainWindow(QMainWindow):
             newWidth = 0
         self.functions.setFixedWidth(newWidth)
     def moveToCreate(self):
+        create = loadUi(os.path.join(basedir, './ui/create_automata.ui'))
+        self.toggleMenu()
+        self.clearWidgets()
+        if(self.mainContent.layout().count() > 1):
+            print("count is greater than 1")
+        else:print("count is less than 1")  
+        
+        self.mainContent.layout().insertWidget(1,create)
         self.curr_page = "create"
         pass
     def moveToAbout(self):
@@ -123,6 +131,11 @@ class MainWindow(QMainWindow):
             else:print("count is less than 1")
             self.start(comming_back=True)
             self.mainContent.layout().insertWidget(1,self.home)
+        else:
+            self.toggleMenu()
+            self.clearWidgets()
+            self.mainContent.layout().insertWidget(1,self.home)
+            
         self.curr_page = "home"
            
     def clearWidgets(self):
@@ -199,9 +212,9 @@ class MainWindow(QMainWindow):
             data['Automata'] = [auto for auto in data['Automata'] if auto["name"] != button_name]
             
             walk.write_data(data)
-            self.start(data)  # Refresh UI after deletion
+            self.start(data, comming_back=True)  # Refresh UI after deletion
 
-    def mod(self, data=None, button_name=None):
+    def mod(self, data=None, button_name=None, comming_back= True):
         from widgets.editAutomata import editAutomata
 
         if not data:
@@ -216,14 +229,6 @@ class MainWindow(QMainWindow):
         edit_pane = editAutomata(row_data['actions'], button_name)
         curr_pane.addWidget(edit_pane)
 
-    def createAutomata(self):
-        from widgets.noAutomata import noAutomata
-
-        no_autos = noAutomata('Create new automata')
-
-        datapane = self.scrollPane.layout()
-        clearLayout(datapane)
-        datapane.addWidget(no_autos)
 
     def getStarted(self, data=None, index=None):
         search = SearchWidget(data, index)

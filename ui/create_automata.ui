@@ -183,6 +183,23 @@ font:20px
        </layout>
       </widget>
      </item>
+     <item alignment="Qt::AlignHCenter">
+      <widget class="QLabel" name="label_2">
+       <property name="font">
+        <font>
+         <pointsize>15</pointsize>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">background-color: rgb(255, 255, 255);</string>
+       </property>
+       <property name="text">
+        <string>RECORDED ACTIONS</string>
+       </property>
+      </widget>
+     </item>
      <item>
       <widget class="QPlainTextEdit" name="plainTextEdit">
        <property name="maximumSize">
@@ -207,7 +224,7 @@ font:20px
         <string notr="true">background-color:rgb(255, 255, 255);</string>
        </property>
        <property name="documentTitle">
-        <string>RECORDED ACTIONS</string>
+        <string/>
        </property>
        <property name="readOnly">
         <bool>true</bool>
