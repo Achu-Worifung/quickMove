@@ -44,7 +44,7 @@
           </property>
           <property name="font">
            <font>
-            <pointsize>11</pointsize>
+            <pointsize>14</pointsize>
            </font>
           </property>
           <property name="text">
@@ -57,6 +57,9 @@
            <set>Qt::LinksAccessibleByMouse|Qt::TextSelectableByKeyboard|Qt::TextSelectableByMouse</set>
           </property>
          </widget>
+        </item>
+        <item row="0" column="0">
+         <layout class="QHBoxLayout" name="horizontalLayout"/>
         </item>
         <item row="4" column="0">
          <widget class="QScrollArea" name="scrollArea">
@@ -72,7 +75,7 @@
              <x>0</x>
              <y>0</y>
              <width>793</width>
-             <height>451</height>
+             <height>433</height>
             </rect>
            </property>
            <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -110,9 +113,6 @@
           </widget>
          </widget>
         </item>
-        <item row="0" column="0">
-         <layout class="QHBoxLayout" name="horizontalLayout"/>
-        </item>
         <item row="2" column="0">
          <widget class="QWidget" name="widget_2" native="true">
           <property name="minimumSize">
@@ -137,22 +137,46 @@ padding-bottom:25px</string>
                <height>16777215</height>
               </size>
              </property>
+             <property name="font">
+              <font>
+               <pointsize>-1</pointsize>
+               <weight>50</weight>
+               <italic>false</italic>
+               <bold>false</bold>
+              </font>
+             </property>
              <property name="styleSheet">
               <string notr="true">    border-width: 2px 0 2px 0;
     border-radius: 15px 0 15px 0;
     border-color: black;
     padding: 4px;
 font:20px;
+background-color: rgb(220, 220, 220);
 
 </string>
              </property>
              <property name="editable">
-              <bool>true</bool>
+              <bool>false</bool>
+             </property>
+             <property name="currentText">
+              <string/>
+             </property>
+             <property name="iconSize">
+              <size>
+               <width>16</width>
+               <height>16</height>
+              </size>
              </property>
             </widget>
            </item>
            <item alignment="Qt::AlignTop">
             <widget class="QPushButton" name="prev_verse">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
              <property name="maximumSize">
               <size>
                <width>200</width>
@@ -174,7 +198,7 @@ font:20px
 </string>
              </property>
              <property name="text">
-              <string>Present Prev Verse</string>
+              <string>Prev Verse</string>
              </property>
              <property name="icon">
               <iconset>
@@ -192,20 +216,75 @@ font:20px
          </widget>
         </item>
         <item row="1" column="0">
-         <widget class="QLineEdit" name="lineEdit">
+         <widget class="QWidget" name="widget_3" native="true">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Minimum">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
           <property name="minimumSize">
            <size>
             <width>0</width>
-            <height>50</height>
+            <height>30</height>
            </size>
           </property>
           <property name="styleSheet">
-           <string notr="true">
-border-width:2px;
+           <string notr="true">border-width:2px;
 border-color: rgb(27, 188, 155);
 background-color:  rgb(220, 220, 220);
-border-radius: 500px;</string>
+border-radius: 20px</string>
           </property>
+          <layout class="QHBoxLayout" name="horizontalLayout_3">
+           <item>
+            <widget class="QPushButton" name="pushButton">
+             <property name="styleSheet">
+              <string notr="true">selection-background-color: rgb(53, 255, 100);
+    border-style: none;
+
+
+    border-color: none;
+    padding: 4px;
+font:20px</string>
+             </property>
+             <property name="text">
+              <string/>
+             </property>
+             <property name="icon">
+              <iconset>
+               <normaloff>../../../../Downloads/5978961_closed_eye_hide_sleep_icon.ico</normaloff>../../../../Downloads/5978961_closed_eye_hide_sleep_icon.ico</iconset>
+             </property>
+             <property name="iconSize">
+              <size>
+               <width>30</width>
+               <height>30</height>
+              </size>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QLineEdit" name="lineEdit">
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>50</height>
+              </size>
+             </property>
+             <property name="font">
+              <font>
+               <pointsize>17</pointsize>
+              </font>
+             </property>
+             <property name="styleSheet">
+              <string notr="true">
+border:none</string>
+             </property>
+             <property name="placeholderText">
+              <string>Search Bible verse</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
          </widget>
         </item>
        </layout>

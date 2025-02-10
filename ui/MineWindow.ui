@@ -212,7 +212,7 @@ font:20px</string>
           <item>
            <widget class="QPushButton" name="pushButton">
             <property name="styleSheet">
-             <string notr="true">
+             <string notr="true">selection-background-color: rgb(53, 255, 100);
     border-style: none;
 
 

@@ -95,7 +95,7 @@ border-radius: 30px;</string>
         <widget class="QWidget" name="widget_2" native="true">
          <layout class="QHBoxLayout" name="horizontalLayout_3">
           <item>
-           <widget class="QPushButton" name="pushButton">
+           <widget class="QPushButton" name="use">
             <property name="styleSheet">
              <string notr="true">    border-style: outset;
     border-width: 2px;

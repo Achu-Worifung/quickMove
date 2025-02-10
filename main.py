@@ -53,6 +53,8 @@ class MainWindow(QMainWindow):
             print(f"Restored search area: {self.area}")
         else:
             print("No search area saved. Using default.")
+            
+
 
 def main():
     app = QApplication(sys.argv)
