@@ -5,7 +5,7 @@ from PyQt5.QtWidgets import QDialog, QTableWidget, QTableWidgetItem,QWidget
 from PyQt5.uic import loadUi
 from util import event_tracker,Simulate, Message as msg, dataMod
 from PyQt5.QtWidgets import (
-    QApplication, QTableWidget, QTableWidgetItem, QHeaderView, QVBoxLayout, QDialog, QLabel, QPushButton,QHBoxLayout, QRadioButton, QPushButton
+    QApplication, QTableWidget, QTableWidgetItem, QHeaderView, QVBoxLayout, QDialog, QLabel, QPushButton,QHBoxLayout, QRadioButton, QPushButton, QMainWindow
 )
 from PyQt5.QtCore import QSettings
 
@@ -16,44 +16,33 @@ from PyQt5.QtCore import Qt
 import util.walk as walk
 # from util.walk import get_data
 from util.clearLayout import clearLayout
-class Welcome(QDialog):
+class Welcome(QMainWindow):
     def __init__(self):
 
         super(Welcome, self).__init__()
 
         # Load the UI file
-        ui_path = os.path.join(os.path.dirname(__file__), '../ui/intro.ui')
+        ui_path = os.path.join(os.path.dirname(__file__), '../ui/MainWindow.ui')
 
         assert os.path.exists(ui_path), f"UI file not found: {ui_path}"
         loadUi(ui_path, self)
+        #removing default window controls
+        self.setWindowFlags(Qt.FramelessWindowHint)
 
-        #adding action event to create button
-        self.create_auto.clicked.connect(self.createAutomata)
-        self.present.clicked.connect(self.getStarted)
-        
-        #variable instance for selected automata
-        self.selected = None
-        # # Initialize scroll area layout
-        # if not self.scrollAreaWidgetContents.layout():
-        #     self.scroll_layout = QVBoxLayout(self.scrollAreaWidgetContents)
-        # else:
-        #     self.scroll_layout = self.scrollAreaWidgetContents.layout()
+        self.settings = QSettings("MyApp", "AutomataSimulator")
 
         # Initialize event tracker thread
         self.event_tracker_thread = None
-        self.search_area.clicked.connect(self.configure_search_area)
+        # self.search_area.clicked.connect(self.configure_search_area)
 
-        # Load data into the UI
-        # self.loaddata()
+        # adding functions to all the buttons
+        self.all_buttons_function();
          # Call the start method
         self.start()
 
-    def start(self, data = None):
-        from widgets.noAutomata import noAutomata
-
-           
+    def start(self, data = None):   
         if not data:
-            data = walk.get_data()
+            autos = self.settings.value("Automatas", [])
         
         if not data:
             datapane = self.verticalLayout.layout()
@@ -65,24 +54,23 @@ class Welcome(QDialog):
  
         else:
             datapane = self.verticalLayout.layout()
-            print(datapane)
             
           
             # deleteing prev radio buttons
             clearLayout(datapane)
             
-            self.radion_button = []
             #pane for each automata
             link = os.path.join(os.path.dirname(__file__), '../ui/automate_select.ui')
 
-            for button in data['Automata']:
+            for i, button in data['Automata']:
                 single_automata = loadUi(link)#loading the ui file
+                
+                single_automata.use.clicked.connect(lambda checked = False, d = data, index = i: self.getStarted(d,  i))
                 
                 single_automata.name.setText(button['name'])
                 
                 single_automata.modify.clicked.connect(lambda checked=False, d=data, b=button['name']: self.mod(d, b))
-                
-                single_automata.name.toggled.connect(lambda checked=False, d=data, b=button['name']: self.toggledradio(d, b))
+            
 
                 single_automata.delete_2.clicked.connect(lambda checked=False, d=data, b=button['name']: self.delete(d, b))
                 
@@ -90,11 +78,6 @@ class Welcome(QDialog):
                 
                 # Add the pane to the datapane layout
                 datapane.addWidget(single_automata)
-    def toggledradio(self, data = None, button_name = None):
-         # Find the specific automaton by button_name
-        self.selected = [automaton for automaton in data["Automata"] if automaton["name"] == button_name][0]['actions']
-        print(self.selected)
-        self.selected_name = button_name
         
     def delete(self, data = None, button_name = None):
         # button = self.sender() #getting the button triggering the event
@@ -155,7 +138,9 @@ class Welcome(QDialog):
         curr_pane.addWidget(edit_pane)
 
 
-       
+    def all_buttons_function(self):
+        #closing button
+        closing = self.
                     
 
     def createAutomata(self):
@@ -173,14 +158,10 @@ class Welcome(QDialog):
         
         # Function to load data into the table
     
-    def getStarted(self, data = None):
-        if not self.selected:
-            msg.warningBox(self, "Error", "Please select an automata")
-            return 
-        #getting the data
+    def getStarted(self, data = None, index = None):
         
         #clearing the welcome page and moving to the search
-        search = SearchWidget(self.selected, self.selected_name)
+        search = SearchWidget(data, index)
             
         # Clear current layout and add no_autos widget
         search_pane = self.scrollPane.layout()

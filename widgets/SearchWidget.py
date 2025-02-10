@@ -66,7 +66,7 @@ class locateVerseThread(QThread):
 
 
 class SearchWidget(QDialog):
-    def __init__(self, data=None, name=None):
+    def __init__(self, data=None, index=None):
         super().__init__()
         ui_path = os.path.join(os.path.dirname(__file__), '../ui/search.ui')
         assert os.path.exists(ui_path), f"UI file not found: {ui_path}"
