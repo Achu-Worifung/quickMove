@@ -14,8 +14,26 @@
    <string>Form</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_2">
+   <property name="spacing">
+    <number>0</number>
+   </property>
+   <property name="leftMargin">
+    <number>0</number>
+   </property>
+   <property name="topMargin">
+    <number>0</number>
+   </property>
+   <property name="rightMargin">
+    <number>0</number>
+   </property>
+   <property name="bottomMargin">
+    <number>0</number>
+   </property>
    <item>
     <layout class="QVBoxLayout" name="verticalLayout">
+     <property name="spacing">
+      <number>0</number>
+     </property>
      <item>
       <widget class="QWidget" name="widget" native="true">
        <property name="minimumSize">
@@ -24,8 +42,26 @@
          <height>150</height>
         </size>
        </property>
+       <property name="styleSheet">
+        <string notr="true">background-color:rgb(255, 255, 255);</string>
+       </property>
        <layout class="QVBoxLayout" name="verticalLayout_3">
-        <item alignment="Qt::AlignHCenter">
+        <property name="spacing">
+         <number>0</number>
+        </property>
+        <property name="leftMargin">
+         <number>0</number>
+        </property>
+        <property name="topMargin">
+         <number>0</number>
+        </property>
+        <property name="rightMargin">
+         <number>0</number>
+        </property>
+        <property name="bottomMargin">
+         <number>0</number>
+        </property>
+        <item alignment="Qt::AlignLeft">
          <widget class="QLabel" name="label">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
@@ -41,7 +77,7 @@
           </property>
           <property name="font">
            <font>
-            <pointsize>28</pointsize>
+            <pointsize>21</pointsize>
             <weight>75</weight>
             <bold>true</bold>
            </font>
@@ -87,6 +123,16 @@ font:20px
                <property name="text">
                 <string>RECORD</string>
                </property>
+               <property name="icon">
+                <iconset>
+                 <normaloff>../../../../Downloads/icons/48792_player_record_icon.ico</normaloff>../../../../Downloads/icons/48792_player_record_icon.ico</iconset>
+               </property>
+               <property name="iconSize">
+                <size>
+                 <width>30</width>
+                 <height>30</height>
+                </size>
+               </property>
               </widget>
              </item>
              <item>
@@ -117,6 +163,16 @@ font:20px
                <property name="text">
                 <string>STOP</string>
                </property>
+               <property name="icon">
+                <iconset>
+                 <normaloff>../../../../Downloads/icons/8664918_circle_stop_icon.ico</normaloff>../../../../Downloads/icons/8664918_circle_stop_icon.ico</iconset>
+               </property>
+               <property name="iconSize">
+                <size>
+                 <width>30</width>
+                 <height>30</height>
+                </size>
+               </property>
               </widget>
              </item>
             </layout>
@@ -138,6 +194,7 @@ font:20px
        <property name="font">
         <font>
          <pointsize>12</pointsize>
+         <stylestrategy>PreferAntialias</stylestrategy>
         </font>
        </property>
        <property name="toolTip">
@@ -147,13 +204,19 @@ font:20px
         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;hello there&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
        </property>
        <property name="styleSheet">
-        <string notr="true"/>
+        <string notr="true">background-color:rgb(255, 255, 255);</string>
+       </property>
+       <property name="documentTitle">
+        <string>RECORDED ACTIONS</string>
        </property>
        <property name="readOnly">
         <bool>true</bool>
        </property>
        <property name="plainText">
         <string/>
+       </property>
+       <property name="centerOnScroll">
+        <bool>true</bool>
        </property>
       </widget>
      </item>

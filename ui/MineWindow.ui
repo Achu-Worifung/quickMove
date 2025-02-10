@@ -69,7 +69,7 @@
 font:20px</string>
             </property>
             <property name="text">
-             <string/>
+             <string>MENU</string>
             </property>
             <property name="icon">
              <iconset>
@@ -92,6 +92,32 @@ font:20px</string>
           <string notr="true">background-color:rgb(255, 255, 255);</string>
          </property>
          <layout class="QHBoxLayout" name="horizontalLayout_3">
+          <item>
+           <widget class="QPushButton" name="pushButton_10">
+            <property name="styleSheet">
+             <string notr="true">
+    border-style: none;
+
+
+    border-color: none;
+    padding: 4px;
+font:20px</string>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+            <property name="icon">
+             <iconset>
+              <normaloff>../../../../Downloads/2639772_automation_icon.ico</normaloff>../../../../Downloads/2639772_automation_icon.ico</iconset>
+            </property>
+            <property name="iconSize">
+             <size>
+              <width>30</width>
+              <height>30</height>
+             </size>
+            </property>
+           </widget>
+          </item>
           <item>
            <widget class="QLabel" name="label">
             <property name="font">
@@ -222,7 +248,7 @@ font:20px</string>
         <widget class="QWidget" name="widget_2" native="true">
          <property name="maximumSize">
           <size>
-           <width>150</width>
+           <width>175</width>
            <height>700</height>
           </size>
          </property>
@@ -239,6 +265,21 @@ font:20px
 }</string>
          </property>
          <layout class="QVBoxLayout" name="verticalLayout_3">
+          <property name="spacing">
+           <number>0</number>
+          </property>
+          <property name="leftMargin">
+           <number>0</number>
+          </property>
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <property name="rightMargin">
+           <number>0</number>
+          </property>
+          <property name="bottomMargin">
+           <number>0</number>
+          </property>
           <item>
            <widget class="QPushButton" name="pushButton_5">
             <property name="styleSheet">
@@ -292,6 +333,32 @@ font:20px</string>
            </widget>
           </item>
           <item>
+           <widget class="QPushButton" name="pushButton_9">
+            <property name="styleSheet">
+             <string notr="true">
+    border-style: none;
+
+
+    border-color: none;
+    padding: 4px;
+font:20px</string>
+            </property>
+            <property name="text">
+             <string>SEARCH AREA</string>
+            </property>
+            <property name="icon">
+             <iconset>
+              <normaloff>../../../../Downloads/icons/9069819_modify_icon.ico</normaloff>../../../../Downloads/icons/9069819_modify_icon.ico</iconset>
+            </property>
+            <property name="iconSize">
+             <size>
+              <width>35</width>
+              <height>35</height>
+             </size>
+            </property>
+           </widget>
+          </item>
+          <item>
            <widget class="QPushButton" name="pushButton_7">
             <property name="styleSheet">
              <string notr="true">
@@ -319,6 +386,14 @@ font:20px</string>
           </item>
           <item>
            <widget class="QPushButton" name="pushButton_8">
+            <property name="font">
+             <font>
+              <pointsize>-1</pointsize>
+              <weight>50</weight>
+              <italic>false</italic>
+              <bold>false</bold>
+             </font>
+            </property>
             <property name="styleSheet">
              <string notr="true">
     border-style: none;

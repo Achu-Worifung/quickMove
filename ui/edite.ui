@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>851</width>
+    <width>828</width>
     <height>712</height>
    </rect>
   </property>
@@ -16,6 +16,9 @@
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
     <widget class="QScrollArea" name="scrollArea">
+     <property name="styleSheet">
+      <string notr="true">background-color:rgb(255, 255, 255);</string>
+     </property>
      <property name="widgetResizable">
       <bool>true</bool>
      </property>
@@ -24,62 +27,24 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>831</width>
+        <width>808</width>
         <height>692</height>
        </rect>
       </property>
       <property name="styleSheet">
-       <string notr="true">#scrollAreaWidgetContents
-{
-border:none;
-}</string>
+       <string notr="true">border:none</string>
       </property>
       <layout class="QGridLayout" name="gridLayout">
-       <item row="0" column="0" alignment="Qt::AlignHCenter">
-        <widget class="QWidget" name="widget" native="true">
-         <property name="minimumSize">
-          <size>
-           <width>500</width>
-           <height>75</height>
-          </size>
-         </property>
-         <property name="maximumSize">
-          <size>
-           <width>1000</width>
-           <height>16777215</height>
-          </size>
-         </property>
-         <property name="font">
-          <font>
-           <pointsize>20</pointsize>
-          </font>
-         </property>
-         <layout class="QVBoxLayout" name="verticalLayout_3">
-          <item>
-           <widget class="QLabel" name="title">
-            <property name="minimumSize">
-             <size>
-              <width>500</width>
-              <height>70</height>
-             </size>
-            </property>
-            <property name="font">
-             <font>
-              <pointsize>20</pointsize>
-             </font>
-            </property>
-            <property name="text">
-             <string/>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </item>
        <item row="1" column="0">
         <layout class="QHBoxLayout" name="horizontalLayout">
          <item>
           <widget class="QTableWidget" name="table">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
            <property name="minimumSize">
             <size>
              <width>330</width>
@@ -94,7 +59,8 @@ border:none;
            </property>
            <property name="font">
             <font>
-             <pointsize>9</pointsize>
+             <family>MS Shell Dlg 2</family>
+             <pointsize>14</pointsize>
             </font>
            </property>
            <property name="sizeAdjustPolicy">
@@ -120,11 +86,11 @@ border:none;
            </attribute>
            <column>
             <property name="text">
-             <string>Key</string>
+             <string>ACTION</string>
             </property>
             <property name="font">
              <font>
-              <pointsize>9</pointsize>
+              <pointsize>14</pointsize>
              </font>
             </property>
             <property name="textAlignment">
@@ -133,11 +99,11 @@ border:none;
            </column>
            <column>
             <property name="text">
-             <string>Value</string>
+             <string>DETAILS</string>
             </property>
             <property name="font">
              <font>
-              <pointsize>9</pointsize>
+              <pointsize>14</pointsize>
              </font>
             </property>
             <property name="textAlignment">
@@ -146,7 +112,7 @@ border:none;
            </column>
           </widget>
          </item>
-         <item>
+         <item alignment="Qt::AlignTop">
           <widget class="QWidget" name="widget_2" native="true">
            <property name="minimumSize">
             <size>
@@ -206,6 +172,16 @@ font:20px
               <property name="text">
                <string>Run</string>
               </property>
+              <property name="icon">
+               <iconset>
+                <normaloff>../../../../Downloads/103341_run_server_icon.ico</normaloff>../../../../Downloads/103341_run_server_icon.ico</iconset>
+              </property>
+              <property name="iconSize">
+               <size>
+                <width>30</width>
+                <height>30</height>
+               </size>
+              </property>
              </widget>
             </item>
             <item row="2" column="0">
@@ -242,6 +218,16 @@ font:20px
               </property>
               <property name="text">
                <string>Edit</string>
+              </property>
+              <property name="icon">
+               <iconset>
+                <normaloff>../../../../Downloads/icons/100166_configure_icon.ico</normaloff>../../../../Downloads/icons/100166_configure_icon.ico</iconset>
+              </property>
+              <property name="iconSize">
+               <size>
+                <width>30</width>
+                <height>30</height>
+               </size>
               </property>
              </widget>
             </item>
@@ -282,6 +268,16 @@ font:20px
               <property name="text">
                <string>Delete</string>
               </property>
+              <property name="icon">
+               <iconset>
+                <normaloff>../../../../Downloads/8664938_trash_can_delete_remove_icon.ico</normaloff>../../../../Downloads/8664938_trash_can_delete_remove_icon.ico</iconset>
+              </property>
+              <property name="iconSize">
+               <size>
+                <width>30</width>
+                <height>30</height>
+               </size>
+              </property>
              </widget>
             </item>
             <item row="4" column="0">
@@ -306,6 +302,16 @@ font:20px
               </property>
               <property name="text">
                <string>insert below</string>
+              </property>
+              <property name="icon">
+               <iconset>
+                <normaloff>../../../../Downloads/9044602_insert_page_icon.ico</normaloff>../../../../Downloads/9044602_insert_page_icon.ico</iconset>
+              </property>
+              <property name="iconSize">
+               <size>
+                <width>30</width>
+                <height>30</height>
+               </size>
               </property>
              </widget>
             </item>
@@ -342,6 +348,16 @@ font:20px</string>
               </property>
               <property name="text">
                <string>Simulate</string>
+              </property>
+              <property name="icon">
+               <iconset>
+                <normaloff>../../../../Downloads/9027084_robot_thin_icon.ico</normaloff>../../../../Downloads/9027084_robot_thin_icon.ico</iconset>
+              </property>
+              <property name="iconSize">
+               <size>
+                <width>30</width>
+                <height>30</height>
+               </size>
               </property>
              </widget>
             </item>
@@ -382,6 +398,16 @@ font:20px
               <property name="text">
                <string>Save</string>
               </property>
+              <property name="icon">
+               <iconset>
+                <normaloff>../../../../Downloads/3994354_arrow_download_downloading_interface_save_icon.ico</normaloff>../../../../Downloads/3994354_arrow_download_downloading_interface_save_icon.ico</iconset>
+              </property>
+              <property name="iconSize">
+               <size>
+                <width>30</width>
+                <height>30</height>
+               </size>
+              </property>
              </widget>
             </item>
             <item row="7" column="0">
@@ -406,6 +432,16 @@ font:20px</string>
               <property name="text">
                <string>Cancel</string>
               </property>
+              <property name="icon">
+               <iconset>
+                <normaloff>../../../../Downloads/103500_cancel_document_sans_icon.ico</normaloff>../../../../Downloads/103500_cancel_document_sans_icon.ico</iconset>
+              </property>
+              <property name="iconSize">
+               <size>
+                <width>30</width>
+                <height>30</height>
+               </size>
+              </property>
              </widget>
             </item>
             <item row="5" column="0">
@@ -422,12 +458,144 @@ font:20px
               <property name="text">
                <string>set bar location</string>
               </property>
+              <property name="icon">
+               <iconset>
+                <normaloff>../../../../Downloads/3586361_location_map_navigation_pointer_icon.ico</normaloff>../../../../Downloads/3586361_location_map_navigation_pointer_icon.ico</iconset>
+              </property>
+              <property name="iconSize">
+               <size>
+                <width>30</width>
+                <height>30</height>
+               </size>
+              </property>
              </widget>
             </item>
            </layout>
           </widget>
          </item>
         </layout>
+       </item>
+       <item row="0" column="0" alignment="Qt::AlignLeft">
+        <widget class="QWidget" name="widget" native="true">
+         <property name="minimumSize">
+          <size>
+           <width>500</width>
+           <height>75</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>1000</width>
+           <height>16777215</height>
+          </size>
+         </property>
+         <property name="font">
+          <font>
+           <pointsize>20</pointsize>
+          </font>
+         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_3">
+          <item alignment="Qt::AlignLeft">
+           <widget class="QLabel" name="title">
+            <property name="minimumSize">
+             <size>
+              <width>500</width>
+              <height>70</height>
+             </size>
+            </property>
+            <property name="font">
+             <font>
+              <pointsize>20</pointsize>
+              <weight>75</weight>
+              <bold>true</bold>
+             </font>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item row="2" column="0">
+        <widget class="QWidget" name="widget_3" native="true">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+         <layout class="QHBoxLayout" name="horizontalLayout_2">
+          <item alignment="Qt::AlignTop">
+           <widget class="QWidget" name="widget_5" native="true">
+            <property name="maximumSize">
+             <size>
+              <width>100</width>
+              <height>16777215</height>
+             </size>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout_2">
+             <item>
+              <widget class="QPushButton" name="pushButton">
+               <property name="maximumSize">
+                <size>
+                 <width>100</width>
+                 <height>16777215</height>
+                </size>
+               </property>
+               <property name="text">
+                <string/>
+               </property>
+               <property name="icon">
+                <iconset>
+                 <normaloff>../../../../Downloads/3802018_data_detail_info_resource_service_icon.ico</normaloff>../../../../Downloads/3802018_data_detail_info_resource_service_icon.ico</iconset>
+               </property>
+               <property name="iconSize">
+                <size>
+                 <width>40</width>
+                 <height>40</height>
+                </size>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+          <item>
+           <widget class="QWidget" name="widget_4" native="true">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <layout class="QVBoxLayout" name="verticalLayout_4">
+             <item>
+              <widget class="QLabel" name="label">
+               <property name="font">
+                <font>
+                 <pointsize>13</pointsize>
+                 <weight>75</weight>
+                 <bold>true</bold>
+                </font>
+               </property>
+               <property name="styleSheet">
+                <string notr="true">color:rgb(45, 62, 80)</string>
+               </property>
+               <property name="text">
+                <string>•Set the bar location. if not set one will be choosen which may result in unexpected actions.  </string>
+               </property>
+               <property name="wordWrap">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </widget>
+          </item>
+         </layout>
+        </widget>
        </item>
       </layout>
      </widget>

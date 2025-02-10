@@ -17,7 +17,9 @@
    <item>
     <widget class="QWidget" name="container" native="true">
      <property name="styleSheet">
-      <string notr="true"/>
+      <string notr="true">background-color: rgb(220, 220, 220);
+border-color: rgb(192, 192, 192);
+border-radius: 30px;</string>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_3">
       <item>
@@ -173,6 +175,16 @@ font:20px</string>
              </property>
              <property name="text">
               <string>Save</string>
+             </property>
+             <property name="icon">
+              <iconset>
+               <normaloff>../../../../Downloads/3994354_arrow_download_downloading_interface_save_icon.ico</normaloff>../../../../Downloads/3994354_arrow_download_downloading_interface_save_icon.ico</iconset>
+             </property>
+             <property name="iconSize">
+              <size>
+               <width>30</width>
+               <height>29</height>
+              </size>
              </property>
             </widget>
            </item>
