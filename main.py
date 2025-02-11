@@ -158,7 +158,7 @@ class MainWindow(QMainWindow):
                 single_automata.name.setText(automaton['name'])
 
                 single_automata.use.clicked.connect(partial(self.getStarted, data, i))
-                single_automata.modify.clicked.connect(partial(self.mod, data, automaton['name']))
+                single_automata.modify.clicked.connect(partial(self.mod, automaton))
                 single_automata.delete_2.clicked.connect(partial(self.delete, data, automaton['name']))
 
                 # Add the single_automata widget to the home layout

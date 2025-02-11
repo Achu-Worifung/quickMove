@@ -1,12 +1,17 @@
 from PyQt5.QtWidgets import *
 from PyQt5 import QtWidgets
 from functools import partial
+from util import  Simulate, Message as msg, dataMod, walk
+from util.event_tracker import EventTracker
 class Edit(QWidget):
     def __init__(self, page_widget, data= None):
         super().__init__()
         self.page_widget = page_widget
         self.data = data
-        print(self.data)
+        # Now we can safely update content
+        self.updated_data = data['actions']
+        self.name = data['name']
+
         
         # Set up widget references
         self.setup_widgets()
@@ -61,30 +66,114 @@ class Edit(QWidget):
             row_index += 1
         
         
-        self.check()
         
     def run(self):
-        print("run")
+        for row in self.updated_data:
+            if row['action'] == 'paste':
+                Simulate.simPaste("v", True)
+            elif row['action'] == 'select all':
+                Simulate.simSelectAll(True)
+            elif row['action'] == 'click':
+                x_coord = row['location'][0]
+                y_coord = row['location'][1]
+                button = row['button']
+                Simulate.simClick(x_coord, y_coord, button, True)
     def edit(self):
-        print("edit")    
+        curr_row = self.table.currentRow()
+        
+        if curr_row == -1:
+            msg.warningBox(self, "Error", "No row selected")
+            return
+        elif curr_row == 0:
+            text, ok = msg.inputDialogBox(self, "Rename Automata", "Enter new Name:")
+            if ok:
+                self.table.setItem(0, 1, QtWidgets.QTableWidgetItem(text))
+                self.name = text
+                self.title.setText("Editing Automata: " + text)
+        else:
+            response = msg.questionBox(self, "Edit Cell", "Click Yes to edit cell and record 1 I/O event.")
+            
+            if response:
+                event_tracker = EventTracker()
+                
+                # Define the handler function inline and properly connect it
+                def handler_tracking_finished(event):
+                    # print('Event received:', event)
+                    event_data = event[0]
+                    type = event_data["action"]
+                    button = event_data["button"]
+                    location = event_data["location"]
+                    
+                    # Ensure data modification is applied
+                    self.updated_data = dataMod.editrow(
+                        self.updated_data, self.name, curr_row - 1, 
+                        {"action": type, "button": button, "location": location}
+                    )
+
+                    # Update the table visually
+                    self.table.setItem(curr_row, 0, QtWidgets.QTableWidgetItem(type))
+                    self.table.setItem(curr_row, 1, QtWidgets.QTableWidgetItem(f"{button} @ location: {location}"))
+
+                # Correctly connect the signal with the handler
+                event_tracker.tracking_finished.connect(handler_tracking_finished)
+
+                # Start the event tracking thread
+                event_tracker.create_new_automaton(True)  
     def insert(self):
-        print("insert")
+        row_index = self.table.currentRow()
+        if row_index == -1:
+            msg.warningBox(self, "Error", "No row selected")
+        else:
+            # inserting a new row
+            self.table.insertRow(row_index + 1)
+            #updating the data
+            self.updated_data = dataMod.insertRow(self.updated_data, self.name, row_index, {'action':'', 'button': '', 'location': []})
+            # print('data after insertion', self.data)
+            return
     def save(self):
         print("save")
     def simulate(self):
-        print("simulate")
+        cell_index = self.table.currentRow()
+        if cell_index == -1:
+            msg.warningBox(self, "Error", "Cannot simulate because No row selected")
+            return
+        else:
+            sim = self.updated_data[cell_index - 1]  # getting the action
+            # print(sim)
+            if sim["action"] == "click":  # simulating a click
+                x_coord = sim["location"][0]
+                y_coord = sim["location"][1]
+                button = sim["button"]
+                # print(f"button: {button} @ location: {x_coord}, {y_coord}")
+                Simulate.simClick(x_coord, y_coord, button, True)
+            elif sim["action"] == "paste":  # simulating a paste
+                Simulate.simPaste("v", True)
     def cancel(self):
-        print("cancel")
+        #-------------------------------------------------------
+        #using the parent to get the stack widget
+        print(self.page_widget.parent())
+        self.page_widget.parent().setCurrentIndex(0)
     def delete(self):
-        print("delete")
-    def check(self):
-        print(self.run_button.text())
-        print(self.edit_button.text())
-        print(self.insert_button.text())
-        print(self.save_button.text())
-        print(self.sim_button.text())
-        print(self.can_button.text())
-        print(self.table)
+        curr_row = self.table.currentRow()
+        if curr_row == -1:
+            msg.warningBox(self, "Error", "Cannot delete because deleted cell was not selected")
+            return
+        row_data = curr_row
+        print(row_data)
+        if row_data== 0:
+            msg.warningBox(self, "Error", "Cannot delete the name row")
+            return
+        else:
+            response = msg.questionBox(
+                self, "Delete Automata", f"Are you sure you want to delete this row?"
+            )
+            if response:
+                self.table.removeRow(curr_row) #removing selected row
+                # updating the data
+                self.updated_data = dataMod.deleteRow(
+                    self.updated_data, self.name, curr_row - 1
+                )  # curr_row -1 becuse name is  0 index
+
         
     def updatecontend(self, hllo):
         if hasattr(self, 'title'):  # Safe check
