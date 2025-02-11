@@ -81,34 +81,14 @@ class MainWindow(QMainWindow):
             newWidth = 0
         self.functions.setFixedWidth(newWidth)
     def moveToCreate(self):
-        create = loadUi(os.path.join(basedir, './ui/create_automata.ui'))
         self.toggleMenu()
-        self.clearWidgets()
-        if(self.mainContent.layout().count() > 1):
-            print("count is greater than 1")
-        else:print("count is less than 1")  
-        
-        self.mainContent.layout().insertWidget(1,create)
+        self.stackedWidget.setCurrentIndex(1)
         self.curr_page = "create"
         pass
     def moveToAbout(self):
         #hiding the nav bar
         self.toggleMenu()
-        #loading the about page
-        about = loadUi(os.path.join(basedir, './ui/about.ui'))
-    
-        # Deleting the widget at index 1 in the layout
-        deleted_pane_item = self.mainContent.layout().takeAt(1)
-
-        # Check if the item at index 1 exists
-        self.clearWidgets()
-        if(self.mainContent.layout().count() > 1):
-            print("count is greater than 1")
-        else:print("count is less than 1")    
-       
-
-        #adding the about page
-        self.mainContent.layout().addWidget(about)
+        self.stackedWidget.setCurrentIndex(3)
         self.curr_page = "about"
         
         pass
@@ -125,19 +105,22 @@ class MainWindow(QMainWindow):
         elif self.curr_page == 'create':
             #retrieving the latest data
             self.toggleMenu()
-            self.clearWidgets()
-            if(self.mainContent.layout().count() > 1):
-                print("count is greater than 1")
-            else:print("count is less than 1")
+            layout = self.created_autos.layout()
+            self.clearLayout(layout)
             self.start(comming_back=True)
-            self.mainContent.layout().insertWidget(1,self.home)
+            
         else:
             self.toggleMenu()
-            self.clearWidgets()
-            self.mainContent.layout().insertWidget(1,self.home)
+            self.stackedWidget.setCurrentIndex(0)
             
         self.curr_page = "home"
-           
+    def clearLayout(self, layout):
+        while layout.count():  # Loop through all items
+            child = layout.takeAt(0)  # Remove item at index 0
+            if child.widget():
+                child.widget().deleteLater()  # Delete the widget
+                child.widget().setParent(None)
+
     def clearWidgets(self):
          # Deleting the widget at index 1 in the layout
         deleted_pane_item = self.mainContent.layout().takeAt(1)
@@ -153,6 +136,7 @@ class MainWindow(QMainWindow):
                 del widget_to_delete
 
     def start(self, data=None, comming_back= False):
+        self.stackedWidget.setCurrentIndex(0)
         if not data:
             data = walk.get_data()
 
@@ -164,14 +148,7 @@ class MainWindow(QMainWindow):
             datapane.addWidget(label)
         if comming_back:
             # Get the layout of the home widget
-            layout = self.home.layout()
-
-            # If the widget has a layout
-            if layout:
-                for i in reversed(range(layout.count())):
-                    child = layout.itemAt(i).widget()  # Get the child widget
-                    if child:
-                        child.deleteLater()  # Remove the child widget
+            layout = self.created_autos.layout()
 
             # Adding updated automata to the correct layout of the home widget
             ui_path = os.path.join(os.path.dirname(__file__), './ui/automate_select.ui')
@@ -196,10 +173,11 @@ class MainWindow(QMainWindow):
             for i, automaton in enumerate(data['Automata']):
                 single_automata = loadUi(ui_path)
                 single_automata.name.setText(automaton['name'])
+                print(automaton)
 
                 # Use partial to capture the current value of i
                 single_automata.use.clicked.connect(partial(self.getStarted, data, i))
-                single_automata.modify.clicked.connect(partial(self.mod, data, automaton['name']))
+                single_automata.modify.clicked.connect(partial(self.mod, automaton))
                 single_automata.delete_2.clicked.connect(partial(self.delete, data, automaton['name']))
 
                 datapane.addWidget(single_automata)
@@ -214,21 +192,11 @@ class MainWindow(QMainWindow):
             walk.write_data(data)
             self.start(data, comming_back=True)  # Refresh UI after deletion
 
-    def mod(self, data=None, button_name=None, comming_back= True):
-        from widgets.editAutomata import editAutomata
-
-        if not data:
-            msg.warningBox(self, "Error", "No data found")
-            return
-
-        row_data = next(auto for auto in data["Automata"] if auto["name"] == button_name)
-        
-        curr_pane = self.scrollPane.layout()
-        clearLayout(curr_pane)
-        
-        edit_pane = editAutomata(row_data['actions'], button_name)
-        curr_pane.addWidget(edit_pane)
-
+    def mod(self, automaton):
+        from widgets.Edit import Edit 
+        page = self.stackedWidget.layout().itemAt(4).widget()
+        self.modepage = Edit(page, automaton)
+        self.stackedWidget.setCurrentIndex(4)
 
     def getStarted(self, data=None, index=None):
         search = SearchWidget(data, index)

@@ -479,7 +479,7 @@ font:20px</string>
        <item>
         <widget class="QStackedWidget" name="stackedWidget">
          <property name="currentIndex">
-          <number>1</number>
+          <number>4</number>
          </property>
          <widget class="QWidget" name="select_autos">
           <layout class="QVBoxLayout" name="verticalLayout_12">
@@ -572,7 +572,7 @@ background-color:rgb(255, 255, 255);</string>
                <item>
                 <layout class="QVBoxLayout" name="verticalLayout_10">
                  <item>
-                  <widget class="QWidget" name="autos" native="true">
+                  <widget class="QWidget" name="created_autos" native="true">
                    <layout class="QVBoxLayout" name="verticalLayout_11"/>
                   </widget>
                  </item>
@@ -801,9 +801,9 @@ font:20px
          <widget class="QWidget" name="search">
           <layout class="QVBoxLayout" name="verticalLayout_14">
            <item>
-            <layout class="QGridLayout" name="gridLayout_6">
+            <layout class="QGridLayout" name="search_3">
              <item row="0" column="0">
-              <widget class="QWidget" name="widget_13" native="true">
+              <widget class="QWidget" name="search_2" native="true">
                <layout class="QGridLayout" name="gridLayout_7">
                 <item row="3" column="0" alignment="Qt::AlignHCenter">
                  <widget class="QLabel" name="history_4">
@@ -857,7 +857,7 @@ font:20px
                     <rect>
                      <x>0</x>
                      <y>0</y>
-                     <width>529</width>
+                     <width>612</width>
                      <height>493</height>
                     </rect>
                    </property>
@@ -1099,8 +1099,8 @@ border:none</string>
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>598</width>
-                   <height>714</height>
+                   <width>621</width>
+                   <height>731</height>
                   </rect>
                  </property>
                  <property name="styleSheet">
