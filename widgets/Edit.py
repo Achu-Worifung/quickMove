@@ -3,6 +3,7 @@ from PyQt5 import QtWidgets
 from functools import partial
 from util import  Simulate, Message as msg, dataMod, walk
 from util.event_tracker import EventTracker
+from PyQt5.QtCore import pyqtSignal
 class Edit(QWidget):
     def __init__(self, page_widget, data= None):
         super().__init__()
@@ -11,6 +12,7 @@ class Edit(QWidget):
         # Now we can safely update content
         self.updated_data = data['actions']
         self.name = data['name']
+        updateRequested = pyqtSignal(dict, bool)
 
         
         # Set up widget references
@@ -164,8 +166,12 @@ class Edit(QWidget):
         walk.write_data(saved_data)
         
         # --------------RETURNING TO THE MAIN PAGE----------------
+        from widgets.MainPage import MainPage
+    
         main = self.page_widget.parent().layout().itemAt(0).widget()
-        main.start(data = None, comming_back=True) #runing the start to update the automata
+        self.modepage = MainPage(main)
+        # self.stackedWidget.setCurrentIndex(0)
+       
         self.page_widget.parent().setCurrentIndex(0)
     def simulate(self):
         cell_index = self.table.currentRow()

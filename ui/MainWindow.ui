@@ -479,7 +479,7 @@ font:20px</string>
        <item>
         <widget class="QStackedWidget" name="stackedWidget">
          <property name="currentIndex">
-          <number>1</number>
+          <number>0</number>
          </property>
          <widget class="QWidget" name="select_autos">
           <layout class="QVBoxLayout" name="verticalLayout_12">
@@ -500,8 +500,8 @@ background-color:rgb(255, 255, 255);</string>
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>226</width>
-                <height>91</height>
+                <width>634</width>
+                <height>749</height>
                </rect>
               </property>
               <layout class="QVBoxLayout" name="verticalLayout_9">
@@ -572,8 +572,21 @@ background-color:rgb(255, 255, 255);</string>
                <item>
                 <layout class="QVBoxLayout" name="verticalLayout_10">
                  <item>
-                  <widget class="QWidget" name="created_autos" native="true">
-                   <layout class="QVBoxLayout" name="verticalLayout_11"/>
+                  <widget class="QScrollArea" name="scrollArea">
+                   <property name="widgetResizable">
+                    <bool>true</bool>
+                   </property>
+                   <widget class="QWidget" name="created_autos">
+                    <property name="geometry">
+                     <rect>
+                      <x>0</x>
+                      <y>0</y>
+                      <width>614</width>
+                      <height>676</height>
+                     </rect>
+                    </property>
+                    <layout class="QVBoxLayout" name="verticalLayout_4"/>
+                   </widget>
                   </widget>
                  </item>
                 </layout>
@@ -866,8 +879,8 @@ font:20px
                     <rect>
                      <x>0</x>
                      <y>0</y>
-                     <width>160</width>
-                     <height>44</height>
+                     <width>612</width>
+                     <height>493</height>
                     </rect>
                    </property>
                    <layout class="QVBoxLayout" name="verticalLayout_13">
@@ -1108,8 +1121,8 @@ border:none</string>
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>598</width>
-                   <height>290</height>
+                   <width>621</width>
+                   <height>731</height>
                   </rect>
                  </property>
                  <property name="styleSheet">
@@ -1304,8 +1317,8 @@ border:none</string>
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>571</width>
-                <height>588</height>
+                <width>634</width>
+                <height>749</height>
                </rect>
               </property>
               <property name="styleSheet">

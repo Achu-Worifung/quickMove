@@ -49,9 +49,11 @@ class MainWindow(QMainWindow):
         #keeping track of our current page
         self.curr_page = "home"
         self.home = self.created_autos
+        
+       
 
         # Load automata list
-        self.start()
+        self.MainPage()
 
     def restore_previous_geometry(self):
         geometry = self.settings.value("geometry")
@@ -141,75 +143,14 @@ class MainWindow(QMainWindow):
                 widget_to_delete.setParent(None)
                 del widget_to_delete
 
-    def start(self, data=None, comming_back= False):
+    def MainPage(self):
         self.stackedWidget.setCurrentIndex(0)
-        if not data:
-            data = walk.get_data()
+        from widgets.MainPage import MainPage
+        page = self.stackedWidget.layout().itemAt(0).widget()
+        self.modepage = MainPage(page)
+        pass
 
-        if not data["Automata"]:
-            datapane = self.verticalLayout.layout()
-            label = QLabel("No automata found\nClick on the 'Create New Automata' button to create a new automata")
-            label.setStyleSheet("font-size: 12pt; color: red;")
-            label.setAlignment(Qt.AlignCenter)
-            datapane.addWidget(label)
-        if comming_back:
-            # Get the layout of the home widget
-            layout = self.created_autos.layout()
-
-            # Adding updated automata to the correct layout of the home widget
-            ui_path = os.path.join(os.path.dirname(__file__), './ui/automate_select.ui')
-
-            for i, automaton in enumerate(data['Automata']):
-                single_automata = loadUi(ui_path)
-                single_automata.name.setText(automaton['name'])
-
-                single_automata.use.clicked.connect(partial(self.getStarted, data, i))
-                single_automata.modify.clicked.connect(partial(self.mod, automaton))
-                single_automata.delete_2.clicked.connect(partial(self.delete, data, automaton['name']))
-
-                # Add the single_automata widget to the home layout
-                layout.addWidget(single_automata)
-
-        else:
-            datapane = self.created_autos.layout()
-            # clearLayout(datapane)
-
-            ui_path = os.path.join(os.path.dirname(__file__), './ui/automate_select.ui')
-
-            for i, automaton in enumerate(data['Automata']):
-                single_automata = loadUi(ui_path)
-                single_automata.name.setText(automaton['name'])
-                print(automaton)
-
-                # Use partial to capture the current value of i
-                single_automata.use.clicked.connect(partial(self.getStarted, data, i))
-                single_automata.modify.clicked.connect(partial(self.mod, automaton))
-                single_automata.delete_2.clicked.connect(partial(self.delete, data, automaton['name']))
-
-                datapane.addWidget(single_automata)
-
-    def delete(self, data=None, button_name=None):
-        response = msg.questionBox(self, "Delete Automata", f"Are you sure you want to delete '{button_name}'?")
-        
-        if response:
-            data = walk.get_data()
-            data['Automata'] = [auto for auto in data['Automata'] if auto["name"] != button_name]
-            
-            walk.write_data(data)
-            self.start(data, comming_back=True)  # Refresh UI after deletion
-
-    def mod(self, automaton):
-        from widgets.Edit import Edit 
-        page = self.stackedWidget.layout().itemAt(4).widget()
-        self.modepage = Edit(page, automaton)
-        self.stackedWidget.setCurrentIndex(4)
-
-    def getStarted(self, data=None, index=None):
-        search = SearchWidget(data, index)
-        
-        search_pane = self.scrollPane.layout()
-        clearLayout(search_pane)
-        search_pane.addWidget(search)
+    
 
     def configure_search_area(self):
         from util.event_tracker import EventTracker
