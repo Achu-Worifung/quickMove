@@ -18,6 +18,7 @@ from PyQt5.QtCore import QSettings
 from urllib.parse import quote_plus
 import re
 import string
+from PyQt5.QtWidgets import *
 
 
 class Tracker():
@@ -66,12 +67,14 @@ class locateVerseThread(QThread):
 
 
 class SearchWidget(QDialog):
-    def __init__(self, data=None, index=None):
+    def __init__(self, search_page, data=None, index=None):
         super().__init__()
-        ui_path = os.path.join(os.path.dirname(__file__), '../ui/search.ui')
-        assert os.path.exists(ui_path), f"UI file not found: {ui_path}"
-        loadUi(ui_path, self)
-        self.name = name
+        
+        self.search_page = search_page
+        
+        self.init_page()
+       
+        # self.name = name
         self.old_widget= []
         self.saved_widgets = []
         self.version.addItems(['','KJV', 'NIV', 'ESV'])
@@ -90,20 +93,19 @@ class SearchWidget(QDialog):
         self.last_query_time = 0
         self.displayed_verse = []
         
-        autoComplete_widget = AutocompleteWidget(self)
-        autoComplete_widget.setStyleSheet('height: 50px; border-radius: 10px; font-size: 20px;')
-        autoComplete_widget.lineedit.setPlaceholderText('Search for a verse')
-        #adding an infocuse listerner to get the location of the search bar
-        # autoComplete_widget.lineedit.focusOutEvent = self.get_prev_verse  
-        autoComplete_widget.lineedit.focusInEvent = self.get_prev_verse
-        self.horizontalLayout.addWidget(autoComplete_widget)
-        autoComplete_widget.lineedit.textChanged.connect(
-            lambda text, d=self.data: self.handle_search(d, text)
-        )
-         #adding action listerner to change auto button
-        self.pushButton.clicked.connect(lambda checked=False: self.changeAuto())
+        # autoComplete_widget = AutocompleteWidget(self)
+        # autoComplete_widget.setStyleSheet('height: 50px; border-radius: 10px; font-size: 20px;')
+        # autoComplete_widget.lineedit.setPlaceholderText('Search for a verse')
+        # #adding an infocuse listerner to get the location of the search bar
+        # # autoComplete_widget.lineedit.focusOutEvent = self.get_prev_verse  
+        # autoComplete_widget.lineedit.focusInEvent = self.get_prev_verse
+        # self.horizontalLayout.addWidget(autoComplete_widget)
+        # autoComplete_widget.lineedit.textChanged.connect(
+        #     lambda text, d=self.data: self.handle_search(d, text)
+        # )
+        
 
-        self.prev_verse.clicked.connect(lambda checked=False:   QTimer.singleShot(0, lambda: Simulate.present_prev_verse(self.name)))
+        self.prevVerse.clicked.connect(lambda checked=False:   QTimer.singleShot(0, lambda: Simulate.present_prev_verse(self.name)))
 
         #initialize qsetting to store clipboard history
         self.settings = QSettings("MyApp", "AutomataSimulator")
@@ -114,11 +116,15 @@ class SearchWidget(QDialog):
 
         self.pop_saved_verse()
         self.pop = False
-
+    def init_page(self):
+        self.prevVerse = self.search_page.findChild(QPushButton, 'prev_verse_3')
+        self.version = self.search_page.findChild(QComboBox, 'version_3')
+        self.searchPane = self.search_page.findChild(QVBoxLayout, 'searchPane_3')
     #this function will run after the search bar is in focus
     def get_prev_verse(self, event):
         # return # Disable for now
         # Ensure the thread is only started once
+        
         if self.locate_box_thread is None or not self.locate_box_thread.isRunning():
             self.locate_box_thread = locateVerseThread()
             self.locate_box_thread.finished.connect(self.handle_locate_results)

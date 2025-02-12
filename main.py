@@ -50,6 +50,33 @@ class MainWindow(QMainWindow):
         self.curr_page = "home"
         self.home = self.created_autos
         
+        #frame movers
+
+        
+          # Initialize resizing and dragging flags
+        self.dragging = False
+        self.resizing = False
+        self.oldPos = None
+        self.resizeDirection = None  # Will store direction of resize (e.g., left, right, etc.)
+
+        # Connect mouse events to labels
+        self.top_mover.mousePressEvent = self.mousePressEvent
+        self.top_mover.mouseMoveEvent = self.mouseMoveEvent
+        self.top_mover.mouseReleaseEvent = self.mouseReleaseEvent
+
+        self.bottom_mover.mousePressEvent = self.mousePressEvent
+        self.bottom_mover.mouseMoveEvent = self.mouseMoveEvent
+        self.bottom_mover.mouseReleaseEvent = self.mouseReleaseEvent
+
+        self.left_mover.mousePressEvent = self.mousePressEvent
+        self.left_mover.mouseMoveEvent = self.mouseMoveEvent
+        self.left_mover.mouseReleaseEvent = self.mouseReleaseEvent
+
+        self.right_mover.mousePressEvent = self.mousePressEvent
+        self.right_mover.mouseMoveEvent = self.mouseMoveEvent
+        self.right_mover.mouseReleaseEvent = self.mouseReleaseEvent
+        
+       
        
 
         # Load automata list
@@ -67,13 +94,74 @@ class MainWindow(QMainWindow):
         self.settings.setValue('copied_reference', '')
         event.accept()
 
+   
     def mousePressEvent(self, event):
-        self.oldPos = event.globalPos()
+        """Start resizing or dragging the window"""
+        if event.button() == Qt.LeftButton:
+            self.oldPos = event.globalPos()
+
+            # Check if the mouse is near the edge to resize
+            if self.top_mover.geometry().contains(event.pos()):
+                self.resizeDirection = 'top'
+            elif self.bottom_mover.geometry().contains(event.pos()):
+                self.resizeDirection = 'bottom'
+            elif self.left_mover.geometry().contains(event.pos()):
+                self.resizeDirection = 'left'
+            elif self.right_mover.geometry().contains(event.pos()):
+                self.resizeDirection = 'right'
+            else:
+                self.resizeDirection = None
+
+            self.dragging = True
 
     def mouseMoveEvent(self, event):
-        delta = event.globalPos() - self.oldPos
-        self.move(self.x() + delta.x(), self.y() + delta.y())
-        self.oldPos = event.globalPos()
+        """Resize or move the window"""
+        if self.dragging:
+            delta = event.globalPos() - self.oldPos
+
+            if self.resizeDirection == 'top':
+                self.resize_top(delta)
+            elif self.resizeDirection == 'bottom':
+                self.resize_bottom(delta)
+            elif self.resizeDirection == 'left':
+                self.resize_left(delta)
+            elif self.resizeDirection == 'right':
+                self.resize_right(delta)
+            else:
+                self.move(self.x() + delta.x(), self.y() + delta.y())
+
+            self.oldPos = event.globalPos()
+
+    def resize_top(self, delta):
+        """Resize window from the top"""
+        new_height = self.height() - delta.y()
+        if new_height > 100:  # Set a minimum height
+            self.resize(self.width(), new_height)
+            self.move(self.x(), self.y() + delta.y())  # Move window down when resizing from top
+
+    def resize_bottom(self, delta):
+        """Resize window from the bottom"""
+        new_height = self.height() + delta.y()
+        if new_height > 100:  # Set a minimum height
+            self.resize(self.width(), new_height)
+
+    def resize_left(self, delta):
+        """Resize window from the left"""
+        new_width = self.width() - delta.x()
+        if new_width > 100:  # Set a minimum width
+            self.resize(new_width, self.height())
+            self.move(self.x() + delta.x(), self.y())  # Move window right when resizing from left
+
+    def resize_right(self, delta):
+        """Resize window from the right"""
+        new_width = self.width() + delta.x()
+        if new_width > 100:  # Set a minimum width
+            self.resize(new_width, self.height())
+
+    def mouseReleaseEvent(self, event):
+        """Stop resizing or dragging"""
+        self.dragging = False
+        self.resizeDirection = None
         
     def toggleMenu(self):
         width = self.functions.width()

@@ -41,7 +41,7 @@ class MainPage(QWidget):
                 print(automaton)
 
                 # Use partial to capture the current value of i
-                single_automata.use.clicked.connect(partial(self.getStarted,  self.data, i))
+                single_automata.use.clicked.connect(partial(self.getStarted, automaton = automaton))
                 single_automata.modify.clicked.connect(partial(self.mod, automaton))
                 single_automata.delete_2.clicked.connect(partial(self.delete, button_name = automaton['name']))
 
@@ -85,9 +85,12 @@ class MainPage(QWidget):
         self.modpage = Edit(edit_page, automaton)
         self.page.parent().setCurrentIndex(4)
 
-    def getStarted(self, data=None, index=None):
-        search = SearchWidget( self.data, index)
+    def getStarted(self, automaton):
+        from widgets.SearchWidget import SearchWidget
+        search_page = self.page.parent().layout().itemAt(2).widget()
+        search_page = SearchWidget(search_page=search_page, data = automaton, index = 2)
+        self.page.parent().setCurrentIndex(2)
         
-        search_pane = self.scrollPane.layout()
-        clearLayout(search_pane)
-        search_pane.addWidget(search)
+        # search_pane = self.scrollPane.layout()
+        # clearLayout(search_pane)
+        # search_pane.addWidget(search)
