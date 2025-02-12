@@ -131,7 +131,42 @@ class Edit(QWidget):
             # print('data after insertion', self.data)
             return
     def save(self):
-        print("save")
+        name = self.table.item(0, 1).text()
+        if name == "Automata":
+            msg.warningBox(self, "Error", "Name cannot be 'Automata'")
+            return
+        #getting the data
+        saved_data = walk.get_data()
+
+
+        if len(saved_data) == 0 :
+            # Initialize saved_data if it's None
+            print('data is none')
+            print('len of data', len(saved_data))
+            saved_data = {"Automata": []}
+
+        # Flag to track whether the automata was modified
+        mod = False
+
+        # Iterate through existing automata to find a match by name
+        for i, automata in enumerate(saved_data.get('Automata', [])):
+            if automata['name'] == self.name:
+                # Modify the existing automata
+                saved_data['Automata'][i] = {"name": self.name, "actions": self.data}
+                mod = True
+                break
+
+        # If no match was found, add a new automata
+        if not mod:
+            saved_data['Automata'].append({"name": self.name, "actions": self.data})
+
+        # Write the updated data back to the storage
+        walk.write_data(saved_data)
+        
+        # --------------RETURNING TO THE MAIN PAGE----------------
+        main = self.page_widget.parent().layout().itemAt(0).widget()
+        main.start(data = None, comming_back=True) #runing the start to update the automata
+        self.page_widget.parent().setCurrentIndex(0)
     def simulate(self):
         cell_index = self.table.currentRow()
         if cell_index == -1:

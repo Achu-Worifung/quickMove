@@ -479,7 +479,7 @@ font:20px</string>
        <item>
         <widget class="QStackedWidget" name="stackedWidget">
          <property name="currentIndex">
-          <number>4</number>
+          <number>1</number>
          </property>
          <widget class="QWidget" name="select_autos">
           <layout class="QVBoxLayout" name="verticalLayout_12">
@@ -759,6 +759,12 @@ font:20px
              </item>
              <item>
               <widget class="QPlainTextEdit" name="plainTextEdit">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Expanding" vsizetype="MinimumExpanding">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
                <property name="maximumSize">
                 <size>
                  <width>16777212</width>
@@ -779,6 +785,9 @@ font:20px
                </property>
                <property name="styleSheet">
                 <string notr="true">background-color:rgb(255, 255, 255);</string>
+               </property>
+               <property name="verticalScrollBarPolicy">
+                <enum>Qt::ScrollBarAlwaysOff</enum>
                </property>
                <property name="documentTitle">
                 <string/>
@@ -1099,8 +1108,8 @@ border:none</string>
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>621</width>
-                   <height>731</height>
+                   <width>598</width>
+                   <height>290</height>
                   </rect>
                  </property>
                  <property name="styleSheet">
@@ -1295,8 +1304,8 @@ border:none</string>
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>634</width>
-                <height>749</height>
+                <width>571</width>
+                <height>588</height>
                </rect>
               </property>
               <property name="styleSheet">

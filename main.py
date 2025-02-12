@@ -81,9 +81,15 @@ class MainWindow(QMainWindow):
             newWidth = 0
         self.functions.setFixedWidth(newWidth)
     def moveToCreate(self):
+ 
         self.toggleMenu()
         self.stackedWidget.setCurrentIndex(1)
         self.curr_page = "create"
+        
+        from widgets.Create import Create 
+        page = self.stackedWidget.layout().itemAt(1).widget()
+        self.modepage = Create(page)
+        self.stackedWidget.setCurrentIndex(1)
         pass
     def moveToAbout(self):
         #hiding the nav bar
