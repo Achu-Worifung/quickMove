@@ -20,7 +20,7 @@ class Edit(QWidget):
         
         
         # Now we can safely update content
-        self.updatecontend("Hello")
+        # self.updatecontend("Hello")
     
     def setup_widgets(self):
         """Get references to all widgets on the page"""
@@ -55,6 +55,7 @@ class Edit(QWidget):
         
         self.table.setItem(0, 0, QtWidgets.QTableWidgetItem("Name"))
         self.table.setItem(0, 1, QtWidgets.QTableWidgetItem(self.data['name']))
+        # print('here is the data', self.data)
         row_index = 1
         for row in self.data['actions']:
             self.table.setItem(row_index, 0, QtWidgets.QTableWidgetItem(row["action"]))
@@ -133,6 +134,9 @@ class Edit(QWidget):
             # print('data after insertion', self.data)
             return
     def save(self):
+        # print("here is teh data", self.updated_data)
+        # print("here is the name", self.name)
+        # return
         name = self.table.item(0, 1).text()
         if name == "Automata":
             msg.warningBox(self, "Error", "Name cannot be 'Automata'")
@@ -154,13 +158,13 @@ class Edit(QWidget):
         for i, automata in enumerate(saved_data.get('Automata', [])):
             if automata['name'] == self.name:
                 # Modify the existing automata
-                saved_data['Automata'][i] = {"name": self.name, "actions": self.data}
+                saved_data['Automata'][i] = {"name": self.name, "actions": self.updated_data}
                 mod = True
                 break
 
         # If no match was found, add a new automata
         if not mod:
-            saved_data['Automata'].append({"name": self.name, "actions": self.data})
+            saved_data['Automata'].append({"name": self.name, "actions": self.updated_data})
 
         # Write the updated data back to the storage
         walk.write_data(saved_data)
@@ -216,8 +220,3 @@ class Edit(QWidget):
                 )  # curr_row -1 becuse name is  0 index
 
         
-    def updatecontend(self, hllo):
-        if hasattr(self, 'title'):  # Safe check
-            self.title.setText(hllo)
-        else:
-            print("Warning: title widget not found")
