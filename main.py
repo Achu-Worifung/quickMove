@@ -1,6 +1,7 @@
+
 import sys
 import os
-from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QLabel, QPushButton, QTableWidgetItem, QMainWindow
+from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QLabel, QPushButton, QTableWidgetItem, QMainWindow,QSizeGrip
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import Qt, QSettings, QThread, pyqtSignal
 from PyQt5.uic import loadUi
@@ -20,6 +21,40 @@ except ImportError:
 
 basedir = os.path.dirname(__file__)
 
+#for custom size grip
+resize = False
+class CustomSizeGrip(QSizeGrip):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        # Make the size grip larger
+        self.setMinimumSize(20, 20)
+        # Set a stylesheet to make it visible
+        self.setStyleSheet("""
+                QSizeGrip {
+                    background-color: #e0e0e0;
+                    border: 1px solid #b0b0b0;
+                    border-radius: 4px;
+                }
+                QSizeGrip:hover {
+                    background-color: #c0c0c0;
+                }
+            """)
+    def mousePressEvent(self, event):
+        # print("Size grip pressed")
+        global resize 
+        resize = True
+        super().mousePressEvent(event)
+        
+    def mouseReleaseEvent(self, event):
+        # print("Size grip released")
+        global resize 
+        resize = False
+        super().mouseReleaseEvent(event)
+        
+    def mouseMoveEvent(self, event):
+        # print("Size grip being dragged")
+        super().mouseMoveEvent(event)
+        
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -32,6 +67,13 @@ class MainWindow(QMainWindow):
         # Set app icon and remove window controls
         self.setWindowIcon(QIcon(os.path.join(basedir, "logo.ico")))
         self.setWindowFlags(Qt.FramelessWindowHint)
+        
+
+         # Replace the regular QSizeGrip with CustomSizeGrip
+        sizegrip = CustomSizeGrip(self)
+        sizegrip.setVisible(True)
+        sizegrip.setObjectName("size_grip")
+        self.mainContent.layout().addWidget(sizegrip, 0, Qt.AlignBottom | Qt.AlignRight)
 
         # Initialize settings
         self.settings = QSettings("MyApp", "AutomataSimulator")
@@ -50,33 +92,6 @@ class MainWindow(QMainWindow):
         self.curr_page = "home"
         self.home = self.created_autos
         
-        #frame movers
-
-        
-          # Initialize resizing and dragging flags
-        self.dragging = False
-        self.resizing = False
-        self.oldPos = None
-        self.resizeDirection = None  # Will store direction of resize (e.g., left, right, etc.)
-
-        # Connect mouse events to labels
-        self.top_mover.mousePressEvent = self.mousePressEvent
-        self.top_mover.mouseMoveEvent = self.mouseMoveEvent
-        self.top_mover.mouseReleaseEvent = self.mouseReleaseEvent
-
-        self.bottom_mover.mousePressEvent = self.mousePressEvent
-        self.bottom_mover.mouseMoveEvent = self.mouseMoveEvent
-        self.bottom_mover.mouseReleaseEvent = self.mouseReleaseEvent
-
-        self.left_mover.mousePressEvent = self.mousePressEvent
-        self.left_mover.mouseMoveEvent = self.mouseMoveEvent
-        self.left_mover.mouseReleaseEvent = self.mouseReleaseEvent
-
-        self.right_mover.mousePressEvent = self.mousePressEvent
-        self.right_mover.mouseMoveEvent = self.mouseMoveEvent
-        self.right_mover.mouseReleaseEvent = self.mouseReleaseEvent
-        
-       
        
 
         # Load automata list
@@ -94,74 +109,24 @@ class MainWindow(QMainWindow):
         self.settings.setValue('copied_reference', '')
         event.accept()
 
-   
     def mousePressEvent(self, event):
-        """Start resizing or dragging the window"""
-        if event.button() == Qt.LeftButton:
-            self.oldPos = event.globalPos()
+        """Identify the widget that triggered the mouse press"""
+        self.oldPos = event.globalPos()
+        clicked_widget = self.childAt(event.pos())
 
-            # Check if the mouse is near the edge to resize
-            if self.top_mover.geometry().contains(event.pos()):
-                self.resizeDirection = 'top'
-            elif self.bottom_mover.geometry().contains(event.pos()):
-                self.resizeDirection = 'bottom'
-            elif self.left_mover.geometry().contains(event.pos()):
-                self.resizeDirection = 'left'
-            elif self.right_mover.geometry().contains(event.pos()):
-                self.resizeDirection = 'right'
-            else:
-                self.resizeDirection = None
+        if clicked_widget:
+            print(f"Widget clicked: {clicked_widget}")
+        else:
+            print("No specific widget triggered the event.")
 
-            self.dragging = True
 
     def mouseMoveEvent(self, event):
-        """Resize or move the window"""
-        if self.dragging:
-            delta = event.globalPos() - self.oldPos
-
-            if self.resizeDirection == 'top':
-                self.resize_top(delta)
-            elif self.resizeDirection == 'bottom':
-                self.resize_bottom(delta)
-            elif self.resizeDirection == 'left':
-                self.resize_left(delta)
-            elif self.resizeDirection == 'right':
-                self.resize_right(delta)
-            else:
-                self.move(self.x() + delta.x(), self.y() + delta.y())
-
-            self.oldPos = event.globalPos()
-
-    def resize_top(self, delta):
-        """Resize window from the top"""
-        new_height = self.height() - delta.y()
-        if new_height > 100:  # Set a minimum height
-            self.resize(self.width(), new_height)
-            self.move(self.x(), self.y() + delta.y())  # Move window down when resizing from top
-
-    def resize_bottom(self, delta):
-        """Resize window from the bottom"""
-        new_height = self.height() + delta.y()
-        if new_height > 100:  # Set a minimum height
-            self.resize(self.width(), new_height)
-
-    def resize_left(self, delta):
-        """Resize window from the left"""
-        new_width = self.width() - delta.x()
-        if new_width > 100:  # Set a minimum width
-            self.resize(new_width, self.height())
-            self.move(self.x() + delta.x(), self.y())  # Move window right when resizing from left
-
-    def resize_right(self, delta):
-        """Resize window from the right"""
-        new_width = self.width() + delta.x()
-        if new_width > 100:  # Set a minimum width
-            self.resize(new_width, self.height())
-
-    def mouseReleaseEvent(self, event):
-        """Stop resizing or dragging"""
-        self.dragging = False
-        self.resizeDirection = None
+        global resize
+        if resize: 
+            return
+        delta = event.globalPos() - self.oldPos
+        self.move(self.x() + delta.x(), self.y() + delta.y())
+        self.oldPos = event.globalPos()
         
     def toggleMenu(self):
         width = self.functions.width()
