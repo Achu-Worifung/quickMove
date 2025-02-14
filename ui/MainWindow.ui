@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1065</width>
-    <height>884</height>
+    <width>1150</width>
+    <height>1037</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -236,13 +236,15 @@ font:20px</string>
              </sizepolicy>
             </property>
             <property name="styleSheet">
-             <string notr="true">selection-background-color: rgb(53, 255, 100);
+             <string notr="true">
     border-style: none;
 
 
     border-color: none;
     padding: 4px;
-font:20px</string>
+font:20px
+
+</string>
             </property>
             <property name="text">
              <string/>
@@ -319,8 +321,7 @@ font:20px
 
     border-color: none;
     padding: 4px;
-font:20px;
-selection-background-color: rgb(170, 37, 14);</string>
+font:20px</string>
             </property>
             <property name="text">
              <string>HOME</string>
@@ -346,13 +347,23 @@ selection-background-color: rgb(170, 37, 14);</string>
              </sizepolicy>
             </property>
             <property name="styleSheet">
-             <string notr="true">
+             <string notr="true">QPushButton#create{
     border-style: none;
+background-color:transparent;
 
 
     border-color: none;
     padding: 4px;
-font:20px</string>
+font:20px;
+}
+
+QPushButton:hover#create{
+    background-color: rgb(255, 47, 50);
+
+}
+
+
+</string>
             </property>
             <property name="text">
              <string>CREATE</string>
@@ -479,7 +490,7 @@ font:20px</string>
        <item>
         <widget class="QStackedWidget" name="stackedWidget">
          <property name="currentIndex">
-          <number>2</number>
+          <number>0</number>
          </property>
          <widget class="QWidget" name="select_autos">
           <layout class="QVBoxLayout" name="verticalLayout_12">
@@ -500,8 +511,8 @@ background-color:rgb(255, 255, 255);</string>
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>226</width>
-                <height>142</height>
+                <width>915</width>
+                <height>902</height>
                </rect>
               </property>
               <layout class="QVBoxLayout" name="verticalLayout_9">
@@ -581,8 +592,8 @@ background-color:rgb(255, 255, 255);</string>
                      <rect>
                       <x>0</x>
                       <y>0</y>
-                      <width>100</width>
-                      <height>30</height>
+                      <width>895</width>
+                      <height>829</height>
                      </rect>
                     </property>
                     <layout class="QVBoxLayout" name="verticalLayout_4"/>

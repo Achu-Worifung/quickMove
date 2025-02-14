@@ -90,6 +90,7 @@ class MainPage(QWidget):
         search_page = self.page.parent().layout().itemAt(2).widget()
         search_page = SearchWidget(search_page=search_page, data = automaton, index = 2)
         self.page.parent().setCurrentIndex(2)
+        # self.page.parent().parent().toggleMenu()
         
         # search_pane = self.scrollPane.layout()
         # clearLayout(search_pane)

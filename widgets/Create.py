@@ -55,7 +55,7 @@ class Create(QWidget):
 
     def on_tracking_finished(self, action_list):
         #-----------------------------------------------------------------------
-        print(action_list)
+        # print(action_list)
         
         #--------------------------GOING TO EDIT PAGE TO EDIT NEWLY CREATED AUTOMATA----------------------
         

@@ -92,6 +92,42 @@ class MainWindow(QMainWindow):
         self.curr_page = "home"
         self.home = self.created_autos
         
+        self.oldPos = None
+        
+        common_stylesheet = """
+        QPushButton {
+            background-color: none;
+            border-style: none;
+            outline: none;
+        }
+        QPushButton:hover {
+            border-radius: 5px;
+        }
+        """
+
+        self.close_button.setStyleSheet(f"""
+        {common_stylesheet}
+        QPushButton:hover {{
+            background-color: rgb(255, 47, 50);
+        }}
+        """)
+
+        self.expand.setStyleSheet(f"""
+        {common_stylesheet}
+        QPushButton:hover {{
+            background-color: #c0c0c0;
+        }}
+        """)
+
+        self.minimize_button.setStyleSheet(f"""
+        {common_stylesheet}
+        QPushButton:hover {{
+            background-color: #c0c0c0;
+        }}
+        """)
+
+
+        
        
 
         # Load automata list
@@ -111,18 +147,14 @@ class MainWindow(QMainWindow):
 
     def mousePressEvent(self, event):
         """Identify the widget that triggered the mouse press"""
-        self.oldPos = event.globalPos()
-        clicked_widget = self.childAt(event.pos())
-
-        if clicked_widget:
-            print(f"Widget clicked: {clicked_widget}")
-        else:
-            print("No specific widget triggered the event.")
+        if self.oldPos is not None:
+            self.oldPos = event.globalPos()
+        
 
 
     def mouseMoveEvent(self, event):
         global resize
-        if resize: 
+        if resize or self.oldPos is None: 
             return
         delta = event.globalPos() - self.oldPos
         self.move(self.x() + delta.x(), self.y() + delta.y())
@@ -163,12 +195,12 @@ class MainWindow(QMainWindow):
         if self.curr_page == "home":
            self.toggleMenu()
           
-        elif self.curr_page == 'create':
-            #retrieving the latest data
-            self.toggleMenu()
-            layout = self.created_autos.layout()
-            self.clearLayout(layout)
-            self.start(comming_back=True)
+        # elif self.curr_page == 'create':
+        #     #retrieving the latest data
+        #     self.toggleMenu()
+        #     layout = self.created_autos.layout()
+        #     self.clearLayout(layout)
+        #     self.start(comming_back=True)
             
         else:
             self.toggleMenu()
