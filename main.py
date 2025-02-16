@@ -147,13 +147,15 @@ class MainWindow(QMainWindow):
 
     def mousePressEvent(self, event):
         """Identify the widget that triggered the mouse press"""
-        if self.oldPos is not None:
+        # print("here i sam mouse pressed", self.oldPos)
+        if self.oldPos is None:
             self.oldPos = event.globalPos()
         
 
 
     def mouseMoveEvent(self, event):
         global resize
+        # print("here i sam mouse pressed", resize, self.oldPos)
         if resize or self.oldPos is None: 
             return
         delta = event.globalPos() - self.oldPos
