@@ -1,6 +1,8 @@
 import xml.etree.ElementTree as ET
 from PyQt5 import QtCore, QtGui, QtWidgets, QtNetwork
 
+from PyQt5.QtWidgets import *
+
 
 class StyledPopup(QtWidgets.QListView):
     def __init__(self, parent=None):
@@ -102,43 +104,47 @@ class Completer(QtWidgets.QCompleter):
 
 
 class AutocompleteWidget(QtWidgets.QWidget):
-    def __init__(self, parent=None):
-        super(AutocompleteWidget, self).__init__(parent)
+    def __init__(self, bar=None):
+        super(AutocompleteWidget, self).__init__(bar)
+        
+        print('bar', type( bar))
+        self.bar = bar
         
         self._model = SuggestionModel(self)
         completer = Completer(self, caseSensitivity=QtCore.Qt.CaseInsensitive)
         completer.setModel(self._model)
+    
         
-        self.lineedit = QtWidgets.QLineEdit(self)
-        self.lineedit.setAlignment(QtCore.Qt.AlignCenter)
+        self.lineedit = self.bar if bar else QtWidgets.QLineEdit(self)
+        # self.lineedit.setAlignment(QtCore.Qt.AlignCenter)
         self.lineedit.setCompleter(completer)
         
         # Set minimum height for the line edit
-        self.lineedit.setMinimumHeight(35)
+        # self.lineedit.setMinimumHeight(35)
         
         # Apply styling
-        self.lineedit.setStyleSheet("""
-            QLineEdit {
-                border-radius: 10px;
-                font-size: 20px;
-                padding: 0 10px;
-                border: 1px solid #ccc;
-                background-color: white;
-            }
-            QLineEdit:focus {
-                border: 1px solid #4a90e2;
-                outline: none;
-            }
-        """)
+        # self.lineedit.setStyleSheet("""
+        #     QLineEdit {
+        #         border-radius: 10px;
+        #         font-size: 20px;
+        #         padding: 0 10px;
+        #         border: 1px solid #ccc;
+        #         background-color: white;
+        #     }
+        #     QLineEdit:focus {
+        #         border: 1px solid #4a90e2;
+        #         outline: none;
+        #     }
+        # """)
 
-        layout = QtWidgets.QVBoxLayout(self)
-        layout.addWidget(self.lineedit)
-        layout.setContentsMargins(0, 0, 0, 0)
-        self.setLayout(layout)
+        # layout = QtWidgets.QVBoxLayout(self)
+        # layout.addWidget(self.lineedit)
+        # layout.setContentsMargins(0, 0, 0, 0)
+        # self.setLayout(layout)
 
     def setPopupWidth(self, width):
         """Set the width of the popup to match the line edit"""
-        self.lineedit.completer().popup().setMinimumWidth(width)
+        self.lineedit.completer().popup().setMinimumWidth(width + 50)
         
         self.lineedit.completer().popup().setMaximumHeight(10)
         self.lineedit.completer().popup().setMinimumHeight(10)
@@ -159,7 +165,7 @@ class AnotherWidget(QtWidgets.QWidget):
         self.setLayout(layout)
         
         # Set the popup width to match the line edit
-        self.autocomplete_widget.setPopupWidth(self.autocomplete_widget.lineedit.width())
+        self.autocomplete_widget.setPopupWidth(self.autocomplete_widget.lineedit.width() + 50)
         
     # def handle_search(self, data, text):
     #     # Implement your search handling here

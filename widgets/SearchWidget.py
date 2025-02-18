@@ -93,7 +93,6 @@ class SearchWidget(QDialog):
         self.last_query_time = 0
         self.displayed_verse = []
         
-        # autoComplete_widget = AutocompleteWidget(self)
         # autoComplete_widget.setStyleSheet('height: 50px; border-radius: 10px; font-size: 20px;')
         # autoComplete_widget.lineedit.setPlaceholderText('Search for a verse')
         # #adding an infocuse listerner to get the location of the search bar
@@ -116,10 +115,24 @@ class SearchWidget(QDialog):
 
         self.pop_saved_verse()
         self.pop = False
+        
+        self.init_page()
+        from widgets.SearchBar import AutocompleteWidget
+
+        autoComplete_widget = AutocompleteWidget(self.search_bar[0])
+
     def init_page(self):
         self.prevVerse = self.search_page.findChild(QPushButton, 'prev_verse_3')
         self.version = self.search_page.findChild(QComboBox, 'version_3')
         self.searchPane = self.search_page.findChild(QVBoxLayout, 'searchPane_3')
+        self.search_bar = self.search_page.findChildren(QLineEdit)
+        
+        # print each of the variable
+        # print('prevVerse', self.prevVerse)
+        # print('version', self.version)
+        # print('searchPane', self.searchPane)
+        # print('search_bar', self.search_bar)
+       
     #this function will run after the search bar is in focus
     def get_prev_verse(self, event):
         # return # Disable for now
