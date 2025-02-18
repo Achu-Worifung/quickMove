@@ -15,14 +15,16 @@ class StyledPopup(QtWidgets.QListView):
         self.setStyleSheet("""
             QListView {
                 border: 1px solid #ccc;
-                border-radius: 10px;
                 background-color: white;
                 outline: 0;
                 padding: 5px;
+                font-size: 15px;
+                font: MS Shell Dlg 2;
             }
             QListView::item {
                 padding: 5px;
                 border-radius: 5px;
+               
             }
             QListView::item:selected {
                 background-color: #e6e6e6;

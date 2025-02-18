@@ -120,6 +120,9 @@ class SearchWidget(QDialog):
         from widgets.SearchBar import AutocompleteWidget
 
         autoComplete_widget = AutocompleteWidget(self.search_bar[0])
+        self.search_bar[0].textChanged.connect(
+            lambda text, d=self.data: self.handle_search(d, text)
+        )
 
     def init_page(self):
         self.prevVerse = self.search_page.findChild(QPushButton, 'prev_verse_3')
@@ -286,7 +289,7 @@ class SearchWidget(QDialog):
             # self.searchPane.single_result.clicked.connect(self.present)  
 
     def handle_search(self, data=None, query=None):
-        
+        print('data', data)
         if query == "":
             # Keep track if we've found the label
             found_label = False
