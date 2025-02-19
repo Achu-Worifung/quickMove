@@ -85,6 +85,7 @@ class SearchWidget(QDialog):
 
         self.version.setCurrentIndex(0)
         self.data = data
+        self.name = data['name']
         # print('data', data)
         self.verse_tracker = OrderedDict()
         self.verse_widgets: Dict[str, QDialog] = {}  # Store widget references
@@ -123,12 +124,19 @@ class SearchWidget(QDialog):
         self.search_bar[0].textChanged.connect(
             lambda text, d=self.data: self.handle_search(d, text)
         )
+        # adding an infocuse listerner to get the location of the search bar
+        autoComplete_widget.lineedit.focusOutEvent = self.get_prev_verse  
+
+        
 
     def init_page(self):
         self.prevVerse = self.search_page.findChild(QPushButton, 'prev_verse_3')
         self.version = self.search_page.findChild(QComboBox, 'version_3')
         self.searchPane = self.search_page.findChild(QVBoxLayout, 'searchPane_3')
         self.search_bar = self.search_page.findChildren(QLineEdit)
+        self.history = self.search_page.findChild(QLabel, 'history_4')
+        
+        print('history', self.history)
         
         # print each of the variable
         # print('prevVerse', self.prevVerse)
@@ -387,9 +395,20 @@ class SearchWidget(QDialog):
         self.settings.setValue("next_verse", title)
         #setting up the clipboard
         prev_action = ''
+        
+        # print('here is the action list', automata)
+        
+        # for action in automata['actions']:
+        #     if(action['action'] == 'click'):
+        #         print('clicking')
+        #     elif(action['action'] == 'paste'):
+        #         print('pasting')
+        #     elif(action['action'] == 'select all'):
+        #         print('selecting all')
+        # return
         #using simulating the automata
-        for index, action in enumerate(automata):
-            print('prev action', prev_action)
+        for action in automata['actions']:
+            # print('prev action', prev_action)
 
             if action['action'] == 'click':
                 x_coord = action['location'][0]
