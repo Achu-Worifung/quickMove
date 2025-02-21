@@ -111,6 +111,9 @@ class MainWindow(QMainWindow):
             background-color: rgb(255, 47, 50);
         }}
         """)
+        
+
+
 
         self.expand.setStyleSheet(f"""
         {common_stylesheet}
@@ -192,6 +195,11 @@ class MainWindow(QMainWindow):
         pass
     def moveTOSearchArea(self):
         self.curr_page = "searchArea"
+        self.toggleMenu()
+        self.stackedWidget.setCurrentIndex(5)
+        from widgets.SearchArea import SearchArea
+        page = self.stackedWidget.layout().itemAt(5).widget()
+        self.modepage = SearchArea(page)
         pass
     def moveHome(self):
         if self.curr_page == "home":

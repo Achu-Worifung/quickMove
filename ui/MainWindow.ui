@@ -6,16 +6,23 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1150</width>
-    <height>1037</height>
+    <width>859</width>
+    <height>879</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>MainWindow</string>
   </property>
+  <property name="styleSheet">
+   <string notr="true">border-color: rgb(0, 0, 0);
+border-width:1px
+
+</string>
+  </property>
   <widget class="QWidget" name="centralwidget">
    <property name="styleSheet">
-    <string notr="true">background-color:rgb(255, 255, 255);</string>
+    <string notr="true">background-color:rgb(255, 255, 255);
+</string>
    </property>
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
@@ -511,8 +518,8 @@ background-color:rgb(255, 255, 255);</string>
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>915</width>
-                <height>902</height>
+                <width>624</width>
+                <height>744</height>
                </rect>
               </property>
               <layout class="QVBoxLayout" name="verticalLayout_9">
@@ -592,8 +599,8 @@ background-color:rgb(255, 255, 255);</string>
                      <rect>
                       <x>0</x>
                       <y>0</y>
-                      <width>895</width>
-                      <height>829</height>
+                      <width>604</width>
+                      <height>671</height>
                      </rect>
                     </property>
                     <layout class="QVBoxLayout" name="verticalLayout_4"/>
@@ -890,8 +897,8 @@ font:20px
                     <rect>
                      <x>0</x>
                      <y>0</y>
-                     <width>893</width>
-                     <height>646</height>
+                     <width>160</width>
+                     <height>44</height>
                     </rect>
                    </property>
                    <property name="styleSheet">
@@ -1138,8 +1145,8 @@ border:none</string>
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>902</width>
-                   <height>884</height>
+                   <width>598</width>
+                   <height>290</height>
                   </rect>
                  </property>
                  <property name="styleSheet">
@@ -1334,8 +1341,8 @@ border:none</string>
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>915</width>
-                <height>902</height>
+                <width>624</width>
+                <height>744</height>
                </rect>
               </property>
               <property name="styleSheet">
@@ -1902,9 +1909,9 @@ font:20px
            </item>
           </layout>
          </widget>
-         <widget class="QWidget" name="page">
-          <layout class="QGridLayout" name="gridLayout_2">
-           <item row="0" column="0">
+         <widget class="QWidget" name="search_area">
+          <layout class="QVBoxLayout" name="verticalLayout_5">
+           <item>
             <widget class="QLabel" name="label_2">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
@@ -1936,7 +1943,21 @@ font:20px
              </property>
             </widget>
            </item>
-           <item row="1" column="0">
+           <item>
+            <widget class="QLabel" name="current_config">
+             <property name="font">
+              <font>
+               <pointsize>18</pointsize>
+               <weight>50</weight>
+               <bold>false</bold>
+              </font>
+             </property>
+             <property name="text">
+              <string>TextLabel</string>
+             </property>
+            </widget>
+           </item>
+           <item>
             <widget class="QTextBrowser" name="textBrowser">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
@@ -1963,13 +1984,13 @@ p, li { white-space: pre-wrap; }
 &lt;ol style=&quot;margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 1;&quot;&gt;&lt;li style=&quot; font-size:16pt;&quot; style=&quot; margin-top:12px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Click &lt;span style=&quot; font-weight:600;&quot;&gt;OK&lt;/span&gt; to begin.&lt;/li&gt;
 &lt;li style=&quot; font-size:16pt;&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Click on the &lt;span style=&quot; font-weight:600;&quot;&gt;top-left corner&lt;/span&gt; of the search area.&lt;/li&gt;
 &lt;li style=&quot; font-size:16pt;&quot; style=&quot; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Click on the &lt;span style=&quot; font-weight:600;&quot;&gt;bottom-right corner&lt;/span&gt; of the search area.&lt;/li&gt;
-&lt;li style=&quot; font-size:16pt;&quot; style=&quot; margin-top:0px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Press &lt;span style=&quot; font-weight:600;&quot;&gt;Esc&lt;/span&gt; at any time to cancel.&lt;/li&gt;&lt;/ol&gt;
+&lt;li style=&quot; font-size:16pt;&quot; style=&quot; margin-top:0px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Press &lt;span style=&quot; font-weight:600;&quot;&gt;Esc&lt;/span&gt; to stop.&lt;/li&gt;&lt;/ol&gt;
 &lt;p style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-size:16pt;&quot;&gt;&lt;br /&gt;&lt;/p&gt;
 &lt;p align=&quot;center&quot; style=&quot;-qt-paragraph-type:empty; margin-top:0px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-size:16pt;&quot;&gt;&lt;br /&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
              </property>
             </widget>
            </item>
-           <item row="2" column="0">
+           <item>
             <widget class="QWidget" name="widget_2" native="true">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Preferred" vsizetype="MinimumExpanding">
@@ -1983,9 +2004,33 @@ p, li { white-space: pre-wrap; }
                <height>150</height>
               </size>
              </property>
-             <layout class="QVBoxLayout" name="verticalLayout_5">
+             <layout class="QHBoxLayout" name="horizontalLayout_5">
               <item>
-               <widget class="QPushButton" name="pushButton">
+               <widget class="QPushButton" name="show_area">
+                <property name="maximumSize">
+                 <size>
+                  <width>250</width>
+                  <height>16777215</height>
+                 </size>
+                </property>
+                <property name="styleSheet">
+                 <string notr="true">
+
+    border-style: outset;
+    border-width: 2px;
+    border-radius: 10px;
+    border-color: black;
+    padding: 4px;
+font:20px
+</string>
+                </property>
+                <property name="text">
+                 <string>SHOW AREA</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="configure">
                 <property name="sizePolicy">
                  <sizepolicy hsizetype="Preferred" vsizetype="Ignored">
                   <horstretch>0</horstretch>
@@ -2000,7 +2045,7 @@ p, li { white-space: pre-wrap; }
                 </property>
                 <property name="maximumSize">
                  <size>
-                  <width>200</width>
+                  <width>250</width>
                   <height>42</height>
                  </size>
                 </property>
