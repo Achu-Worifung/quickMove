@@ -30,12 +30,14 @@ class HighlightOverlay(QWidget):
         super().__init__()
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.Tool)
         self.setAttribute(Qt.WA_TranslucentBackground)
-        self.setGeometry(0, 0, QApplication.primaryScreen().size().width(),
-                         QApplication.primaryScreen().size().height())
-        self.square_rect = QRect(300, 200, 200, 200)  # Example square position and size
+
+        # Get the geometry of all connected screens
+        screen_geometry = QApplication.desktop().screenGeometry()
+        self.setGeometry(screen_geometry)
+
+        self.square_rect = QRect(1900, 900, 200, 200)  # Example square position and size
 
     def paintEvent(self, event):
-        # Draw the translucent background and the highlighted square
         painter = QPainter(self)
         painter.setBrush(QBrush(QColor(0, 0, 0, 150)))  # Semi-transparent black background
         painter.drawRect(self.rect())
@@ -46,7 +48,6 @@ class HighlightOverlay(QWidget):
         painter.drawRect(self.square_rect)
 
     def mousePressEvent(self, event):
-        # Close the overlay if the user clicks anywhere
         self.close()
 
 
