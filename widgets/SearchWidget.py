@@ -133,10 +133,11 @@ class SearchWidget(QDialog):
         self.prevVerse = self.search_page.findChild(QPushButton, 'prev_verse_3')
         self.version = self.search_page.findChild(QComboBox, 'version_3')
         self.searchPane = self.search_page.findChild(QVBoxLayout, 'searchPane_3')
+        self.savedVerse_pane = self.search_page.findChild(QVBoxLayout, 'saved_verse_pane')
         self.search_bar = self.search_page.findChildren(QLineEdit)
         self.history = self.search_page.findChild(QLabel, 'history_4')
         
-        print('history', self.history)
+        print('saved pane', self.savedVerse_pane)
         
         # print each of the variable
         # print('prevVerse', self.prevVerse)
@@ -224,7 +225,7 @@ class SearchWidget(QDialog):
         savedVerses.saveVerse(self.savedVerse)
 
     def add_saved_verse(self, title, body):
-        print('adding saved verse', self.savedVerse)
+        # print('adding saved verse', self.savedVerse)
         new_saved_verse = self.savedVerse['savedVerses']
         new_saved_verse.insert(0,{'title': title, 'body': body})
         self.savedVerse['savedVerses'] = new_saved_verse
@@ -369,18 +370,18 @@ class SearchWidget(QDialog):
         saved.title.mousePressEvent = partial(mouse_click, verse_key=title)
         saved.body.mousePressEvent = partial(mouse_click, verse_key=title)
 
-        self.searchPane.insertWidget(old_result_len+1, saved) #index 0 is the label widget
+        self.savedVerse_pane.insertWidget(0, saved)
         if self.pop:
             return
         self.add_saved_verse(title, body)
         
     #deleting function for saved verses
     def delete(self, saved):
-        print('deleting', saved.title.text())
+        # print('deleting', saved.title.text())
         #finding the saved pane and deleting it
-        index = self.searchPane.indexOf(saved)
+        index = self.savedVerse_pane.indexOf(saved)
         if index != -1:  # Widget found
-            item = self.searchPane.takeAt(index)
+            item = self.savedVerse_pane.takeAt(index)
             if item.widget():
                 item.widget().deleteLater()
                 self.delete_saved_verse(saved.title.text())
@@ -427,38 +428,4 @@ class SearchWidget(QDialog):
         #updating the history label
         self.updateHistoryLabel()
     #change auto function
-     #change auto function
-    def changeAuto(self):
-         # Lazy import
-        from widgets.Welcome import Welcome
-        
-        # Clear current widgets from scroll area
-        while self.scrollAreaWidgetContents.layout().count():
-            item = self.scrollAreaWidgetContents.layout().takeAt(0)
-            if item.widget():
-                item.widget().deleteLater()
-        
-        # Find the main window
-        main_window = self
-        while main_window.parent():
-            main_window = main_window.parent()
-        
-        # Assuming main window has a stacked widget or central layout
-        if hasattr(main_window, 'centralWidget'):
-            # Remove old central widget if it exists
-            old_widget = main_window.centralWidget()
-            if old_widget:
-                old_widget.deleteLater()
-                
-            # Create and set new Welcome widget
-            welcome_widget = Welcome()
-            main_window.setCentralWidget(welcome_widget)
-        else:
-            # Alternative approach if using a layout
-            main_layout = main_window.layout()
-            if main_layout:
-                while main_layout.count():
-                    item = main_layout.takeAt(0)
-                    if item.widget():
-                        item.widget().deleteLater()
-                main_layout.addWidget(Welcome())
+   

@@ -111,20 +111,30 @@ class MainWindow(QMainWindow):
         event.accept()
 
     def mousePressEvent(self, event):
-        """Identify the widget that triggered the mouse press"""
-        # print("here i sam mouse pressed", self.oldPos)
-        if self.oldPos is None:
+        """Store the initial position when mouse is pressed"""
+        if event.button() == Qt.LeftButton:
             self.oldPos = event.globalPos()
-        
+        else:
+            self.oldPos = None
+            super().mousePressEvent(event)
 
+    def mouseReleaseEvent(self, event):
+        """Reset position tracking when mouse is released"""
+        self.oldPos = None
+        super().mouseReleaseEvent(event)
 
     def mouseMoveEvent(self, event):
+        """Handle window dragging"""
         global resize
-        # print("here i sam mouse pressed", resize, self.oldPos)
-        if resize : 
+        # Skip movement if we're resizing or if no button was pressed initially
+        if resize or self.oldPos is None:
             return
+            
+        # Calculate how far the mouse has moved since the initial click
         delta = event.globalPos() - self.oldPos
+        # Move the window by that amount
         self.move(self.x() + delta.x(), self.y() + delta.y())
+        # Update the old position for the next movement
         self.oldPos = event.globalPos()
         
     def toggleMenu(self):
@@ -229,6 +239,7 @@ class MainWindow(QMainWindow):
     def all_buttons_function(self):
         self.close_button.clicked.connect(self.close)
         self.minimize_button.clicked.connect(self.showMinimized)
+        # self.expand.clicked.connect(self.expandWindow)
         self.menu.clicked.connect(self.toggleMenu)
         self.about.clicked.connect(self.moveToAbout)
         self.history.clicked.connect(self.moveToHistory)
@@ -236,7 +247,11 @@ class MainWindow(QMainWindow):
         self.create.clicked.connect(self.moveToCreate)
         self.home.clicked.connect(self.moveHome)
 
-
+    # def expandWindow(self):
+    #     if self.isMaximized():
+    #         self.showNormal()
+    #     else:
+    #         self.showMaximized()
 def main():
     app = QApplication(sys.argv)
     window = MainWindow()
