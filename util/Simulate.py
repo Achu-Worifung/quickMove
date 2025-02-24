@@ -128,9 +128,10 @@ def simSelectAll(pressed=True):
 
     
     
-def present_prev_verse(name = None):
-        # print('presenting the previous verse', name)
-     # Get the previous verse from QSettings
+def present_prev_verse(name = None, data = None):
+    
+        # print('presenting the previous verse', data)
+     # Get the previous verse from QSettingsd
         next_verse = settings.value('prev_verse')
         next_verse = next_verse.strip()
         if not next_verse:
@@ -147,8 +148,11 @@ def present_prev_verse(name = None):
         # Get the search bar location from QSettings
         bar_location = settings.value(name, None)
         if not bar_location or len(bar_location) != 2:
-            # print("Error: Invalid or missing bar location.")
-            return
+
+            #finding the bar location from the 
+            for i in data['actions']:
+                if i['action'] == 'click':
+                    bar_location = i['location']
         # print(f"Bar location: {bar_location}")
 
         # Move the cursor to the bar location

@@ -4,6 +4,7 @@ from functools import partial
 from util import  Simulate, Message as msg, dataMod, walk
 from util.event_tracker import EventTracker
 from PyQt5.QtCore import pyqtSignal
+from PyQt5.QtCore import QSettings
 class Edit(QWidget):
     def __init__(self, page_widget, data= None):
         super().__init__()
@@ -13,6 +14,9 @@ class Edit(QWidget):
         self.updated_data = data['actions']
         self.name = data['name']
         updateRequested = pyqtSignal(dict, bool)
+        
+        
+        self.settings = QSettings("MyApp", "AutomataSimulator")
 
         
         # Set up widget references
@@ -34,6 +38,9 @@ class Edit(QWidget):
         self.del_button= self.page_widget.findChild(QPushButton, 'deleteButton')
         self.can_button= self.page_widget.findChild(QPushButton, 'cancelButton')
         self.table= self.page_widget.findChild(QTableWidget, 'table')
+        self.barLocation = self.page_widget.findChild(QPushButton, 'barButton')
+        
+        print('bar location', self.barLocation)
         
         #adding action to the buttons
        
@@ -45,6 +52,7 @@ class Edit(QWidget):
         self.sim_button.clicked.connect(self.simulate)
         self.can_button.clicked.connect(self.cancel)
         self.del_button.clicked.connect(self.delete)
+        self.barLocation.clicked.connect(self.setBarLocation)
         #-----------------------------------------------------------------------
         #populating the table
         self.title.setText(self.data['name']) #setting the title
@@ -219,4 +227,14 @@ class Edit(QWidget):
                     self.updated_data, self.name, curr_row - 1
                 )  # curr_row -1 becuse name is  0 index
 
-        
+    def setBarLocation(self):  
+       
+        cell_index = self.table.currentRow()
+        if cell_index == -1:
+            msg.warningBox(self, "Error", "Cannot simulate because No row selected")
+            return
+        else:
+            sim = self.updated_data[cell_index - 1]  # getting the action
+            # print(sim)
+            self.settings.setValue(self.title.text(), sim["location"])
+            print(self.settings.value(self.title.text()))        

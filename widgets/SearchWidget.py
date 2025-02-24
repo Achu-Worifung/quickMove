@@ -105,7 +105,7 @@ class SearchWidget(QDialog):
         # )
         
 
-        self.prevVerse.clicked.connect(lambda checked=False:   QTimer.singleShot(0, lambda: Simulate.present_prev_verse(self.name)))
+       
 
         #initialize qsetting to store clipboard history
         self.settings = QSettings("MyApp", "AutomataSimulator")
@@ -126,6 +126,7 @@ class SearchWidget(QDialog):
         )
         # adding an infocuse listerner to get the location of the search bar
         autoComplete_widget.lineedit.focusOutEvent = self.get_prev_verse  
+        self.prevVerse.clicked.connect(lambda checked=False:   QTimer.singleShot(0, lambda: Simulate.present_prev_verse(self.name, self.data)))
 
         
 
@@ -137,7 +138,7 @@ class SearchWidget(QDialog):
         self.search_bar = self.search_page.findChildren(QLineEdit)
         self.history = self.search_page.findChild(QLabel, 'history_4')
         
-        print('saved pane', self.savedVerse_pane)
+        print('prev verse', self.prevVerse)
         
         # print each of the variable
         # print('prevVerse', self.prevVerse)
@@ -195,7 +196,8 @@ class SearchWidget(QDialog):
     #so when a verse result is clicked the current verse references is saved to clipboard
     #we have location of x and y of highlighted verse box
     def prevVerse(self):
-
+       #presenting the previous verse
+       print('data', self.data)
        Simulate.present_prev_verse(self.name)
        #updaing the label to show the current verse
        self.updateHistoryLabel()

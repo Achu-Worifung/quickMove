@@ -177,12 +177,14 @@ class MainWindow(QMainWindow):
         if self.curr_page == "home":
            self.toggleMenu()
           
-        # elif self.curr_page == 'create':
-        #     #retrieving the latest data
-        #     self.toggleMenu()
-        #     layout = self.created_autos.layout()
-        #     self.clearLayout(layout)
-        #     self.start(comming_back=True)
+        elif self.curr_page == 'create':
+            #retrieving the latest data
+            self.toggleMenu()
+            self.stackedWidget.setCurrentIndex(0)
+            # for 
+            from widgets.MainPage import MainPage
+            page = self.stackedWidget.layout().itemAt(0).widget()
+            self.modepage = MainPage(page)
             
         else:
             self.toggleMenu()
@@ -196,7 +198,7 @@ class MainWindow(QMainWindow):
                 child.widget().deleteLater()  # Delete the widget
                 child.widget().setParent(None)
 
-    def clearWidgets(self):
+    def clearWidgets(self, layout):
          # Deleting the widget at index 1 in the layout
         deleted_pane_item = self.mainContent.layout().takeAt(1)
 

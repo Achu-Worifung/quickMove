@@ -20,15 +20,13 @@ class MainPage(QWidget):
         self.data = []
         
     def setupUi(self, data=None):
+        # print('set up ran')
         if not data:
             self.data = walk.get_data()
 
         datapane = self.page.findChild(QWidget, 'created_autos').layout()
         if not  self.data["Automata"]:
-            label = QLabel("No automata found\nClick on the 'Create New Automata' button to create a new automata")
-            label.setStyleSheet("font-size: 12pt; color: red;")
-            label.setAlignment(Qt.AlignCenter)
-            datapane.addWidget(label)
+           pass
         else:
         
             # clearLayout(datapane)
