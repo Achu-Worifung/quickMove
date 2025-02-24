@@ -33,10 +33,10 @@ def findPrevDisplayedVerse():
             
             # Perform OCR
             text = pytesseract.image_to_string(thresh)
-            print("Extracted Text:", text)
+            # print("Extracted Text:", text)
             return text
         else:
-            print("Search area not defined or invalid format.")
+            # print("Search area not defined or invalid format.")
             return None
     except Exception as e:
         print("An error occurred:", e)

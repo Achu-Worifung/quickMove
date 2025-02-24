@@ -41,7 +41,7 @@ class SearchThread(QThread):
         self.query = query
 
     def run(self):
-        print("quote_plus(self.query)", quote_plus(self.query))
+        # print("quote_plus(self.query)", quote_plus(self.query))
         url = 'https://customsearch.googleapis.com/customsearch/v1?'
         params = {
             "key": self.api_key,

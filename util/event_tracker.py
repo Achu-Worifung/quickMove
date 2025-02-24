@@ -38,7 +38,7 @@ class EventTracker(QObject):
                 }
                 self.actionList.append(event)
                 self.event_recorded.emit(event)
-                print(f"Mouse clicked at {x}, {y} with {button}")
+                # print(f"Mouse clicked at {x}, {y} with {button}")
                 if edit:
                     self.stop_tracking()
 
@@ -46,7 +46,7 @@ class EventTracker(QObject):
             if not self.tracking:
                 return False
             self.current_keys.add(key)
-            print('Current keys:', self.current_keys)
+            # print('Current keys:', self.current_keys)
             try:
                 if self.is_paste_combination():
                     self.log_paste_event(edit)
@@ -71,7 +71,7 @@ class EventTracker(QObject):
 
         self.click_listener.start()
         self.keyboard_listener.start()
-        print("Listeners started. Tracking events...")
+        # print("Listeners started. Tracking events...")
 
     def stop_tracking(self):
         """Stop tracking events and terminate listeners."""
@@ -81,7 +81,7 @@ class EventTracker(QObject):
         if self.keyboard_listener and self.keyboard_listener.running:
             self.keyboard_listener.stop()
         self.tracking_finished.emit(self.actionList)
-        print("Tracking stopped and listeners terminated.")
+        # print("Tracking stopped and listeners terminated.")
 
     def is_paste_combination(self):
         """Check if the current keys match a paste (Ctrl+V) combination."""
@@ -103,7 +103,7 @@ class EventTracker(QObject):
         event = {'action': 'select all', 'button': 'ctrl+a', 'location': 'keyboard'}
         self.actionList.append(event)
         self.event_recorded.emit(event)
-        print("Ctrl + A detected and logged!")
+        # print("Ctrl + A detected and logged!")
         if edit:
             self.stop_tracking()
 
@@ -112,7 +112,7 @@ class EventTracker(QObject):
         event = {'action': 'paste', 'button': 'ctrl+v', 'location': 'clipboard'}
         self.actionList.append(event)
         self.event_recorded.emit(event)
-        print("Ctrl + V detected and logged!")
+        # print("Ctrl + V detected and logged!")
         if edit:
             self.stop_tracking()
 

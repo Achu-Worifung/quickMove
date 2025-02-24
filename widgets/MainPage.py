@@ -38,7 +38,7 @@ class MainPage(QWidget):
             for i, automaton in enumerate( self.data['Automata']):
                 single_automata = loadUi(ui_path)
                 single_automata.name.setText(automaton['name'])
-                print(automaton)
+                # print(automaton)
 
                 # Use partial to capture the current value of i
                 single_automata.use.clicked.connect(partial(self.getStarted, automaton = automaton))
@@ -90,8 +90,4 @@ class MainPage(QWidget):
         search_page = self.page.parent().layout().itemAt(2).widget()
         search_page = SearchWidget(search_page=search_page, data = automaton, index = 2)
         self.page.parent().setCurrentIndex(2)
-        # self.page.parent().parent().toggleMenu()
-        
-        # search_pane = self.scrollPane.layout()
-        # clearLayout(search_pane)
-        # search_pane.addWidget(search)
+      

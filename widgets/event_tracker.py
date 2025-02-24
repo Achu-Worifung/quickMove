@@ -5,7 +5,7 @@ from pynput import keyboard, mouse
 import sys
 
 def create_new_automaton(edit=False):
-    print("Creating new automaton...")
+    # print("Creating new automaton...")
     """
     Create a new automaton by tracking mouse and keyboard events.
 

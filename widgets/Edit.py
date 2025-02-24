@@ -147,8 +147,8 @@ class Edit(QWidget):
 
         if len(saved_data) == 0 :
             # Initialize saved_data if it's None
-            print('data is none')
-            print('len of data', len(saved_data))
+            # print('data is none')
+            # print('len of data', len(saved_data))
             saved_data = {"Automata": []}
 
         # Flag to track whether the automata was modified

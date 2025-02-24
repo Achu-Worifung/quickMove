@@ -94,45 +94,7 @@ class MainWindow(QMainWindow):
         
         self.oldPos = None
         
-        common_stylesheet = """
-        QPushButton {
-            background-color: none;
-            border-style: none;
-            outline: none;
-        }
-        QPushButton:hover {
-            border-radius: 5px;
-        }
-        """
-
-        self.close_button.setStyleSheet(f"""
-        {common_stylesheet}
-        QPushButton:hover {{
-            background-color: rgb(255, 47, 50);
-        }}
-        """)
-        
-
-
-
-        self.expand.setStyleSheet(f"""
-        {common_stylesheet}
-        QPushButton:hover {{
-            background-color: #c0c0c0;
-        }}
-        """)
-
-        self.minimize_button.setStyleSheet(f"""
-        {common_stylesheet}
-        QPushButton:hover {{
-            background-color: #c0c0c0;
-        }}
-        """)
-
-
-        
        
-
         # Load automata list
         self.MainPage()
 
@@ -159,7 +121,7 @@ class MainWindow(QMainWindow):
     def mouseMoveEvent(self, event):
         global resize
         # print("here i sam mouse pressed", resize, self.oldPos)
-        if resize or self.oldPos is None: 
+        if resize : 
             return
         delta = event.globalPos() - self.oldPos
         self.move(self.x() + delta.x(), self.y() + delta.y())
@@ -283,3 +245,6 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+

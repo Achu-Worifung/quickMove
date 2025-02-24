@@ -78,7 +78,7 @@ def simPaste(keyvalue, pressed=True, returning=False):
             # time.sleep(0.05)
             settings.setValue('bar_location', mouse_controller.position)
     except Exception as e:
-        print(f"Error during simPaste: {e}")
+        # print(f"Error during simPaste: {e}")
         reset_keys()
 
     
@@ -117,25 +117,26 @@ def simSelectAll(pressed=True):
             settings.setValue('prev_verse', prev_verse)
             # print(f"Saved previous verse: {prev_verse}")
         else:
-            print("No text copied to clipboard.")
+            pass
+            # print("No text copied to clipboard.")
         
         reset_keys()
 
     except Exception as e:
-        print(f"Error during simSelectAll: {e}")
+        # print(f"Error during simSelectAll: {e}")
         reset_keys()
 
     
     
 def present_prev_verse(name = None):
-        print('presenting the previous verse', name)
+        # print('presenting the previous verse', name)
      # Get the previous verse from QSettings
         next_verse = settings.value('prev_verse')
         next_verse = next_verse.strip()
         if not next_verse:
-            print("Error: No previous verse found in settings.")
+            # print("Error: No previous verse found in settings.")
             return
-        print('Previous verse present prev verse:', next_verse)
+        # print('Previous verse present prev verse:', next_verse)
         settings.setValue('next_verse', next_verse)
         # QApplication.processEvents()  # Ensure clipboard changes are processed
         # # #switching to mime type text/plain
@@ -146,7 +147,7 @@ def present_prev_verse(name = None):
         # Get the search bar location from QSettings
         bar_location = settings.value(name, None)
         if not bar_location or len(bar_location) != 2:
-            print("Error: Invalid or missing bar location.")
+            # print("Error: Invalid or missing bar location.")
             return
         # print(f"Bar location: {bar_location}")
 
