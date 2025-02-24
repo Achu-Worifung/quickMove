@@ -20,6 +20,11 @@ class MainPage(QWidget):
         self.data = []
         
     def setupUi(self, data=None):
+        #deleteing anything that is in the layout
+        widget = self.page.findChild(QWidget, 'created_autos')
+        if widget:
+            print("in widget setup",widget.layout())
+            clearLayout(widget.layout())
         # print('set up ran')
         if not data:
             self.data = walk.get_data()

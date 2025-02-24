@@ -190,7 +190,7 @@ font:20px</string>
              </property>
              <property name="icon">
               <iconset>
-               <normaloff>../../../../Downloads/8664938_trash_can_delete_remove_icon.ico</normaloff>../../../../Downloads/8664938_trash_can_delete_remove_icon.ico</iconset>
+               <normaloff>../Icons/8664938_trash_can_delete_remove_icon.ico</normaloff>../Icons/8664938_trash_can_delete_remove_icon.ico</iconset>
              </property>
              <property name="iconSize">
               <size>

@@ -58,7 +58,7 @@ border-radius: 30px;</string>
         </property>
         <property name="icon">
          <iconset>
-          <normaloff>../../../../Downloads/8468013_cyborg_halloween_machine_robot_teen_icon.ico</normaloff>../../../../Downloads/8468013_cyborg_halloween_machine_robot_teen_icon.ico</iconset>
+          <normaloff>../Icons/8468013_cyborg_halloween_machine_robot_teen_icon.ico</normaloff>../Icons/8468013_cyborg_halloween_machine_robot_teen_icon.ico</iconset>
         </property>
         <property name="iconSize">
          <size>
@@ -89,7 +89,7 @@ font:20px</string>
         </property>
         <property name="icon">
          <iconset>
-          <normaloff>../../../../Downloads/2639772_automation_icon.ico</normaloff>../../../../Downloads/2639772_automation_icon.ico</iconset>
+          <normaloff>../Icons/2639772_automation_icon.ico</normaloff>../Icons/2639772_automation_icon.ico</iconset>
         </property>
         <property name="iconSize">
          <size>
@@ -129,7 +129,7 @@ font:20px</string>
         </property>
         <property name="icon">
          <iconset>
-          <normaloff>../../../../Downloads/icons/100166_configure_icon.ico</normaloff>../../../../Downloads/icons/100166_configure_icon.ico</iconset>
+          <normaloff>../Icons/100166_configure_icon.ico</normaloff>../Icons/100166_configure_icon.ico</iconset>
         </property>
         <property name="iconSize">
          <size>
@@ -163,7 +163,7 @@ font:20px</string>
         </property>
         <property name="icon">
          <iconset>
-          <normaloff>../../../../Downloads/8664938_trash_can_delete_remove_icon.ico</normaloff>../../../../Downloads/8664938_trash_can_delete_remove_icon.ico</iconset>
+          <normaloff>../Icons/8664938_trash_can_delete_remove_icon.ico</normaloff>../Icons/8664938_trash_can_delete_remove_icon.ico</iconset>
         </property>
         <property name="iconSize">
          <size>

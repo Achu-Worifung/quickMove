@@ -190,7 +190,7 @@ font:20px</string>
              </property>
              <property name="icon">
               <iconset>
-               <normaloff>../../../../Downloads/3994354_arrow_download_downloading_interface_save_icon.ico</normaloff>../../../../Downloads/3994354_arrow_download_downloading_interface_save_icon.ico</iconset>
+               <normaloff>../Icons/3994354_arrow_download_downloading_interface_save_icon.ico</normaloff>../Icons/3994354_arrow_download_downloading_interface_save_icon.ico</iconset>
              </property>
              <property name="iconSize">
               <size>

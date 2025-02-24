@@ -98,7 +98,7 @@ background-color:rgb(255, 255, 255);</string>
             </property>
             <property name="icon">
              <iconset>
-              <normaloff>../../../../Downloads/8665067_bars_staggered_icon.ico</normaloff>../../../../Downloads/8665067_bars_staggered_icon.ico</iconset>
+              <normaloff>../Icons/8665067_bars_staggered_icon.ico</normaloff>../Icons/8665067_bars_staggered_icon.ico</iconset>
             </property>
             <property name="iconSize">
              <size>
@@ -127,7 +127,7 @@ background-color:rgb(255, 255, 255);</string>
             </property>
             <property name="icon">
              <iconset>
-              <normaloff>../../../../Downloads/2639772_automation_icon.ico</normaloff>../../../../Downloads/2639772_automation_icon.ico</iconset>
+              <normaloff>../Icons/2639772_automation_icon.ico</normaloff>../Icons/2639772_automation_icon.ico</iconset>
             </property>
             <property name="iconSize">
              <size>
@@ -196,7 +196,7 @@ font:20px
             </property>
             <property name="icon">
              <iconset>
-              <normaloff>../../../../Downloads/icons/8664917_window_minimize_icon.ico</normaloff>../../../../Downloads/icons/8664917_window_minimize_icon.ico</iconset>
+              <normaloff>../Icons/8664917_window_minimize_icon.ico</normaloff>../Icons/8664917_window_minimize_icon.ico</iconset>
             </property>
             <property name="iconSize">
              <size>
@@ -226,7 +226,7 @@ font:20px
             </property>
             <property name="icon">
              <iconset>
-              <normaloff>../../../../Downloads/icons/8673396_ic_fluent_expand_up_right_icon.ico</normaloff>../../../../Downloads/icons/8673396_ic_fluent_expand_up_right_icon.ico</iconset>
+              <normaloff>../Icons/8673396_ic_fluent_expand_up_right_icon.ico</normaloff>../Icons/8673396_ic_fluent_expand_up_right_icon.ico</iconset>
             </property>
             <property name="iconSize">
              <size>
@@ -255,7 +255,7 @@ font:20px
             </property>
             <property name="icon">
              <iconset>
-              <normaloff>../../../../Downloads/icons/11244080_x_twitter_elon musk_twitter new logo_icon.ico</normaloff>../../../../Downloads/icons/11244080_x_twitter_elon musk_twitter new logo_icon.ico</iconset>
+              <normaloff>../Icons/11244080_x_twitter_elon musk_twitter new logo_icon.ico</normaloff>../Icons/11244080_x_twitter_elon musk_twitter new logo_icon.ico</iconset>
             </property>
             <property name="iconSize">
              <size>
@@ -332,7 +332,7 @@ background-color: rgb(239, 0, 0);
             </property>
             <property name="icon">
              <iconset>
-              <normaloff>../../../../Downloads/185038_home_house_icon.ico</normaloff>../../../../Downloads/185038_home_house_icon.ico</iconset>
+              <normaloff>../Icons/185038_home_house_icon.ico</normaloff>../Icons/185038_home_house_icon.ico</iconset>
             </property>
             <property name="iconSize">
              <size>
@@ -351,15 +351,14 @@ background-color: rgb(239, 0, 0);
              </sizepolicy>
             </property>
             <property name="styleSheet">
-             <string notr="true">
-</string>
+             <string notr="true"/>
             </property>
             <property name="text">
              <string>CREATE</string>
             </property>
             <property name="icon">
              <iconset>
-              <normaloff>../../../../Downloads/icons/9104212_plus_add_document_create_page_icon.ico</normaloff>../../../../Downloads/icons/9104212_plus_add_document_create_page_icon.ico</iconset>
+              <normaloff>../Icons/9104212_plus_add_document_create_page_icon.ico</normaloff>../Icons/9104212_plus_add_document_create_page_icon.ico</iconset>
             </property>
             <property name="iconSize">
              <size>
@@ -385,7 +384,7 @@ background-color: rgb(239, 0, 0);
             </property>
             <property name="icon">
              <iconset>
-              <normaloff>../../../../Downloads/icons/9069819_modify_icon.ico</normaloff>../../../../Downloads/icons/9069819_modify_icon.ico</iconset>
+              <normaloff>../Icons/9069819_modify_icon.ico</normaloff>../Icons/9069819_modify_icon.ico</iconset>
             </property>
             <property name="iconSize">
              <size>
@@ -411,7 +410,7 @@ background-color: rgb(239, 0, 0);
             </property>
             <property name="icon">
              <iconset>
-              <normaloff>../../../../Downloads/8541835_history_time_icon.ico</normaloff>../../../../Downloads/8541835_history_time_icon.ico</iconset>
+              <normaloff>../Icons/8541835_history_time_icon.ico</normaloff>../Icons/8541835_history_time_icon.ico</iconset>
             </property>
             <property name="iconSize">
              <size>
@@ -445,7 +444,7 @@ background-color: rgb(239, 0, 0);
             </property>
             <property name="icon">
              <iconset>
-              <normaloff>../../../../Downloads/4470663_description_about_app_web_info_icon.ico</normaloff>../../../../Downloads/4470663_description_about_app_web_info_icon.ico</iconset>
+              <normaloff>../Icons/4470663_description_about_app_web_info_icon.ico</normaloff>../Icons/4470663_description_about_app_web_info_icon.ico</iconset>
             </property>
             <property name="iconSize">
              <size>
@@ -680,7 +679,7 @@ font:20px
                        </property>
                        <property name="icon">
                         <iconset>
-                         <normaloff>../../../../Downloads/icons/48792_player_record_icon.ico</normaloff>../../../../Downloads/icons/48792_player_record_icon.ico</iconset>
+                         <normaloff>../Icons/48792_player_record_icon.ico</normaloff>../Icons/48792_player_record_icon.ico</iconset>
                        </property>
                        <property name="iconSize">
                         <size>
@@ -720,7 +719,7 @@ font:20px
                        </property>
                        <property name="icon">
                         <iconset>
-                         <normaloff>../../../../Downloads/icons/8664918_circle_stop_icon.ico</normaloff>../../../../Downloads/icons/8664918_circle_stop_icon.ico</iconset>
+                         <normaloff>../Icons/8664918_circle_stop_icon.ico</normaloff>../Icons/8664918_circle_stop_icon.ico</iconset>
                        </property>
                        <property name="iconSize">
                         <size>
@@ -1000,7 +999,7 @@ font:20px
                      </property>
                      <property name="icon">
                       <iconset>
-                       <normaloff>../../../../Downloads/3643764_back_backward_left_reply_turn_icon.ico</normaloff>../../../../Downloads/3643764_back_backward_left_reply_turn_icon.ico</iconset>
+                       <normaloff>../Icons/3643764_back_backward_left_reply_turn_icon.ico</normaloff>../Icons/3643764_back_backward_left_reply_turn_icon.ico</iconset>
                      </property>
                      <property name="iconSize">
                       <size>
@@ -1050,7 +1049,7 @@ font:20px</string>
                      </property>
                      <property name="icon">
                       <iconset>
-                       <normaloff>../../../../Downloads/5978961_closed_eye_hide_sleep_icon.ico</normaloff>../../../../Downloads/5978961_closed_eye_hide_sleep_icon.ico</iconset>
+                       <normaloff>../Icons/5978961_closed_eye_hide_sleep_icon.ico</normaloff>../Icons/5978961_closed_eye_hide_sleep_icon.ico</iconset>
                      </property>
                      <property name="iconSize">
                       <size>
@@ -1155,7 +1154,7 @@ font:20px</string>
                        </property>
                        <property name="icon">
                         <iconset>
-                         <normaloff>../../../../Downloads/4470663_description_about_app_web_info_icon.ico</normaloff>../../../../Downloads/4470663_description_about_app_web_info_icon.ico</iconset>
+                         <normaloff>../Icons/4470663_description_about_app_web_info_icon.ico</normaloff>../Icons/4470663_description_about_app_web_info_icon.ico</iconset>
                        </property>
                        <property name="iconSize">
                         <size>
@@ -1226,7 +1225,7 @@ font:20px</string>
                           </property>
                           <property name="icon">
                            <iconset>
-                            <normaloff>../../../../Downloads/211904_social_github_icon.ico</normaloff>../../../../Downloads/211904_social_github_icon.ico</iconset>
+                            <normaloff>../Icons/211904_social_github_icon.ico</normaloff>../Icons/211904_social_github_icon.ico</iconset>
                           </property>
                           <property name="iconSize">
                            <size>
@@ -1421,7 +1420,7 @@ font:20px
                       </property>
                       <property name="icon">
                        <iconset>
-                        <normaloff>../../../../Downloads/3994354_arrow_download_downloading_interface_save_icon.ico</normaloff>../../../../Downloads/3994354_arrow_download_downloading_interface_save_icon.ico</iconset>
+                        <normaloff>../Icons/3994354_arrow_download_downloading_interface_save_icon.ico</normaloff>../Icons/3994354_arrow_download_downloading_interface_save_icon.ico</iconset>
                       </property>
                       <property name="iconSize">
                        <size>
@@ -1470,7 +1469,7 @@ font:20px
                       </property>
                       <property name="icon">
                        <iconset>
-                        <normaloff>../../../../Downloads/8664938_trash_can_delete_remove_icon.ico</normaloff>../../../../Downloads/8664938_trash_can_delete_remove_icon.ico</iconset>
+                        <normaloff>../Icons/8664938_trash_can_delete_remove_icon.ico</normaloff>../Icons/8664938_trash_can_delete_remove_icon.ico</iconset>
                       </property>
                       <property name="iconSize">
                        <size>
@@ -1504,7 +1503,7 @@ font:20px</string>
                       </property>
                       <property name="icon">
                        <iconset>
-                        <normaloff>../../../../Downloads/103500_cancel_document_sans_icon.ico</normaloff>../../../../Downloads/103500_cancel_document_sans_icon.ico</iconset>
+                        <normaloff>../Icons/103500_cancel_document_sans_icon.ico</normaloff>../Icons/103500_cancel_document_sans_icon.ico</iconset>
                       </property>
                       <property name="iconSize">
                        <size>
@@ -1561,7 +1560,7 @@ font:20px
                       </property>
                       <property name="icon">
                        <iconset>
-                        <normaloff>../../../../Downloads/103341_run_server_icon.ico</normaloff>../../../../Downloads/103341_run_server_icon.ico</iconset>
+                        <normaloff>../Icons/103341_run_server_icon.ico</normaloff>../Icons/103341_run_server_icon.ico</iconset>
                       </property>
                       <property name="iconSize">
                        <size>
@@ -1608,7 +1607,7 @@ font:20px
                       </property>
                       <property name="icon">
                        <iconset>
-                        <normaloff>../../../../Downloads/icons/100166_configure_icon.ico</normaloff>../../../../Downloads/icons/100166_configure_icon.ico</iconset>
+                        <normaloff>../Icons/100166_configure_icon.ico</normaloff>../Icons/100166_configure_icon.ico</iconset>
                       </property>
                       <property name="iconSize">
                        <size>
@@ -1654,7 +1653,7 @@ font:20px</string>
                       </property>
                       <property name="icon">
                        <iconset>
-                        <normaloff>../../../../Downloads/9027084_robot_thin_icon.ico</normaloff>../../../../Downloads/9027084_robot_thin_icon.ico</iconset>
+                        <normaloff>../Icons/9027084_robot_thin_icon.ico</normaloff>../Icons/9027084_robot_thin_icon.ico</iconset>
                       </property>
                       <property name="iconSize">
                        <size>
@@ -1689,7 +1688,7 @@ font:20px
                       </property>
                       <property name="icon">
                        <iconset>
-                        <normaloff>../../../../Downloads/9044602_insert_page_icon.ico</normaloff>../../../../Downloads/9044602_insert_page_icon.ico</iconset>
+                        <normaloff>../Icons/9044602_insert_page_icon.ico</normaloff>../Icons/9044602_insert_page_icon.ico</iconset>
                       </property>
                       <property name="iconSize">
                        <size>
@@ -1799,7 +1798,7 @@ font:20px
                        </property>
                        <property name="icon">
                         <iconset>
-                         <normaloff>../../../../Downloads/3802018_data_detail_info_resource_service_icon.ico</normaloff>../../../../Downloads/3802018_data_detail_info_resource_service_icon.ico</iconset>
+                         <normaloff>../Icons/3802018_data_detail_info_resource_service_icon.ico</normaloff>../Icons/3802018_data_detail_info_resource_service_icon.ico</iconset>
                        </property>
                        <property name="iconSize">
                         <size>
