@@ -47,7 +47,7 @@ class SearchThread(QThread):
         params = {
             "key": self.api_key,
             "cx": self.engine_id,
-            "q": quote_plus(self.query),  
+            "q": quote_plus(self.query + 'bible verse'),  
             # "safe": "active",  # Optional
         }
         response = httpx.get(url, params=params)
@@ -233,21 +233,20 @@ class SearchWidget(QDialog):
 
     def update_verse_tracker(self, new_results, query):
         # print('updating verse tracker')
-        if len(self.old_widget) > 0:
-            self.displayed_verse.clear()
-            self.Tracker.clear()
 
-            widget_to_remoge = []
-            #clearing the layout of old results
-            for i in range(self.searchPane.count()):
-                widget_to_remoge.append(self.searchPane.itemAt(i).widget())
-            for widget in widget_to_remoge:
-                self.searchPane.removeWidget(widget)
-                widget.deleteLater()
-                widget.setParent(None)
-            self.old_widget.clear()
 
+        widget_to_remove = []
+        #clearing the layout of old results
+        for i in range(self.searchPane.count()):
+            widget_to_remove.append(self.searchPane.itemAt(i).widget())
+        for widget in widget_to_remove:
+            self.searchPane.removeWidget(widget)
+            widget.deleteLater()
+        self.old_widget.clear()
+        self.displayed_verse.clear()
+        print('current contedents', self.searchPane.count())
         #adding the new results to the layout
+        self.searchPane.update()
         for result in new_results:
             reference = getReference.getReference(result['title'])
             # print('diplayed verses', self.displayed_verse)
@@ -257,7 +256,12 @@ class SearchWidget(QDialog):
             if reference in self.displayed_verse:
                 #placing it at the top
                 index = self.displayed_verse.index(reference)
-                self.searchPane.takeAt(index)
+                remove_widget = self.searchPane.takeAt(index)
+                if remove_widget.widget():
+                    remove_widget.widget().deleteLater()
+                    remove_widget.widget().setParent(None)
+                    # self.searchPane.removeItem(remove_widget)
+
 
             else:
                 self.displayed_verse.append(reference)
@@ -299,31 +303,36 @@ class SearchWidget(QDialog):
     def handle_search(self, data=None, query=None):
         # print('data', data)
         if query == "":
-            # Keep track if we've found the label
-            found_label = False
-            # Store widgets to delete
-            widgets_to_delete = []
-            self.displayed_verse.clear()
+            print('erasing query')
             
-            # First pass: identify widgets to delete
-            for i in range(self.searchPane.count()):
-                widgets_to_delete.append(self.searchPane.itemAt(i).widget())
+            # Clear the displayed verses and searchPane widgets
+            self.displayed_verse.clear()
+            print('current contents', self.searchPane.count())
 
-            # Second pass: delete widgets
-            for widget in widgets_to_delete:
+            widgets_to_remove = []
+            for i in range(self.searchPane.count()):
+                widget = self.searchPane.itemAt(i).widget()
+                if widget:
+                    widgets_to_remove.append(widget)
+            
+            # Remove and delete widgets
+            for widget in widgets_to_remove:
                 self.searchPane.removeWidget(widget)
                 widget.deleteLater()
-                widget.setParent(None)
+            
+            self.old_widget.clear()
             self.verse_tracker = OrderedDict()
-            # self.verse_widgets: Dict[str, QDialog] = {}  # Store widget references
-            self.old_widget= []
+            self.old_widget = []
             self.saved_widgets = []
-            self.search_thread: Optional[SearchThread] = None
+            self.search_thread = None
             self.last_query_time = 0
+            print('after erasing', self.searchPane.count())
+            self.searchPane.update()
             return
 
 
-        if not query or query.count(' ') < 3 or query[len(query)-1] != ' ':
+        # Check if the query is valid
+        if not query or query.count(' ') < 3 or query[-1] != ' ':
             return
 
         # Cancel any existing search
@@ -334,7 +343,7 @@ class SearchWidget(QDialog):
         # Start new search thread
         self.search_thread = SearchThread(self.api_key, self.engine_id, query)
         self.search_thread.finished.connect(
-            lambda results, q: self.handle_search_results(results, q)
+            lambda results, q=query: self.handle_search_results(results, q)
         )
         self.search_thread.start()
 
@@ -342,8 +351,8 @@ class SearchWidget(QDialog):
         # if we have results update the verse tracker
         if results:
             self.update_verse_tracker(results, query)
-        elif not results and self.searchPane.count() > 0: #if we have no results and nothing is displayed
-            self.handle_search(self.data, query = query + 'bible verse')
+        # elif not results and self.searchPane.count() > 0: #if we have no results and nothing is displayed
+        #     self.handle_search(self.data, query = query + 'bible verse')
 
     #function to add saved verses to the saved pane
     def savedVerses(self, title, body):

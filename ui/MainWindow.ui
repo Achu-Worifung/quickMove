@@ -853,7 +853,10 @@ font:20px
                 <item row="5" column="0">
                  <widget class="QScrollArea" name="scrollArea_5">
                   <property name="mouseTracking">
-                   <bool>true</bool>
+                   <bool>false</bool>
+                  </property>
+                  <property name="focusPolicy">
+                   <enum>Qt::NoFocus</enum>
                   </property>
                   <property name="styleSheet">
                    <string notr="true"/>
