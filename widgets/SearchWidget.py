@@ -47,8 +47,12 @@ class SearchThread(QThread):
         params = {
             "key": self.api_key,
             "cx": self.engine_id,
-            "q": quote_plus(self.query + 'bible verse'),  
-            # "safe": "active",  # Optional
+            "q": quote_plus(self.query  ),  
+            "safe": "active",  # Optional
+            'hl': 'en',
+            'num': 10,
+            
+            
         }
         response = httpx.get(url, params=params)
         response.raise_for_status()
@@ -108,6 +112,7 @@ class SearchWidget(QDialog):
 
         self.pop_saved_verse()
         self.pop = False
+        self.double_search = True #if no result found, search again
         
         self.init_page()
         from widgets.SearchBar import AutocompleteWidget
@@ -303,6 +308,7 @@ class SearchWidget(QDialog):
     def handle_search(self, data=None, query=None):
         # print('data', data)
         if query == "":
+            self.double_search = True
             print('erasing query')
             
             # Clear the displayed verses and searchPane widgets
@@ -333,6 +339,7 @@ class SearchWidget(QDialog):
 
         # Check if the query is valid
         if not query or query.count(' ') < 3 or query[-1] != ' ':
+            self.double_search = True
             return
 
         # Cancel any existing search
@@ -351,8 +358,11 @@ class SearchWidget(QDialog):
         # if we have results update the verse tracker
         if results:
             self.update_verse_tracker(results, query)
-        # elif not results and self.searchPane.count() > 0: #if we have no results and nothing is displayed
-        #     self.handle_search(self.data, query = query + 'bible verse')
+        elif not results and self.searchPane.count() > 0 and self.double_search: #if we have no results and nothing is displayed
+            print('no results')
+            # self.double_search = False
+            # print('double search ')
+            # self.handle_search(self.data, query = query + 'KJV')
 
     #function to add saved verses to the saved pane
     def savedVerses(self, title, body):

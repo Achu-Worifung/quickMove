@@ -481,8 +481,8 @@ background-color:rgb(255, 255, 255);</string>
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>226</width>
-                <height>142</height>
+                <width>624</width>
+                <height>744</height>
                </rect>
               </property>
               <layout class="QVBoxLayout" name="verticalLayout_9">
@@ -565,8 +565,8 @@ background-color:rgb(255, 255, 255);</string>
                      <rect>
                       <x>0</x>
                       <y>0</y>
-                      <width>100</width>
-                      <height>30</height>
+                      <width>604</width>
+                      <height>671</height>
                      </rect>
                     </property>
                     <layout class="QVBoxLayout" name="verticalLayout_4"/>
@@ -814,7 +814,7 @@ font:20px
                 <item row="0" column="0">
                  <layout class="QHBoxLayout" name="horizontalLayout_15"/>
                 </item>
-                <item row="3" column="0">
+                <item row="3" column="0" alignment="Qt::AlignHCenter">
                  <widget class="QLabel" name="history_4">
                   <property name="sizePolicy">
                    <sizepolicy hsizetype="Ignored" vsizetype="Fixed">
@@ -830,7 +830,7 @@ font:20px
                   </property>
                   <property name="maximumSize">
                    <size>
-                    <width>700</width>
+                    <width>1000000</width>
                     <height>30</height>
                    </size>
                   </property>
@@ -1128,8 +1128,8 @@ border:none</string>
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>412</width>
-                   <height>290</height>
+                   <width>611</width>
+                   <height>726</height>
                   </rect>
                  </property>
                  <property name="styleSheet">
@@ -1296,8 +1296,8 @@ border:none</string>
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>571</width>
-                <height>588</height>
+                <width>624</width>
+                <height>744</height>
                </rect>
               </property>
               <property name="styleSheet">
@@ -1813,7 +1813,7 @@ font:20px
                        </property>
                        <property name="icon">
                         <iconset>
-                         <normaloff>../Icons/3802018_data_detail_info_resource_service_icon.ico</normaloff>../Icons/3802018_data_detail_info_resource_service_icon.ico</iconset>
+                         <normaloff>../../../../.designer/Icons/3802018_data_detail_info_resource_service_icon.ico</normaloff>../../../../.designer/Icons/3802018_data_detail_info_resource_service_icon.ico</iconset>
                        </property>
                        <property name="iconSize">
                         <size>
