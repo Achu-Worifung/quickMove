@@ -481,8 +481,8 @@ background-color:rgb(255, 255, 255);</string>
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>624</width>
-                <height>744</height>
+                <width>226</width>
+                <height>142</height>
                </rect>
               </property>
               <layout class="QVBoxLayout" name="verticalLayout_9">
@@ -565,8 +565,8 @@ background-color:rgb(255, 255, 255);</string>
                      <rect>
                       <x>0</x>
                       <y>0</y>
-                      <width>604</width>
-                      <height>671</height>
+                      <width>100</width>
+                      <height>30</height>
                      </rect>
                     </property>
                     <layout class="QVBoxLayout" name="verticalLayout_4"/>
@@ -1035,6 +1035,9 @@ font:20px
                     <height>30</height>
                    </size>
                   </property>
+                  <property name="focusPolicy">
+                   <enum>Qt::StrongFocus</enum>
+                  </property>
                   <property name="styleSheet">
                    <string notr="true">border-width:2px;
 border-color: rgb(27, 188, 155);
@@ -1058,7 +1061,7 @@ font:20px</string>
                      </property>
                      <property name="icon">
                       <iconset>
-                       <normaloff>../Icons/5978961_closed_eye_hide_sleep_icon.ico</normaloff>../Icons/5978961_closed_eye_hide_sleep_icon.ico</iconset>
+                       <normaloff>../Icons/close.ico</normaloff>../Icons/close.ico</iconset>
                      </property>
                      <property name="iconSize">
                       <size>
@@ -1122,8 +1125,8 @@ border:none</string>
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>611</width>
-                   <height>726</height>
+                   <width>412</width>
+                   <height>290</height>
                   </rect>
                  </property>
                  <property name="styleSheet">

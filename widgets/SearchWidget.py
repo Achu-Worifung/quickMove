@@ -18,6 +18,7 @@ from PyQt5.QtCore import QSettings
 from urllib.parse import quote_plus
 import re
 import string
+from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import *
 
 
@@ -66,6 +67,8 @@ class locateVerseThread(QThread):
         self.finished.emit(findVerseBox.findPrevDisplayedVerse())
 
 
+        
+
 class SearchWidget(QDialog):
     def __init__(self, search_page, data=None, index=None):
         super().__init__()
@@ -93,24 +96,13 @@ class SearchWidget(QDialog):
         self.locate_box_thread: Optional[locateVerseThread] = None
         self.last_query_time = 0
         self.displayed_verse = []
-        
-        # autoComplete_widget.setStyleSheet('height: 50px; border-radius: 10px; font-size: 20px;')
-        # autoComplete_widget.lineedit.setPlaceholderText('Search for a verse')
-        # #adding an infocuse listerner to get the location of the search bar
-        # # autoComplete_widget.lineedit.focusOutEvent = self.get_prev_verse  
-        # autoComplete_widget.lineedit.focusInEvent = self.get_prev_verse
-        # self.horizontalLayout.addWidget(autoComplete_widget)
-        # autoComplete_widget.lineedit.textChanged.connect(
-        #     lambda text, d=self.data: self.handle_search(d, text)
-        # )
-        
-
-       
 
         #initialize qsetting to store clipboard history
         self.settings = QSettings("MyApp", "AutomataSimulator")
-        basedir = self.settings.value("basedir")
-        load_dotenv(basedir + '/.env')
+        self.basedir = self.settings.value("basedir")
+        
+        
+        load_dotenv(self.basedir + '/.env')
         self.api_key = os.getenv('API_KEY')
         self.engine_id = os.getenv('SEARCH_ENGINE_ID')
 
@@ -120,16 +112,22 @@ class SearchWidget(QDialog):
         self.init_page()
         from widgets.SearchBar import AutocompleteWidget
 
-        autoComplete_widget = AutocompleteWidget(self.search_bar[0])
+        self.autoComplete_widget = AutocompleteWidget(self.search_bar[0])
         self.search_bar[0].textChanged.connect(
             lambda text, d=self.data: self.handle_search(d, text)
         )
+        # customLineEdit = autoComplete_widget.lineedit
         # adding an infocuse listerner to get the location of the search bar
-        autoComplete_widget.lineedit.focusOutEvent = self.get_prev_verse  
+        self.autoComplete_widget.lineedit.focusOutEvent = self.get_prev_verse  
+        self.autoComplete_widget.lineedit.focusInEvent = self.openEye
         self.prevVerse.clicked.connect(lambda checked=False:   QTimer.singleShot(0, lambda: Simulate.present_prev_verse(self.name, self.data)))
-
         
+        # autoComplete_widget.lineedit.focusInEvent = self.openEye
 
+    def openEye(self, event):
+       
+        QLineEdit.focusInEvent(self.autoComplete_widget.lineedit, event)
+        self.searchBarContainer.findChild(QPushButton).setIcon(QIcon(self.basedir + '/Icons/open.ico'))
     def init_page(self):
         self.prevVerse = self.search_page.findChild(QPushButton, 'prev_verse_3')
         self.version = self.search_page.findChild(QComboBox, 'version_3')
@@ -139,29 +137,25 @@ class SearchWidget(QDialog):
         self.history = self.search_page.findChild(QLabel, 'history_4')
         
         self.searchBarContainer = self.search_page.findChild(QWidget, 'widget_15')
-        self.searchBarContainer.click
+        # self.searchBarContainer.mousePressEvent = self.open
+        # self.searchBarContainer.click
         
         print('search bar', self.search_bar)
-        
-        # print each of the variable
-        # print('prevVerse', self.prevVerse)
-        # print('version', self.version)
-        # print('searchPane', self.searchPane)
-        # print('search_bar', self.search_bar)
-       
+
     #this function will run after the search bar is in focus
     def get_prev_verse(self, event):
         # return # Disable for now
         # Ensure the thread is only started once
+
         
         if self.locate_box_thread is None or not self.locate_box_thread.isRunning():
             self.locate_box_thread = locateVerseThread()
             self.locate_box_thread.finished.connect(self.handle_locate_results)
             self.locate_box_thread.start()
-
-        # Call the default focusOutEvent
-        # autoComplete_widget.lineedit.focusOutEvent(self.autoComplete_lineedit, event)
-
+            super().focusOutEvent(event)
+         # Call the original focusOutEvent to maintain the default behavior
+        QLineEdit.focusOutEvent(self.autoComplete_widget.lineedit, event)
+        self.searchBarContainer.findChild(QPushButton).setIcon(QIcon(self.basedir + '/Icons/close.ico'))
     def handle_locate_results(self, result):
         """
         Slot to process the results from locateVerseThread.
