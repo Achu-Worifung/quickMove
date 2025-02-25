@@ -138,7 +138,10 @@ class SearchWidget(QDialog):
         self.search_bar = self.search_page.findChildren(QLineEdit)
         self.history = self.search_page.findChild(QLabel, 'history_4')
         
-        print('prev verse', self.prevVerse)
+        self.searchBarContainer = self.search_page.findChild(QWidget, 'widget_15')
+        self.searchBarContainer.click
+        
+        print('search bar', self.search_bar)
         
         # print each of the variable
         # print('prevVerse', self.prevVerse)
@@ -240,87 +243,83 @@ class SearchWidget(QDialog):
             self.displayed_verse.clear()
             self.Tracker.clear()
 
+            widget_to_remoge = []
             #clearing the layout of old results
-            for widget in self.old_widget:
+            for i in range(self.searchPane.count()):
+                widget_to_remoge.append(self.searchPane.itemAt(i).widget())
+            for widget in widget_to_remoge:
                 self.searchPane.removeWidget(widget)
                 widget.deleteLater()
-
-            #clearing the old widget
+                widget.setParent(None)
             self.old_widget.clear()
 
         #adding the new results to the layout
         for result in new_results:
             reference = getReference.getReference(result['title'])
+            # print('diplayed verses', self.displayed_verse)
             if not reference:
                 continue
             #ensuring reference are uniqu
             if reference in self.displayed_verse:
-                #increasing its priority
-                found_tracker = next((t for t in self.Tracker if t.reference == reference), None)
-                if found_tracker:
-                    found_tracker.priority += 1
-                    continue
+                #placing it at the top
+                index = self.displayed_verse.index(reference)
+                self.searchPane.takeAt(index)
 
-            self.Tracker.append(Tracker(reference, result, 1))
-            self.displayed_verse.append(reference)
-
-        self.add_verse_widget(query)
+            else:
+                self.displayed_verse.append(reference)
+            self.add_verse_widget(query, result, reference)
         
     
 
             
 
        
-
-    def add_verse_widget(self,query):
-        self.Tracker.sort(key=lambda x: x.priority, reverse=False)
-        print('verse tracker', self.Tracker)
+#add verse widget to the searchPane
+    def add_verse_widget(self,query, result, reference):
+      
         #sorting based on priority
-        for tracker in self.Tracker:
-            link = os.path.join(os.path.dirname(__file__), '../ui/result.ui')
-            single_result = loadUi(link)
-            
-            body = getReference.boldedText(tracker.result['snippet'], query)
-            single_result.body.setText(body)
-            single_result.title.setText(tracker.reference)
-            # print('verse_key', verse_key)
-            
-            single_result.save.clicked.connect(lambda checked=False,t=tracker.reference, b=body: self.savedVerses(t, b))
-            self.searchPane.insertWidget(0, single_result)
-            self.old_widget.append(single_result)
-            # self.verse_widgets[verse_key] = single_result
-            def mouse_click(event, verse_key):
-                QTimer.singleShot(0, lambda: self.present(verse_key, self.data))
+        print('result', result)
+       
+        link = os.path.join(os.path.dirname(__file__), '../ui/result.ui')
+        single_result = loadUi(link)
+        
+        body = getReference.boldedText(result['snippet'], query)
+        single_result.body.setText(body)
+        single_result.title.setText(reference)
+        # print('verse_key', verse_key)
+        
+        single_result.save.clicked.connect(lambda checked=False,t=reference, b=body: self.savedVerses(t, b))
+        self.searchPane.insertWidget(0, single_result)
+        self.old_widget.append(single_result)
+        # self.verse_widgets[verse_key] = single_result
+        def mouse_click(event, verse_key):
+            QTimer.singleShot(0, lambda: self.present(verse_key, self.data))
 
-            
-            # Bind `verse_key` explicitly
-            single_result.title.mousePressEvent = partial(mouse_click, verse_key=tracker.reference)
-            single_result.body.mousePressEvent = partial(mouse_click, verse_key=tracker.reference)
-            
-            # self.searchPane.single_result.clicked.connect(self.present)  
+        
+        # Bind `verse_key` explicitly
+        single_result.title.mousePressEvent = partial(mouse_click, verse_key=reference)
+        single_result.body.mousePressEvent = partial(mouse_click, verse_key=reference)
+        
+        # self.searchPane.single_result.clicked.connect(self.present)  
 
     def handle_search(self, data=None, query=None):
-        print('data', data)
+        # print('data', data)
         if query == "":
             # Keep track if we've found the label
             found_label = False
             # Store widgets to delete
             widgets_to_delete = []
+            self.displayed_verse.clear()
             
             # First pass: identify widgets to delete
             for i in range(self.searchPane.count()):
-                widget = self.searchPane.itemAt(i).widget()
-                if isinstance(widget, QLabel):
-                    found_label = True
-                    continue
-                if not found_label and widget:
-                    widgets_to_delete.append(widget)
-            
-            # Second pass: delete the identified widgets
+                widgets_to_delete.append(self.searchPane.itemAt(i).widget())
+
+            # Second pass: delete widgets
             for widget in widgets_to_delete:
-                print('deleting widget', widget)
                 self.searchPane.removeWidget(widget)
                 widget.deleteLater()
+                widget.setParent(None)
             self.verse_tracker = OrderedDict()
             # self.verse_widgets: Dict[str, QDialog] = {}  # Store widget references
             self.old_widget= []
@@ -328,7 +327,7 @@ class SearchWidget(QDialog):
             self.search_thread: Optional[SearchThread] = None
             self.last_query_time = 0
             return
-        # print('here is the query', query)
+
 
         if not query or query.count(' ') < 3 or query[len(query)-1] != ' ':
             return
@@ -346,9 +345,11 @@ class SearchWidget(QDialog):
         self.search_thread.start()
 
     def handle_search_results(self, results, query):
-        # print('results', results)
+        # if we have results update the verse tracker
         if results:
             self.update_verse_tracker(results, query)
+        elif not results and self.searchPane.count() > 0: #if we have no results and nothing is displayed
+            self.handle_search(self.data, query = query + 'bible verse')
 
     #function to add saved verses to the saved pane
     def savedVerses(self, title, body):
