@@ -86,7 +86,10 @@ class ScreenOverlay(QWidget):
         
         self.search_area = self.settings.value('search_area')
         
-        self.square_rect = QRect(self.search_area[0], self.search_area[1], self.search_area[2] - self.search_area[0], self.search_area[3] - self.search_area[1])  
+        
+        
+        
+        self.square_rect = QRect(self.search_area[0]- self.geometry.x(), self.search_area[1]- self.geometry.y(), self.search_area[2] - self.search_area[0], self.search_area[3] - self.search_area[1])  
 
     def paintEvent(self, event):
         painter = QPainter(self)

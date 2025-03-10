@@ -162,9 +162,9 @@ class MainWindow(QMainWindow):
         self.curr_page = "about"
         
         pass
-    def moveToHistory(self):
-        self.curr_page = "history"
-        pass
+    # def moveToHistory(self):
+    #     self.curr_page = "history"
+    #     pass
     def moveTOSearchArea(self):
         self.curr_page = "searchArea"
         self.toggleMenu()
@@ -174,10 +174,10 @@ class MainWindow(QMainWindow):
         self.modepage = SearchArea(page)
         pass
     def moveHome(self):
-        if self.curr_page == "home":
-           self.toggleMenu()
+        # if self.curr_page == "home":
+        #    self.toggleMenu()
           
-        elif self.curr_page == 'create':
+        if self.curr_page == 'create':
             #retrieving the latest data
             self.toggleMenu()
             self.stackedWidget.setCurrentIndex(0)
@@ -244,7 +244,7 @@ class MainWindow(QMainWindow):
         # self.expand.clicked.connect(self.expandWindow)
         self.menu.clicked.connect(self.toggleMenu)
         self.about.clicked.connect(self.moveToAbout)
-        self.history.clicked.connect(self.moveToHistory)
+        # self.history.clicked.connect(self.moveToHistory)
         self.searchArea.clicked.connect(self.moveTOSearchArea)
         self.create.clicked.connect(self.moveToCreate)
         self.home.clicked.connect(self.moveHome)

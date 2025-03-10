@@ -395,32 +395,6 @@ background-color: rgb(239, 0, 0);
            </widget>
           </item>
           <item>
-           <widget class="QPushButton" name="history">
-            <property name="sizePolicy">
-             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-              <horstretch>0</horstretch>
-              <verstretch>0</verstretch>
-             </sizepolicy>
-            </property>
-            <property name="styleSheet">
-             <string notr="true"/>
-            </property>
-            <property name="text">
-             <string>HISTORY</string>
-            </property>
-            <property name="icon">
-             <iconset>
-              <normaloff>../Icons/8541835_history_time_icon.ico</normaloff>../Icons/8541835_history_time_icon.ico</iconset>
-            </property>
-            <property name="iconSize">
-             <size>
-              <width>35</width>
-              <height>35</height>
-             </size>
-            </property>
-           </widget>
-          </item>
-          <item>
            <widget class="QPushButton" name="about">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
@@ -481,8 +455,8 @@ background-color:rgb(255, 255, 255);</string>
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>624</width>
-                <height>744</height>
+                <width>226</width>
+                <height>142</height>
                </rect>
               </property>
               <layout class="QVBoxLayout" name="verticalLayout_9">
@@ -565,8 +539,8 @@ background-color:rgb(255, 255, 255);</string>
                      <rect>
                       <x>0</x>
                       <y>0</y>
-                      <width>604</width>
-                      <height>671</height>
+                      <width>100</width>
+                      <height>30</height>
                      </rect>
                     </property>
                     <layout class="QVBoxLayout" name="verticalLayout_4"/>
@@ -1128,8 +1102,8 @@ border:none</string>
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>611</width>
-                   <height>726</height>
+                   <width>412</width>
+                   <height>290</height>
                   </rect>
                  </property>
                  <property name="styleSheet">
@@ -1296,8 +1270,8 @@ border:none</string>
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>624</width>
-                <height>744</height>
+                <width>571</width>
+                <height>588</height>
                </rect>
               </property>
               <property name="styleSheet">
