@@ -1,5 +1,5 @@
 import os
-import sys
+from PyQt5.QtCore import Qt
 from dotenv import load_dotenv
 from PyQt5.uic import loadUi
 import httpx
@@ -121,13 +121,23 @@ class SearchWidget(QDialog):
         self.search_bar[0].textChanged.connect(
             lambda text, d=self.data: self.handle_search(d, text)
         )
+        
+        # for the listening window
+        self.listening_window = None
+        
         # customLineEdit = autoComplete_widget.lineedit
         # adding an infocuse listerner to get the location of the search bar
         self.autoComplete_widget.lineedit.focusOutEvent = self.get_prev_verse  
         self.autoComplete_widget.lineedit.focusInEvent = self.openEye
         self.prevVerse.clicked.connect(lambda checked=False:   QTimer.singleShot(0, lambda: Simulate.present_prev_verse(self.name, self.data)))
+        self.record.clicked.connect(lambda checked=False: self.startWhisper())
         
         # autoComplete_widget.lineedit.focusInEvent = self.openEye
+    
+    def startWhisper(self):
+        if self.listening_window is None:
+            self.listening_window = WhisperWindow()
+            self.listening_window.show()
 
     def openEye(self, event):
        
@@ -142,10 +152,10 @@ class SearchWidget(QDialog):
         self.history = self.search_page.findChild(QLabel, 'history_4')
         
         self.searchBarContainer = self.search_page.findChild(QWidget, 'widget_15')
-        # self.searchBarContainer.mousePressEvent = self.open
-        # self.searchBarContainer.click
+        #getting the rcord button
+        self.record = self.search_page.findChild(QPushButton, 'listen')
         
-        print('search bar', self.search_bar)
+        print('listen button', self.record)
 
     #this function will run after the search bar is in focus
     def get_prev_verse(self, event):
@@ -444,4 +454,38 @@ class SearchWidget(QDialog):
         #updating the history label
         self.updateHistoryLabel()
     #change auto function
+
+
+class WhisperWindow(QWidget):
+    def __init__(self):
+        super().__init__()
+        link = os.path.join(os.path.dirname(__file__), '../ui/listening_window.ui')
+        self.listening_window = loadUi(link, self)
+        self.setWindowFlags(Qt.FramelessWindowHint)
+        self.close_button.clicked.connect(self.close)
+    def mousePressEvent(self, event):
    
+        if event.button() == Qt.LeftButton:
+            self.oldPos = event.globalPos()
+        else:
+            self.oldPos = None
+            super().mousePressEvent(event)
+
+    def mouseReleaseEvent(self, event):
+        """Reset position tracking when mouse is released"""
+        self.oldPos = None
+        super().mouseReleaseEvent(event)
+
+    def mouseMoveEvent(self, event):
+        """Handle window dragging"""
+       
+        # Skip movement if we're resizing or if no button was pressed initially
+        if  self.oldPos is None:
+            return
+            
+        # Calculate how far the mouse has moved since the initial click
+        delta = event.globalPos() - self.oldPos
+        # Move the window by that amount
+        self.move(self.x() + delta.x(), self.y() + delta.y())
+        # Update the old position for the next movement
+        self.oldPos = event.globalPos()
