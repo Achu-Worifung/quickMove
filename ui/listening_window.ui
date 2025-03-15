@@ -53,6 +53,9 @@ boder:none</string>
      <property name="widgetResizable">
       <bool>true</bool>
      </property>
+     <property name="alignment">
+      <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+     </property>
      <widget class="QWidget" name="scrollAreaWidgetContents">
       <property name="geometry">
        <rect>
@@ -68,6 +71,12 @@ background-color:rgb(255, 255, 255);
 border:none;</string>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout">
+       <property name="spacing">
+        <number>0</number>
+       </property>
+       <property name="topMargin">
+        <number>0</number>
+       </property>
        <item alignment="Qt::AlignRight">
         <widget class="QWidget" name="widget_4" native="true">
          <property name="maximumSize">
@@ -89,7 +98,7 @@ font:20px
 }</string>
          </property>
          <layout class="QHBoxLayout" name="horizontalLayout_2">
-          <item>
+          <item alignment="Qt::AlignTop">
            <widget class="QPushButton" name="close_button">
             <property name="sizePolicy">
              <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
