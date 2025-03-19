@@ -1,33 +1,34 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>Form</class>
- <widget class="QWidget" name="Form">
+ <class>Frame</class>
+ <widget class="QFrame" name="Frame">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>698</width>
-    <height>364</height>
+    <width>697</width>
+    <height>361</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Form</string>
+   <string>Frame</string>
   </property>
   <property name="styleSheet">
-   <string notr="true">
-QPushButton
-{
+   <string notr="true">QFrame#Frame {
+    border-radius: 10px;
+    border: 0.5px solid black;
+    background-color:transparent;
 
+}
+
+QPushButton {
     border-style: none;
-
-
     border-color: none;
     padding: 4px;
-font:20px;
- border-radius: 5px;
+    font-size: 20px;
+    border-radius: 5px;
 }
-background-color:rgb(255, 255, 255);
-boder:none</string>
+</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_2">
    <property name="spacing">
@@ -61,8 +62,8 @@ boder:none</string>
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>698</width>
-        <height>364</height>
+        <width>695</width>
+        <height>359</height>
        </rect>
       </property>
       <property name="styleSheet">
@@ -72,6 +73,9 @@ border:none;</string>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout">
        <property name="spacing">
+        <number>0</number>
+       </property>
+       <property name="leftMargin">
         <number>0</number>
        </property>
        <property name="topMargin">
@@ -105,6 +109,12 @@ font:20px
               <horstretch>0</horstretch>
               <verstretch>0</verstretch>
              </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>50</width>
+              <height>35</height>
+             </size>
             </property>
             <property name="styleSheet">
              <string notr="true">QPushButton:hover#close_button

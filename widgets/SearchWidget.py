@@ -136,7 +136,17 @@ class SearchWidget(QDialog):
     
     def startWhisper(self):
         if self.listening_window is None:
-            self.listening_window = WhisperWindow()
+            parent = self.search_page
+            # while (parent.parent()):
+            #     if isinstance(parent, QMainWindow):
+            #         break
+            #     else:
+            #         parent = parent.parent()
+                    
+            self.listening_window = WhisperWindow(parent)
+            self.listening_window.setWindowFlags(Qt.Window | Qt.FramelessWindowHint)
+
+            
             self.listening_window.show()
 
     def openEye(self, event):
@@ -456,9 +466,9 @@ class SearchWidget(QDialog):
     #change auto function
 
 
-class WhisperWindow(QWidget):
-    def __init__(self):
-        super().__init__()
+class WhisperWindow(QFrame):
+    def __init__(self, parent=None):
+        super().__init__(parent)
         link = os.path.join(os.path.dirname(__file__), '../ui/listening_window.ui')
         self.listening_window = loadUi(link, self)
         self.setWindowFlags(Qt.FramelessWindowHint)
@@ -470,7 +480,8 @@ class WhisperWindow(QWidget):
         else:
             self.oldPos = None
             super().mousePressEvent(event)
-
+    # def close(self):
+    #     self.listening_window.close()
     def mouseReleaseEvent(self, event):
         """Reset position tracking when mouse is released"""
         self.oldPos = None

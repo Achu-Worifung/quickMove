@@ -256,7 +256,11 @@ class MainWindow(QMainWindow):
     #         self.showMaximized()
 def main():
     app = QApplication(sys.argv)
+    settings = QSettings("MyApp", "AutomataSimulator")
+    
+    
     window = MainWindow()
+    settings.setValue("main_window", window)
     window.show()
     sys.exit(app.exec_())
 
