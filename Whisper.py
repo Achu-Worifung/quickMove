@@ -38,7 +38,7 @@ def optimize_transcription():
     
     # 3. Optimize transcription parameters
     segments, info = model.transcribe(
-        "recording_4.wav", 
+        "file.wav", 
         beam_size=1,           # Lower this to 1-3 for faster results (less accurate)
         best_of=1,             # Lower this for faster results
         temperature=0.0,       # Recommended for transcription

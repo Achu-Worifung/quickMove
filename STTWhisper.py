@@ -9,7 +9,7 @@ from faster_whisper import WhisperModel
 
 
 class FasterWhisperTranscriber:
-    def __init__(self, model_size="large-v2", sample_rate=44100):
+    def __init__(self, model_size="tiny", sample_rate=44100):
         self.model_size = model_size  # Store model size as a separate attribute
         self.model = WhisperModel(model_size, device="cpu", compute_type="int8")
         self.sample_rate = sample_rate
