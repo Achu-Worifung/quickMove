@@ -325,6 +325,12 @@ font:20px
          <layout class="QHBoxLayout" name="horizontalLayout_4">
           <item>
            <widget class="QWidget" name="functions" native="true">
+            <property name="minimumSize">
+             <size>
+              <width>200</width>
+              <height>0</height>
+             </size>
+            </property>
             <property name="maximumSize">
              <size>
               <width>175</width>
@@ -350,21 +356,6 @@ background-color: rgb(239, 0, 0);
 </string>
             </property>
             <layout class="QVBoxLayout" name="verticalLayout_3">
-             <property name="spacing">
-              <number>0</number>
-             </property>
-             <property name="leftMargin">
-              <number>0</number>
-             </property>
-             <property name="topMargin">
-              <number>0</number>
-             </property>
-             <property name="rightMargin">
-              <number>0</number>
-             </property>
-             <property name="bottomMargin">
-              <number>0</number>
-             </property>
              <item>
               <widget class="QPushButton" name="home">
                <property name="sizePolicy">
@@ -426,7 +417,7 @@ background-color: rgb(239, 0, 0);
                 </sizepolicy>
                </property>
                <property name="styleSheet">
-                <string notr="true"/>
+                <string notr="true">font:18px</string>
                </property>
                <property name="text">
                 <string>SEARCH AREA</string>
@@ -434,6 +425,32 @@ background-color: rgb(239, 0, 0);
                <property name="icon">
                 <iconset>
                  <normaloff>../Icons/9069819_modify_icon.ico</normaloff>../Icons/9069819_modify_icon.ico</iconset>
+               </property>
+               <property name="iconSize">
+                <size>
+                 <width>35</width>
+                 <height>35</height>
+                </size>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QPushButton" name="Settings">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
+               <property name="styleSheet">
+                <string notr="true"/>
+               </property>
+               <property name="text">
+                <string>Settings</string>
+               </property>
+               <property name="icon">
+                <iconset>
+                 <normaloff>../Icons/1564529_mechanism_options_settings_configuration_setting_icon.ico</normaloff>../Icons/1564529_mechanism_options_settings_configuration_setting_icon.ico</iconset>
                </property>
                <property name="iconSize">
                 <size>
@@ -483,7 +500,7 @@ background-color: rgb(239, 0, 0);
           <item>
            <widget class="QStackedWidget" name="stackedWidget">
             <property name="currentIndex">
-             <number>5</number>
+             <number>6</number>
             </property>
             <widget class="QWidget" name="select_autos">
              <layout class="QVBoxLayout" name="verticalLayout_12">
@@ -588,8 +605,8 @@ background-color:rgb(255, 255, 255);</string>
                         <rect>
                          <x>0</x>
                          <y>0</y>
-                         <width>100</width>
-                         <height>30</height>
+                         <width>206</width>
+                         <height>69</height>
                         </rect>
                        </property>
                        <layout class="QVBoxLayout" name="verticalLayout_4"/>
@@ -2078,6 +2095,67 @@ font:20px
                   </widget>
                  </item>
                 </layout>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+            <widget class="QWidget" name="settngs">
+             <layout class="QVBoxLayout" name="verticalLayout_7">
+              <item>
+               <widget class="QScrollArea" name="scrollArea_2">
+                <property name="widgetResizable">
+                 <bool>true</bool>
+                </property>
+                <widget class="QWidget" name="scrollAreaWidgetContents">
+                 <property name="geometry">
+                  <rect>
+                   <x>0</x>
+                   <y>0</y>
+                   <width>593</width>
+                   <height>744</height>
+                  </rect>
+                 </property>
+                 <widget class="QLabel" name="label_3">
+                  <property name="geometry">
+                   <rect>
+                    <x>30</x>
+                    <y>10</y>
+                    <width>291</width>
+                    <height>41</height>
+                   </rect>
+                  </property>
+                  <property name="font">
+                   <font>
+                    <pointsize>24</pointsize>
+                    <weight>75</weight>
+                    <bold>true</bold>
+                   </font>
+                  </property>
+                  <property name="text">
+                   <string>Settings</string>
+                  </property>
+                 </widget>
+                 <widget class="QLabel" name="label_4">
+                  <property name="geometry">
+                   <rect>
+                    <x>180</x>
+                    <y>320</y>
+                    <width>291</width>
+                    <height>41</height>
+                   </rect>
+                  </property>
+                  <property name="font">
+                   <font>
+                    <pointsize>24</pointsize>
+                    <weight>75</weight>
+                    <bold>true</bold>
+                   </font>
+                  </property>
+                  <property name="text">
+                   <string>Comming soon.</string>
+                  </property>
+                 </widget>
+                </widget>
                </widget>
               </item>
              </layout>

@@ -475,10 +475,21 @@ class WhisperWindow(QFrame):
         self.listening_window = loadUi(link, self)
         self.setWindowFlags(Qt.FramelessWindowHint)
         self.close_button.clicked.connect(self.close)
-
+        self.record_btn = self.checkBox
+        self.checkBox.setChecked(True)
+        self.checkBox.clicked.connect(self.start_recording)
+        print('record button', self.record_btn)
         # Start transcription in a separate thread
         self.transcription_thread = TranscriptionWorker(self)
         self.transcription_thread.start()
+
+    def close(self):
+        if self.transcription_thread.isRunning():
+            self.transcription_thread.terminate() 
+            self.transcription_thread.wait()  
+            # print('Terminated transcription thread')
+
+        super().close()  # Call the parent class's close method
 
     def mousePressEvent(self, event):
         if event.button() == Qt.LeftButton:
@@ -497,7 +508,14 @@ class WhisperWindow(QFrame):
         delta = event.globalPos() - self.oldPos
         self.move(self.x() + delta.x(), self.y() + delta.y())
         self.oldPos = event.globalPos()
-        
+    def start_recording(self):
+        if self.record_btn.isChecked():
+            self.transcription_thread.start()
+            self.label.setText('listening')
+
+        else:
+            self.transcription_thread.terminate()
+            self.label.setText('Not listening')
         
 class TranscriptionWorker(QThread):
     finished = pyqtSignal()
