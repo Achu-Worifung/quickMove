@@ -20,6 +20,8 @@ import re
 import string
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import *
+import util.pyaudioandWhisper as transcriber
+
 
 
 class Tracker():
@@ -473,30 +475,37 @@ class WhisperWindow(QFrame):
         self.listening_window = loadUi(link, self)
         self.setWindowFlags(Qt.FramelessWindowHint)
         self.close_button.clicked.connect(self.close)
+
+        # Start transcription in a separate thread
+        self.transcription_thread = TranscriptionWorker(self)
+        self.transcription_thread.start()
+
     def mousePressEvent(self, event):
-   
         if event.button() == Qt.LeftButton:
             self.oldPos = event.globalPos()
         else:
             self.oldPos = None
             super().mousePressEvent(event)
-    # def close(self):
-    #     self.listening_window.close()
+
     def mouseReleaseEvent(self, event):
-        """Reset position tracking when mouse is released"""
         self.oldPos = None
         super().mouseReleaseEvent(event)
 
     def mouseMoveEvent(self, event):
-        """Handle window dragging"""
-       
-        # Skip movement if we're resizing or if no button was pressed initially
-        if  self.oldPos is None:
+        if self.oldPos is None:
             return
-            
-        # Calculate how far the mouse has moved since the initial click
         delta = event.globalPos() - self.oldPos
-        # Move the window by that amount
         self.move(self.x() + delta.x(), self.y() + delta.y())
-        # Update the old position for the next movement
         self.oldPos = event.globalPos()
+        
+        
+class TranscriptionWorker(QThread):
+    finished = pyqtSignal()
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.record_page = parent
+
+    def run(self):
+        transcriber.run_transcription(self.record_page)
+        self.finished.emit()  # Signal when transcription is done
