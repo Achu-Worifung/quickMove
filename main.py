@@ -173,6 +173,15 @@ class MainWindow(QMainWindow):
         page = self.stackedWidget.layout().itemAt(5).widget()
         self.modepage = SearchArea(page)
         pass
+    def moveToSettings(self):
+        self.toggleMenu()
+        self.stackedWidget.setCurrentIndex(6)
+        self.curr_page = "settings"
+        
+        from widgets.Settings import Settings 
+        page = self.stackedWidget.layout().itemAt(6).widget()
+        self.modepage = Settings(page)
+        pass
     def moveHome(self):
         # if self.curr_page == "home":
         #    self.toggleMenu()
@@ -248,6 +257,7 @@ class MainWindow(QMainWindow):
         self.searchArea.clicked.connect(self.moveTOSearchArea)
         self.create.clicked.connect(self.moveToCreate)
         self.home.clicked.connect(self.moveHome)
+        self.settings_btn.clicked.connect(self.moveToSettings)
 
     # def expandWindow(self):
     #     if self.isMaximized():
