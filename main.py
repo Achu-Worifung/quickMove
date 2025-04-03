@@ -10,6 +10,8 @@ import util.walk as walk
 from util.clearLayout import clearLayout
 from widgets.SearchWidget import SearchWidget
 from functools import partial
+import torch
+
 
 # Setting Application ID (for Windows taskbar icon)
 try:
@@ -78,7 +80,9 @@ class MainWindow(QMainWindow):
         # Initialize settings
         self.settings = QSettings("MyApp", "AutomataSimulator")
         self.restore_previous_geometry()
-
+        
+        if self.settings.value("default_settings") is None:
+            self.setUpDefaultSettings()
         # Store base directory
         self.settings.setValue("basedir", basedir)
 
@@ -229,6 +233,36 @@ class MainWindow(QMainWindow):
         pass
 
     
+    def setUpDefaultSettings(self):
+        deafult_processing = "CPU"
+        default_cores = max(1, torch.get_num_threads())
+        if torch.cuda.is_available():
+            self.settings.setValue('default_prcessing', "GPU")
+        #keep this order for the settings
+        self.settings.setValue("default_settings", [deafult_processing, "Tiny", 1, 0.00, default_cores, 1, 0.90, 1, 5, 1, 1024, 16000, 0.90])
+        
+        self.setupInitialSettings()
+    
+    def setupInitialSettings(self):
+        self.settings.setValue('prcessing', "CPU")
+        self.settings.setValue('cpu_cores', max(1, torch.get_num_threads()))
+        self.settings.setValue('model', "Tiny")
+        self.settings.setValue('beam', 1)
+        self.settings.setValue("best", 1)
+        self.settings.setValue("termperature", 0.00)
+        self.settings.setValue("language", 'en')
+        self.settings.setValue("vad_filter", True)
+        self.settings.setValue("vad_parameters", True)
+        self.settings.setValue("channel", 1)
+        self.settings.setValue("rate", 16000)
+        self.settings.setValue("chunks", 1024)
+        self.settings.setValue("silence", 0.90)
+        self.settings.setValue("min_silence_len", 500)
+        self.settings.setValue("energy_threshold", 0.001)
+        
+        self.settings.setValue("minlen", 1)
+        self.settings.setValue("maxlen", 5)
+        
 
     def configure_search_area(self):
         from util.event_tracker import EventTracker

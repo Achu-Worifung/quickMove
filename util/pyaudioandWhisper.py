@@ -4,11 +4,11 @@ from faster_whisper import WhisperModel
 import torch
 import wave
 import os
-import time
+from PyQt5.QtCore import QSettings
 import tempfile
 
 
-
+settings = QSettings("MyApp", "AutomataSimulator")
     
 def get_energy_threshold(audio_data, threshold_value=0.05):
     audio_data = np.frombuffer(audio_data, dtype=np.int16).astype(np.float32) / 32768.0  # Normalize
@@ -16,15 +16,32 @@ def get_energy_threshold(audio_data, threshold_value=0.05):
     return energy > threshold_value
     
 def run_transcription(recording_page):
+    
+    beam_size = settings.value('beam')
+    best_of = settings.value('best')
+    temperature = settings.value('temperature')
+    language = settings.value('language')
+    vad_filter = settings.value('vad_filter')
+    energy_threshold = settings.value('energy_threshold')
+    vad_parameters = settings.value('vad_parameters')
+    model_size = settings.value('model_size')
+    cpu_cores = settings.value('cpu_cores')
+    processing = settings.value('processing')
+    CHANNELS = settings.value('channel')
+    RATE = settings.value('rate')  # 16kHz sample rate for Whisper
+    CHUNK = settings.value('chunks')
+    silence_length = settings.value('silence')  # Minimum silence duration for VAD in seconds
+    min_record_len = settings.value('minlen')  # Minimum recording length in seconds
+    max_record_len = settings.value('maxlen')  # Maximum recording length in seconds
+    
     line_edit = recording_page.lineEdit
     print('here is the line edit', line_edit)
     print('here is the passed page', recording_page)
     # Setting up whisper model
-    model_size = 'tiny'
-    cpu_cores = max(1, torch.get_num_threads())
+    
     model = WhisperModel(
         model_size,
-        device='cpu',
+        device=processing,
         compute_type='int8',
         num_workers=cpu_cores,
         cpu_threads=8,
@@ -33,13 +50,9 @@ def run_transcription(recording_page):
 
     # Recording settings
     FORMAT = pyaudio.paInt16
-    CHANNELS = 1
-    RATE = 16000  # 16kHz sample rate for Whisper
-    CHUNK = 1024
-    silence_length = 0.9  # Minimum silence duration for VAD in seconds
+
     energy_threshold = 0.001  # Energy threshold for VAD
-    min_record_len = 1  # Minimum recording length in seconds
-    max_record_len = 5  # Maximum recording length in seconds
+
 
     # Initialize PyAudio
     audio = pyaudio.PyAudio()
@@ -96,7 +109,10 @@ def run_transcription(recording_page):
             if has_speech and len(frames) > 0:
                 temp_file = tempfile.NamedTemporaryFile(suffix=".wav", delete=False)
                 temp_filename = temp_file.name
+                print('here is the temp file', temp_filename)
                 temp_file.close()
+                
+                
                 
                 try:
                     with wave.open(temp_filename, 'wb') as wf:
