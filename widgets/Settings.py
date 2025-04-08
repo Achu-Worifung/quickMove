@@ -1,24 +1,25 @@
 from PyQt5.QtCore import QSettings
 from PyQt5.QtCore import QResource  # Use QResource from QtCore, not QtGui
-from PyQt5.QtWidgets import QComboBox, QDoubleSpinBox, QSpinBox
+from PyQt5.QtWidgets import QComboBox, QDoubleSpinBox, QSpinBox, QPushButton
 class Settings:
     def __init__(self, page_widget):
+        super().__init__()
         self.page_widget = page_widget
         
         self.settings = QSettings("MyApp", "AutomataSimulator")
         
         self.basedir = self.settings.value("basedir")
         
-     
-      
+    
+    
+        self.changes = []
         
         # Set up the page
         self.page_setup()
         self.setup_values()
-        self.changes = []
         
         self.changedMade = False
-        
+        self.changes.clear() 
     def processing(self):
         print("Processing clicked")
     def setup_values(self):
@@ -67,10 +68,45 @@ class Settings:
         #     self.processing.setCurrentIndex(index)
         # else:
         #     self.processing.setCurrentIndex(0)
-    def setting_changed(self, objName = None):
-        self.settings.setValue("changes made", True)
-        print('changed triggered by ', objName)
-        # self.changes.append(onjName)
+    def setting_changed(self, obj = None):
+        self.settings.setValue("changesmade", True)
+        self.changes.append(obj)
+        self.settings.sync()
+    
+    def save_settings(self):
+        for box in self.changes:
+            if isinstance(box, QComboBox):
+                self.settings.setValue(box.objectName(), box.currentText())
+                print("Combo box name", box.objectName(), "value", box.currentText())
+            elif isinstance(box, QSpinBox):
+                self.settings.setValue(box.objectName(), box.value())
+            elif isinstance(box, QDoubleSpinBox):
+                self.settings.setValue(box.objectName(), box.value())
+        self.settings.setValue("changesmade", False)
+        self.settings.sync()
+        self.settings.sync()
+        self.changes.clear()
+    
+    def reset_settings(self):
+        defaults = self.settings.value("default_settings")
+        print("Defaults", defaults)
+        settings = [self.processing, self.model, self.beam, self.temp, self.core, self.best, self.energy, self.minlen, self.maxlen, self.channel, self.chunks, self.rate, self.silence]
+        index = 0
+        for box in settings:
+            if isinstance(box, QComboBox):
+                box.setCurrentText(defaults[index])
+                self.settings.setValue(box.objectName(), defaults[index])
+            elif isinstance(box, QSpinBox):
+                box.setValue(int(defaults[index]))
+                self.settings.setValue(box.objectName(), defaults[index])
+            else:
+                box.setValue(float(defaults[index]))
+                self.settings.setValue(box.objectName(), defaults[index])
+            index += 1
+        self.settings.setValue("changesmade", False)
+        self.settings.sync()
+        self.changes.clear()
+                
       
         
         
@@ -90,6 +126,12 @@ class Settings:
         self.chunks = self.page_widget.findChild(QComboBox, "chunks")
         self.rate = self.page_widget.findChild(QComboBox, "rate")
         self.silence = self.page_widget.findChild(QSpinBox, "silencelen")
+        
+        self.savebtn = self.page_widget.findChild(QPushButton, "savechangesbtn")
+        self.resetbtn = self.page_widget.findChild(QPushButton, "resetbtn")
+        
+        self.savebtn.clicked.connect(self.save_settings)
+        self.resetbtn.clicked.connect(self.reset_settings)
         
         self.processing.currentIndexChanged.connect(self.processing_clicked)
     #    self.processing.currentIndexChanged.connect(self.processing_clicked)

@@ -110,6 +110,9 @@ class MainWindow(QMainWindow):
             self.restoreGeometry(geometry)
 
     def closeEvent(self, event):
+        if self.curr_page == "settings":
+            self.moveFromSettings()
+            
         self.settings.setValue("geometry", self.saveGeometry())
         self.settings.setValue("prev_verse", "")
         self.settings.setValue("next_verse", "")
@@ -195,7 +198,11 @@ class MainWindow(QMainWindow):
         self.modepage = Settings(page)
         pass
     def moveFromSettings(self):
-        if self.settings.value("changes made") == True:
+        # print('were changes made', self.settings.value("changesmade"))
+        changes = self.settings.value("changesmade")
+        print('were changes made', changes)
+        if bool(changes) == True:
+            print('were changes made', self.settings.value("changesmade"))
             link = os.path.join(os.path.dirname(__file__), './ui/settingwarning.ui')
             from widgets.Warning import Warnings
             warning_dialog = Warnings(link)
@@ -206,8 +213,12 @@ class MainWindow(QMainWindow):
                 if warning_dialog.clicked_button == "discard":
                     return
                 elif warning_dialog.clicked_button == "save":
-                    self.save_changes()
-            
+                   print('here is the settings page', self.modepage)
+                   self.modepage.save_settings()
+            self.settings.setValue("changesmade", False)
+            self.settings.sync()
+
+ 
     def moveHome(self):
         # if self.curr_page == "home":
         #    self.toggleMenu()
@@ -261,7 +272,7 @@ class MainWindow(QMainWindow):
         if torch.cuda.is_available():
             self.settings.setValue('default_prcessing', "GPU")
         #keep this order for the settings
-        self.settings.setValue("default_settings", [deafult_processing, "Tiny", 1, 0.00, default_cores, 1, 0.90, 1, 5, 1, 1024, 16000, 0.90])
+        self.settings.setValue("default_settings", [deafult_processing, "Tiny", 1, 0.00, default_cores, 1, 0.90, 1, 5, 1, 1024, 16000, 500])
         
         self.setupInitialSettings()
     
