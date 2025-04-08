@@ -1,5 +1,7 @@
 
 import sys
+from PyQt5.QtWidgets import QDialog
+
 import os
 from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QLabel, QPushButton, QTableWidgetItem, QMainWindow,QSizeGrip
 from PyQt5.QtGui import QIcon
@@ -149,7 +151,8 @@ class MainWindow(QMainWindow):
             newWidth = 0
         self.functions.setFixedWidth(newWidth)
     def moveToCreate(self):
- 
+        if self.curr_page == "settings":
+            self.moveFromSettings()
         self.toggleMenu()
         self.stackedWidget.setCurrentIndex(1)
         self.curr_page = "create"
@@ -160,6 +163,8 @@ class MainWindow(QMainWindow):
         self.stackedWidget.setCurrentIndex(1)
         pass
     def moveToAbout(self):
+        if self.curr_page == "settings":
+            self.moveFromSettings()
         #hiding the nav bar
         self.toggleMenu()
         self.stackedWidget.setCurrentIndex(3)
@@ -170,6 +175,8 @@ class MainWindow(QMainWindow):
     #     self.curr_page = "history"
     #     pass
     def moveTOSearchArea(self):
+        if self.curr_page == "settings":
+            self.moveFromSettings()
         self.curr_page = "searchArea"
         self.toggleMenu()
         self.stackedWidget.setCurrentIndex(5)
@@ -178,6 +185,7 @@ class MainWindow(QMainWindow):
         self.modepage = SearchArea(page)
         pass
     def moveToSettings(self):
+        self.curr_page = "settings"
         self.toggleMenu()
         self.stackedWidget.setCurrentIndex(6)
         self.curr_page = "settings"
@@ -186,6 +194,20 @@ class MainWindow(QMainWindow):
         page = self.stackedWidget.layout().itemAt(6).widget()
         self.modepage = Settings(page)
         pass
+    def moveFromSettings(self):
+        if self.settings.value("changes made") == True:
+            link = os.path.join(os.path.dirname(__file__), './ui/settingwarning.ui')
+            from widgets.Warning import Warnings
+            warning_dialog = Warnings(link)
+            
+            result = warning_dialog.exec_()  # Modal — blocks until user acts
+
+            if result == QDialog.Accepted:
+                if warning_dialog.clicked_button == "discard":
+                    return
+                elif warning_dialog.clicked_button == "save":
+                    self.save_changes()
+            
     def moveHome(self):
         # if self.curr_page == "home":
         #    self.toggleMenu()
@@ -245,7 +267,7 @@ class MainWindow(QMainWindow):
     
     def setupInitialSettings(self):
         self.settings.setValue('prcessing', "CPU")
-        self.settings.setValue('cpu_cores', max(1, torch.get_num_threads()))
+        self.settings.setValue('cores', max(1, torch.get_num_threads()))
         self.settings.setValue('model', "Tiny")
         self.settings.setValue('beam', 1)
         self.settings.setValue("best", 1)
@@ -256,12 +278,14 @@ class MainWindow(QMainWindow):
         self.settings.setValue("channel", 1)
         self.settings.setValue("rate", 16000)
         self.settings.setValue("chunks", 1024)
-        self.settings.setValue("silence", 0.90)
-        self.settings.setValue("min_silence_len", 500)
-        self.settings.setValue("energy_threshold", 0.001)
+        self.settings.setValue("silence", 0.90) #not in settings
+        self.settings.setValue("silencelen", 500) #not in settings
+        self.settings.setValue("energy", 0.001)
         
         self.settings.setValue("minlen", 1)
         self.settings.setValue("maxlen", 5)
+        # self.settings.setValue("silencelen", 0.90)
+        
         
 
     def configure_search_area(self):

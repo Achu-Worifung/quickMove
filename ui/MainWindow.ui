@@ -622,8 +622,8 @@ background-color:rgb(255, 255, 255);</string>
                         <rect>
                          <x>0</x>
                          <y>0</y>
-                         <width>206</width>
-                         <height>69</height>
+                         <width>100</width>
+                         <height>30</height>
                         </rect>
                        </property>
                        <layout class="QVBoxLayout" name="verticalLayout_4"/>
@@ -3306,15 +3306,18 @@ margin:0px</string>
                       </widget>
                      </item>
                      <item row="7" column="2">
-                      <widget class="QDoubleSpinBox" name="silencelen">
+                      <widget class="QSpinBox" name="silencelen">
                        <property name="correctionMode">
                         <enum>QAbstractSpinBox::CorrectToPreviousValue</enum>
                        </property>
+                       <property name="minimum">
+                        <number>100</number>
+                       </property>
                        <property name="maximum">
-                        <double>1.000000000000000</double>
+                        <number>5000</number>
                        </property>
                        <property name="value">
-                        <double>0.900000000000000</double>
+                        <number>500</number>
                        </property>
                       </widget>
                      </item>

@@ -15,6 +15,7 @@ class Settings:
         # Set up the page
         self.page_setup()
         self.setup_values()
+        self.changes = []
         
         self.changedMade = False
         
@@ -22,11 +23,17 @@ class Settings:
         print("Processing clicked")
     def setup_values(self):
         comboBox = [self.processing, self.model, self.channel, self.chunks, self.rate]
-        spinBox = [self.beam, self.core, self.best]
+        spinBox = [self.beam, self.core, self.best,self.silence]
         doubleSpinBox = [self.temp, self.energy, self.minlen, self.maxlen]
         for box in comboBox:
+            print("Box name", box)
             saved_value = self.settings.value(box.objectName())
-            index = box.findText(saved_value)
+            print("Saved value", saved_value, " here si the type of the saved value", type(saved_value))
+            
+            
+            box.currentTextChanged.connect(lambda value, b=box: self.setting_changed(b))
+            index = box.findText(str(saved_value))
+                
             if index != -1:
                 box.setCurrentIndex(index)
             else:
@@ -34,6 +41,8 @@ class Settings:
                 self.settings.setValue(box.objectName(), default)
                 box.setCurrentIndex
         for box in spinBox:
+            box.valueChanged.connect(lambda value, b=box: self.setting_changed(b))
+            print("Box name", box)
             saved_value = self.settings.value(box.objectName())
             if saved_value:
                 box.setValue(int(saved_value))
@@ -41,6 +50,8 @@ class Settings:
                 default = box.value()
                 self.settings.setValue(box.objectName(), default)
         for box in doubleSpinBox:
+            print("Box name", box.objectName())
+            box.valueChanged.connect(lambda value, b=box: self.setting_changed(b))
             saved_value = self.settings.value(box.objectName())
             if saved_value:
                 box.setValue(float(saved_value))
@@ -56,7 +67,13 @@ class Settings:
         #     self.processing.setCurrentIndex(index)
         # else:
         #     self.processing.setCurrentIndex(0)
-            
+    def setting_changed(self, objName = None):
+        self.settings.setValue("changes made", True)
+        print('changed triggered by ', objName)
+        # self.changes.append(onjName)
+      
+        
+        
         
     def page_setup(self):
         self.processing = self.page_widget.findChild(QComboBox, "processing")
@@ -72,6 +89,7 @@ class Settings:
         self.channel = self.page_widget.findChild(QComboBox, "channel")
         self.chunks = self.page_widget.findChild(QComboBox, "chunks")
         self.rate = self.page_widget.findChild(QComboBox, "rate")
+        self.silence = self.page_widget.findChild(QSpinBox, "silencelen")
         
         self.processing.currentIndexChanged.connect(self.processing_clicked)
     #    self.processing.currentIndexChanged.connect(self.processing_clicked)
