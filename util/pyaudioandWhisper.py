@@ -145,9 +145,23 @@ def run_transcription(recording_page):
                     
                     # print(f"Transcription for segment {counter}:")
                     segment_text = ""
+                    keyword = ["the bible says", "the bible", "the word of god", "the word of god says", "the word of god says that", "the word of god says that the bible says, verse"]
                     for segment in segments:
-                        segment_text += segment.text + " "
+                        print('here is the segment', segment.text)
+                        # here is the segment  Hello there, can you hear me?
+                        # here is the segment  Hello there, can you hear me? I just want to check out much excitement this.
+                        # a segment is not a word but it can be a sentence
+                    for key in keyword:
+                        location = segment.text.lower().find(key)
+                        print('here is the location type', type(location))
+                        print('here is the location', location)
+                        if location != -1:
+                            search_txt = segment.text.lower().replace(key, "")
+                            break
+                           
+
                         
+                     
                     if segment_text.strip():
                         line_edit.setText(line_edit.text() + segment_text.strip() + " ")
                     else:
@@ -169,6 +183,11 @@ def run_transcription(recording_page):
     except KeyboardInterrupt:
         print("Recording stopped.")
     finally:
-        stream.stop_stream()
-        stream.close()
+        if stream is not None and stream.is_active():
+            try:
+                stream.stop_stream()
+            except:
+                print("stream is not active")
+        if stream is not None:
+            stream.close()
         audio.terminate()
