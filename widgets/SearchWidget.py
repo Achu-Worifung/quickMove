@@ -480,7 +480,7 @@ class WhisperWindow(QFrame):
         self.checkBox.clicked.connect(self.start_recording)
         print('record button', self.record_btn)
         # Start transcription in a separate thread
-        self.transcription_thread = TranscriptionWorker(self)
+        self.transcription_thread = TranscriptionWorker(self, search_page = parent)
         self.transcription_thread.start()
 
     def close(self):
@@ -520,10 +520,11 @@ class WhisperWindow(QFrame):
 class TranscriptionWorker(QThread):
     finished = pyqtSignal()
 
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, search_page = None):
         super().__init__(parent)
         self.record_page = parent
+        self.search_page = search_page
 
     def run(self):
-        transcriber.run_transcription(self.record_page)
+        transcriber.run_transcription(self.record_page, self.search_page)
         self.finished.emit()  # Signal when transcription is done

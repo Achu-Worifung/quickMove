@@ -4,9 +4,11 @@ from faster_whisper import WhisperModel
 import torch
 import wave
 import os
-from PyQt5.QtCore import QSettings
+from PyQt5.QtCore import QSettings, QThread, pyqtSignal
 import tempfile
-
+import httpx
+from dotenv import load_dotenv  # Add this import
+from urllib.parse import quote_plus
 
 settings = QSettings("MyApp", "AutomataSimulator")
     
@@ -17,8 +19,9 @@ def get_energy_threshold(audio_data, threshold_value=0.05):
     # print('here is the energy', energy)
     return energy > threshold_value
     
-def run_transcription(recording_page):
+def run_transcription(recording_page, search_Page = None):
     
+    print('here is the search page', search_Page)
     # --------------------loading all the variables from settings------------------
     
     beam_size = int(settings.value('beam'))
@@ -153,7 +156,6 @@ def run_transcription(recording_page):
                         # a segment is not a word but it can be a sentence
                     for key in keyword:
                         location = segment.text.lower().find(key)
-                        print('here is the location type', type(location))
                         print('here is the location', location)
                         if location != -1:
                             search_txt = segment.text.lower().replace(key, "")
@@ -191,3 +193,56 @@ def run_transcription(recording_page):
         if stream is not None:
             stream.close()
         audio.terminate()
+        
+class SearchResultWorker(QThread):
+    finish = pyqtSignal()
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.parent = parent
+        load_dotenv(self.basedir + '/.env')
+        self.api_key = os.getenv('API_KEY')
+        self.engine_id = os.getenv('SEARCH_ENGINE_ID')
+        
+    def run(self):
+        
+        pass
+    def performSearch(self):
+       self.search_thread = SearchThread(self.api_key, self.engine_id, self.parent.line_edit.text())
+       self.search_thread.finished.connect(self.handle_search_results)
+       self.search_thread.start()
+        
+    def handle_search_results(self, results):
+        print('here are the results', results)
+        pass
+
+
+class SearchThread(QThread):
+    finished = pyqtSignal(list, str)
+
+    def __init__(self, api_key: str, engine_id: str, query: str):
+        super().__init__()
+        self.api_key = api_key
+        self.engine_id = engine_id
+        self.query = query
+
+    def run(self):
+        # print("quote_plus(self.query)", quote_plus(self.query))
+        url = 'https://customsearch.googleapis.com/customsearch/v1?'
+        params = {
+            "key": self.api_key,
+            "cx": self.engine_id,
+            "q": quote_plus(self.query  ),  
+            "safe": "active",  # Optional
+            'hl': 'en',
+            'num': 10,
+            
+            
+        }
+        response = httpx.get(url, params=params)
+        response.raise_for_status()
+        results = response.json()
+        # print('results for real', results)
+        reversed_items = results.get("items", [])[::-1]
+        # print('results reversed hello', reversed_items)
+        self.finished.emit(reversed_items, self.query)
+        # print('here are the items',results.get("items", []))

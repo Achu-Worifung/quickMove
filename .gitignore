@@ -6,3 +6,5 @@ index.html
 dist/*
 build/*
 model/*
+*.pyc
+__pycache__/
