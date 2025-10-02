@@ -21,6 +21,7 @@ import string
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import *
 import util.pyaudioandWhisper as transcriber
+from util import soundwave
 
 
 
@@ -482,16 +483,60 @@ class WhisperWindow(QFrame):
         self.checkBox.setChecked(True)
         self.checkBox.clicked.connect(self.start_recording)
         print('record button', self.record_btn)
+        
         # Start transcription in a separate thread
         self.transcription_thread = TranscriptionWorker(self, search_page = parent)
         self.transcription_thread.start()
 
-    # Ensuring the thread is properly terminated when the window is closed
+        # Create the soundwave label
+        self.soundwave_label = soundwave.SoundWaveLabel(self)
+        
+        # Find original label and replace it
+        original_label = self.findChild(QLabel, 'sound')
+        if original_label:
+            geometry = original_label.geometry()
+            parent_widget = original_label.parent()
+            
+            # Remove original label
+            original_label.setParent(None)
+            
+            # Set up the new sound wave label
+            self.soundwave_label.setParent(parent_widget)
+            self.soundwave_label.setGeometry(geometry)
+            self.soundwave_label.setText("Not listening")
+            self.soundwave_label.setStyleSheet('margin: 30px auto; color: white;')
+            
+            self.label = self.soundwave_label
+            print("Soundwave label created and replaced original label")  # Debug print
+        else:
+            print("Original 'sound' label not found!")  # Debug print
+        
+        if self.checkBox.isChecked():
+            print("Checkbox is checked, starting visualization automatically")  # Debug print
+            self.soundwave_label.start_recording_visualization()
+
+    def start_recording(self):
+        print(f"Start recording called, checkbox checked: {self.record_btn.isChecked()}")  # Debug print
+        if self.record_btn.isChecked():
+            # Fix: Don't start transcription_thread again if it's already running
+            if not self.transcription_thread.isRunning():
+                self.transcription_thread.start()
+            print("Starting soundwave visualization")  # Debug print
+            self.soundwave_label.start_recording_visualization()
+        else:
+            print("Stopping soundwave visualization")  # Debug print
+            self.transcription_thread.terminate()
+            self.soundwave_label.stop_recording_visualization()
+
     def close(self):
+        print("WhisperWindow closing")  # Debug print
+        # Fix the attribute name - it should be soundwave_label, not sound_wave_label
+        if hasattr(self, 'soundwave_label'):
+            self.soundwave_label.stop_recording_visualization()
         if self.transcription_thread.isRunning():
             self.transcription_thread.terminate() 
             self.transcription_thread.wait()  
-            # print('Terminated transcription thread')
+            print('Terminated transcription thread')
 
         super().close()  # Call the parent class's close method
 
@@ -515,12 +560,13 @@ class WhisperWindow(QFrame):
     def start_recording(self):
         if self.record_btn.isChecked():
             self.transcription_thread.start()
-            self.label.setText('checking')
-
+            self.soundwave_label.start_recording_visualization()
         else:
             self.transcription_thread.terminate()
-            self.label.setText('Not listening')
-        
+            self.soundwave_label.stop_recording_visualization()
+
+
+
 class TranscriptionWorker(QThread):
     finished = pyqtSignal()
 
