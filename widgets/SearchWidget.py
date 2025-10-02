@@ -146,7 +146,7 @@ class SearchWidget(QDialog):
             #     else:
             #         parent = parent.parent()
                     
-            self.listening_window = WhisperWindow(parent)
+            self.listening_window = WhisperWindow(parent) #passing the parent so that the window is always on top and closing with the parent
             self.listening_window.setWindowFlags(Qt.Window | Qt.FramelessWindowHint)
 
             
@@ -469,6 +469,7 @@ class SearchWidget(QDialog):
     #change auto function
 
 
+#this isi where the listening window is defined and controlled
 class WhisperWindow(QFrame):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -476,6 +477,7 @@ class WhisperWindow(QFrame):
         self.listening_window = loadUi(link, self)
         self.setWindowFlags(Qt.FramelessWindowHint)
         self.close_button.clicked.connect(self.close)
+        self.lineEdit = self.findChild(QLineEdit, 'lineEdit')
         self.record_btn = self.checkBox
         self.checkBox.setChecked(True)
         self.checkBox.clicked.connect(self.start_recording)
@@ -484,6 +486,7 @@ class WhisperWindow(QFrame):
         self.transcription_thread = TranscriptionWorker(self, search_page = parent)
         self.transcription_thread.start()
 
+    # Ensuring the thread is properly terminated when the window is closed
     def close(self):
         if self.transcription_thread.isRunning():
             self.transcription_thread.terminate() 
@@ -512,7 +515,7 @@ class WhisperWindow(QFrame):
     def start_recording(self):
         if self.record_btn.isChecked():
             self.transcription_thread.start()
-            self.label.setText('listening')
+            self.label.setText('checking')
 
         else:
             self.transcription_thread.terminate()
@@ -525,7 +528,8 @@ class TranscriptionWorker(QThread):
         super().__init__(parent)
         self.record_page = parent
         self.search_page = search_page
+        self.lineEdit = self.record_page.lineEdit
 
     def run(self):
-        transcriber.run_transcription(self.record_page, self.search_page)
+        transcriber.run_transcription(self.record_page, self.search_page, self.lineEdit)
         self.finished.emit()  # Signal when transcription is done

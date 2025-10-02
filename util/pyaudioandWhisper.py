@@ -18,11 +18,12 @@ def get_energy_threshold(audio_data, threshold_value=0.05):
     energy = np.sum(audio_data ** 2) / len(audio_data)  # Calculate energy
     # print('here is the energy', energy)
     return energy > threshold_value
-    
-def run_transcription(recording_page, search_Page = None):
-    
+
+def run_transcription(recording_page, search_Page = None, lineEdit = None):
+
     print('here is the search page', search_Page)
     # --------------------loading all the variables from settings------------------
+    print('hers is the the line edit', type(lineEdit))
     
     beam_size = int(settings.value('beam'))
     best_of = int(settings.value('best'))
@@ -150,7 +151,7 @@ def run_transcription(recording_page, search_Page = None):
                     segment_text = ""
                     keyword = ["the bible says", "the bible", "the word of god", "the word of god says", "the word of god says that", "the word of god says that the bible says, verse"]
                     for segment in segments:
-                        print('here is the segment', segment.text)
+                       lineEdit.setText(lineEdit.text() + segment.text.strip() + " ")
                         # here is the segment  Hello there, can you hear me?
                         # here is the segment  Hello there, can you hear me? I just want to check out much excitement this.
                         # a segment is not a word but it can be a sentence
