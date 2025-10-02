@@ -70,6 +70,9 @@ class SuggestionModel(QtGui.QStandardItemModel):
 
     @QtCore.pyqtSlot()
     def on_finished(self):
+        """
+         Handle the finished signal from the network reply.
+         for the suggestions"""
         reply = self.sender()
         if reply.error() == QtNetwork.QNetworkReply.NoError:
             try:
@@ -109,6 +112,23 @@ class Completer(QtWidgets.QCompleter):
 
 
 class AutocompleteWidget(QtWidgets.QWidget):
+    """
+    A custom QWidget that provides an autocomplete-enabled QLineEdit.
+    This widget wraps a QLineEdit (or a provided bar widget) with a completer
+    that suggests entries as the user types. The suggestions are managed by a
+    custom SuggestionModel and displayed using a Completer with case-insensitive
+    matching.
+    Args:
+        bar (QLineEdit, optional): An existing QLineEdit to use. If None, a new QLineEdit is created.
+    Attributes:
+        bar (QLineEdit): The line edit used for text input.
+        _model (SuggestionModel): The model providing autocomplete suggestions.
+        lineedit (QLineEdit): The line edit widget with autocomplete enabled.
+    Methods:
+        setPopupWidth(width):
+            Sets the minimum width of the autocomplete popup to match the line edit,
+            and adjusts the popup's height.
+    """
     def __init__(self, bar=None):
         super(AutocompleteWidget, self).__init__(bar)
         
@@ -121,9 +141,25 @@ class AutocompleteWidget(QtWidgets.QWidget):
     
         
         self.lineedit = self.bar if bar else QtWidgets.QLineEdit(self)
+        self.lineedit.setPlaceholderText("Search...")
         # self.lineedit.setAlignment(QtCore.Qt.AlignCenter)
         self.lineedit.setCompleter(completer)
+        self.lineedit.returnPressed.connect(self.handle_enter)
         
+
+    def handle_enter(self):
+        # print('enter pressed')
+        # text = self.lineedit.text()
+        # print(f"Enter pressed with text: {text}")
+        if self._model.rowCount() > 0:
+            top_item = self._model.item(0)
+            if top_item:
+                self.lineedit.setText(top_item.text() + ' ')
+                # self.lineedit.setFocus()
+                #have it perform the search 
+                
+                return
+
         # Set minimum height for the line edit
         # self.lineedit.setMinimumHeight(35)
         
