@@ -49,14 +49,15 @@ class SearchThread(QThread):
         params = {
             "key": self.api_key,
             "cx": self.engine_id,
-            "q": quote_plus(self.query  ),  
+            "q": self.query + ' KJV',  # Added space before KJV
             "safe": "active",  # Optional
             'hl': 'en',
             'num': 10,
             
             
         }
-        response = httpx.get(url, params=params)
+        header =  {"User-Agent": "Mozilla/5.0"}
+        response = httpx.get(url, params=params, headers=header)
         response.raise_for_status()
         results = response.json()
         # print('results for real', results)
@@ -303,7 +304,7 @@ class SearchWidget(QDialog):
     def add_verse_widget(self,query, result, reference):
       
         #sorting based on priority
-        print('result', result)
+        # print('here are the results', result)
        
         link = os.path.join(os.path.dirname(__file__), '../ui/result.ui')
         single_result = loadUi(link)

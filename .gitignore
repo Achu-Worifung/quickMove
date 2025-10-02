@@ -7,4 +7,4 @@ dist/*
 build/*
 model/*
 *.pyc
-__pycache__/
+*/__pycache__/
