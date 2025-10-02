@@ -20,7 +20,6 @@ def get_energy_threshold(audio_data, threshold_value=0.05):
     return energy > threshold_value
 
 def run_transcription(recording_page, search_Page = None, lineEdit = None):
-
     print('here is the search page', search_Page)
     # --------------------loading all the variables from settings------------------
     print('hers is the the line edit', type(lineEdit))
@@ -66,11 +65,63 @@ def run_transcription(recording_page, search_Page = None, lineEdit = None):
     # Recording settings
     FORMAT = pyaudio.paInt16
 
+    # Initialize PyAudio and stream variables
+    audio = None
+    stream = None
+    
+    def initialize_audio():
+        """Initialize or reinitialize the audio stream"""
+        nonlocal audio, stream
+        
+        # Clean up existing resources
+        if stream is not None:
+            try:
+                if stream.is_active():
+                    stream.stop_stream()
+                stream.close()
+            except:
+                pass
+        
+        if audio is not None:
+            try:
+                audio.terminate()
+            except:
+                pass
+        
+        # Initialize new audio instance
+        audio = pyaudio.PyAudio()
+        
+        # Try to open the stream with retries
+        max_retries = 20
+        retry_count = 0
+        
+        while retry_count < max_retries:
+            try:
+                stream = audio.open(
+                    format=FORMAT, 
+                    channels=CHANNELS, 
+                    rate=RATE, 
+                    input=True, 
+                    frames_per_buffer=CHUNK
+                )
+                print("Audio stream initialized successfully")
+                return True
+            except Exception as e:
+                retry_count += 1
+                print(f"Failed to initialize audio stream (attempt {retry_count}/{max_retries}): {e}")
+                if retry_count < max_retries:
+                    import time
+                    time.sleep(4)  # Wait 1 second before retrying
+                else:
+                    print("Max retries reached. Could not initialize audio stream.")
+                    return False
+        
+        return False
 
-
-    # Initialize PyAudio
-    audio = pyaudio.PyAudio()
-    stream = audio.open(format=FORMAT, channels=CHANNELS, rate=RATE, input=True, frames_per_buffer=CHUNK)
+    # Initial audio setup
+    if not initialize_audio():
+        print("Failed to initialize audio. Exiting.")
+        return
 
     print("Recording...")
     counter = 1
@@ -85,19 +136,52 @@ def run_transcription(recording_page, search_Page = None, lineEdit = None):
             
             # Wait for speech to start
             while True:
-                data = stream.read(CHUNK, exception_on_overflow=False)
-                sound_detected = get_energy_threshold(data, threshold_value=energy_threshold)
-                
-                if sound_detected:
-                    # print("Speech detected, recording...")
-                    frames.append(data)
-                    has_speech = True
-                    break
+                try:
+                    data = stream.read(CHUNK, exception_on_overflow=False)
+                    sound_detected = get_energy_threshold(data, threshold_value=energy_threshold)
+                    
+                    if sound_detected:
+                        # print("Speech detected, recording...")
+                        frames.append(data)
+                        has_speech = True
+                        break
+                except Exception as e:
+                    print("Error reading audio stream:", e)
+                    print("Attempting to reinitialize audio...")
+                    
+                    # Try to reinitialize the audio stream
+                    if initialize_audio():
+                        print("Audio reinitialized successfully, continuing...")
+                        continue
+                    else:
+                        print("Failed to reinitialize audio. Waiting before retry...")
+                        import time
+                        time.sleep(2)
+                        if not initialize_audio():
+                            print("Audio initialization failed multiple times. Exiting.")
+                            return
+                        continue
             
             # Continue recording until silence is detected
             while True:
-                data = stream.read(CHUNK, exception_on_overflow=False)
-                sound_detected = get_energy_threshold(data, threshold_value=energy_threshold)
+                try:
+                    data = stream.read(CHUNK, exception_on_overflow=False)
+                    sound_detected = get_energy_threshold(data, threshold_value=energy_threshold)
+                except Exception as e:
+                    print("Error reading audio stream during recording:", e)
+                    print("Attempting to reinitialize audio...")
+                    
+                    # Try to reinitialize the audio stream
+                    if initialize_audio():
+                        print("Audio reinitialized successfully")
+                        # Break out of this recording loop to start fresh
+                        break
+                    else:
+                        print("Failed to reinitialize audio during recording")
+                        import time
+                        time.sleep(2)
+                        continue
+                
                 recording_length = len(frames) * CHUNK / RATE
                 
                 frames.append(data)
@@ -125,8 +209,6 @@ def run_transcription(recording_page, search_Page = None, lineEdit = None):
                 temp_filename = temp_file.name
                 print('here is the temp file', temp_filename)
                 temp_file.close()
-                
-                
                 
                 try:
                     with wave.open(temp_filename, 'wb') as wf:
@@ -174,7 +256,7 @@ def run_transcription(recording_page, search_Page = None, lineEdit = None):
                     counter += 1
                     
                 except Exception as e:
-                   
+                    print(f"Error during transcription: {e}")
                     pass
                 finally:
                     # Clean up the temporary file
@@ -186,14 +268,19 @@ def run_transcription(recording_page, search_Page = None, lineEdit = None):
     except KeyboardInterrupt:
         print("Recording stopped.")
     finally:
-        if stream is not None and stream.is_active():
-            try:
-                stream.stop_stream()
-            except:
-                print("stream is not active")
+        # Clean up resources
         if stream is not None:
-            stream.close()
-        audio.terminate()
+            try:
+                if stream.is_active():
+                    stream.stop_stream()
+                stream.close()
+            except:
+                print("Error closing stream")
+        if audio is not None:
+            try:
+                audio.terminate()
+            except:
+                print("Error terminating audio")
         
 class SearchResultWorker(QThread):
     finish = pyqtSignal()
