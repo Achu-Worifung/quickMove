@@ -139,19 +139,14 @@ class SearchWidget(QDialog):
         # autoComplete_widget.lineedit.focusInEvent = self.openEye
     
     def startWhisper(self):
-        if self.listening_window is None:
+        if self.listening_window is None or not self.listening_window.isVisible():
             parent = self.search_page
-            # while (parent.parent()):
-            #     if isinstance(parent, QMainWindow):
-            #         break
-            #     else:
-            #         parent = parent.parent()
-                    
-            self.listening_window = WhisperWindow(parent) #passing the parent so that the window is always on top and closing with the parent
-            self.listening_window.setWindowFlags(Qt.Window | Qt.FramelessWindowHint)
-
             
+            self.listening_window = WhisperWindow(parent, search_widget=self)
+            self.listening_window.setWindowFlags(Qt.Window | Qt.FramelessWindowHint)
             self.listening_window.show()
+        else:
+            print('Listening window already open')
 
     def openEye(self, event):
        
@@ -472,7 +467,7 @@ class SearchWidget(QDialog):
 
 #this isi where the listening window is defined and controlled
 class WhisperWindow(QFrame):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, search_widget=None):
         super().__init__(parent)
         link = os.path.join(os.path.dirname(__file__), '../ui/listening_window.ui')
         self.listening_window = loadUi(link, self)
@@ -482,10 +477,11 @@ class WhisperWindow(QFrame):
         self.record_btn = self.checkBox
         self.checkBox.setChecked(True)
         self.checkBox.clicked.connect(self.start_recording)
-        print('record button', self.record_btn)
+        self.search_page = parent
+        self.search_widget = search_widget
         
         # Start transcription in a separate thread
-        self.transcription_thread = TranscriptionWorker(self, search_page = parent)
+        self.transcription_thread = TranscriptionWorker(self, search_page=parent)
         self.transcription_thread.start()
 
         # Create the soundwave label
@@ -529,16 +525,23 @@ class WhisperWindow(QFrame):
             self.soundwave_label.stop_recording_visualization()
 
     def close(self):
-        print("WhisperWindow closing")  # Debug print
-        # Fix the attribute name - it should be soundwave_label, not sound_wave_label
+        print("WhisperWindow closing")
+        
         if hasattr(self, 'soundwave_label'):
             self.soundwave_label.stop_recording_visualization()
+        
+        # Ensure the transcription thread is properly terminated
         if self.transcription_thread.isRunning():
             self.transcription_thread.terminate() 
             self.transcription_thread.wait()  
             print('Terminated transcription thread')
-
-        super().close()  # Call the parent class's close method
+        
+        # Clear the reference in the parent SearchWidget
+        if self.search_widget:
+            self.search_widget.listening_window = None
+            print('Cleared listening_window reference in SearchWidget')
+        
+        super().close()
 
     def mousePressEvent(self, event):
         if event.button() == Qt.LeftButton:

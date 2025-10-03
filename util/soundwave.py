@@ -38,6 +38,10 @@ class SoundWaveLabel(QLabel):
         
         self.setMinimumSize(200, 100)
         
+        #retry logic
+        self.retry_count = 0
+        self.max_retries = 20
+        
     def start_recording_visualization(self):
         """Start the audio level visualization"""
         print("Starting recording visualization")
@@ -90,12 +94,14 @@ class SoundWaveLabel(QLabel):
             
             self.audio_thread = threading.Thread(target=self.monitor_audio_levels)
             self.audio_thread.daemon = True
+            self.try_count = 0
             self.audio_thread.start()
             
         except Exception as e:
             print(f"Error starting audio monitoring: {e}")
             # Fallback to simulated audio
-            self.use_simulated_audio()
+            # self.use_simulated_audio()
+            pass
             
     def monitor_audio_levels(self):
         """Monitor audio levels in separate thread"""
@@ -125,6 +131,16 @@ class SoundWaveLabel(QLabel):
             except Exception as e:
                 print(f"Error reading audio: {e}")
                 self.current_level = 0.0 # Ensure level goes to 0 on error
+                if self.retry_count < self.max_retries:
+                    self.retry_count += 1
+                    print(f"Retrying audio monitoring ({self.retry_count}/{self.max_retries})")
+                    time.sleep(1)
+                    self.start_recording_visualization() # Restart monitoring on error
+                else :
+                    self.setText("Not listening")
+                    self.is_recording = False
+                    self.stream = None
+                    self.audio = None
                 break
     
     def use_simulated_audio(self):
