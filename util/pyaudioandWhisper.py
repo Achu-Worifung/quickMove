@@ -53,14 +53,33 @@ def run_transcription(recording_page, search_Page = None, lineEdit = None):
     # Setting up whisper model
     print(f"processing {processing} model {model_size} computational type {computation_type} cpu cores {cpu_cores}" )
     model_size = model_size.lower()
-    model = WhisperModel(
-        model_size,
-        device=processing,
-        compute_type=computation_type,
-        num_workers=cpu_cores,
-        cpu_threads=8,
-        download_root='./models' #where dowunloaded models are stored
-    )
+    if processing == "GPU" and torch.cuda.is_available():  # Fixed: removed 'not'
+        model = WhisperModel(
+            model_size,
+            device='cuda',
+            compute_type=computation_type,
+            download_root='./models' 
+        )
+    elif processing == "CPU":
+        model = WhisperModel(
+            model_size,
+            device='cpu',  # Fixed: changed from processing to 'cpu'
+            compute_type=computation_type,
+            num_workers=cpu_cores,
+            cpu_threads=8,
+            download_root='./models' #where downloaded models are stored
+        )
+    else:
+        # Fallback to CPU if GPU requested but not available
+        print("GPU requested but not available, falling back to CPU")
+        model = WhisperModel(
+            model_size,
+            device='cpu',
+            compute_type='int8',  # Use int8 for CPU fallback
+            num_workers=cpu_cores,
+            cpu_threads=8,
+            download_root='./models'
+        )
 
     # Recording settings
     FORMAT = pyaudio.paInt16
