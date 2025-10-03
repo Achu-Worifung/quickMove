@@ -622,8 +622,8 @@ background-color:rgb(255, 255, 255);</string>
                         <rect>
                          <x>0</x>
                          <y>0</y>
-                         <width>206</width>
-                         <height>69</height>
+                         <width>100</width>
+                         <height>30</height>
                         </rect>
                        </property>
                        <layout class="QVBoxLayout" name="verticalLayout_4"/>
@@ -2273,7 +2273,7 @@ QScrollBar::up-arrow:vertical, QScrollBar::down-arrow:vertical {
                  <property name="geometry">
                   <rect>
                    <x>0</x>
-                   <y>-182</y>
+                   <y>-120</y>
                    <width>609</width>
                    <height>967</height>
                   </rect>
@@ -3407,6 +3407,13 @@ background-color: rgb(139, 139, 139);
                   </item>
                  </layout>
                 </widget>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="manage_model">
+                <property name="text">
+                 <string>manage modesl</string>
+                </property>
                </widget>
               </item>
              </layout>

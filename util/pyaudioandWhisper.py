@@ -58,7 +58,7 @@ def run_transcription(recording_page, search_Page = None, lineEdit = None):
             model_size,
             device='cuda',
             compute_type=computation_type,
-            download_root='./models' 
+            download_root=f'./models/{model_size}' 
         )
     elif processing == "CPU":
         model = WhisperModel(
@@ -67,7 +67,7 @@ def run_transcription(recording_page, search_Page = None, lineEdit = None):
             compute_type=computation_type,
             num_workers=cpu_cores,
             cpu_threads=8,
-            download_root='./models' #where downloaded models are stored
+            download_root=f'./models/{model_size}' #where downloaded models are stored
         )
     else:
         # Fallback to CPU if GPU requested but not available
@@ -78,7 +78,7 @@ def run_transcription(recording_page, search_Page = None, lineEdit = None):
             compute_type='int8',  # Use int8 for CPU fallback
             num_workers=cpu_cores,
             cpu_threads=8,
-            download_root='./models'
+            download_root=f'./models/{model_size}'
         )
 
     # Recording settings

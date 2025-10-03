@@ -5,6 +5,7 @@ index.html
 .env
 dist/*
 build/*
-model/*
+models/*
 *.pyc
 */__pycache__/
+Icons/*
