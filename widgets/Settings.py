@@ -284,56 +284,17 @@ class ModelManagerDialog(QDialog):
         reply = QMessageBox.question(
             self,
             "Download Model",
-            f"Do you want to download the '{model_name}' model?\n"
-            f"Size: {WHISPER_MODEL_INFO[model_name]['size']}",
+            f"Do you want to download the '{model_name}' model?",
             QMessageBox.Yes | QMessageBox.No,
             QMessageBox.Yes
         )
-        
         if reply == QMessageBox.Yes:
-            # Create and show progress dialog
-            from PyQt5.QtWidgets import QProgressDialog
-            self.progress_dialog = QProgressDialog(
-                f"Downloading {model_name} model...", 
-                "Cancel", 
-                0, 0, 
-                self
-            )
-            self.progress_dialog.setWindowTitle("Downloading Model")
-            self.progress_dialog.setModal(True)
-            self.progress_dialog.setMinimumDuration(0)  # Show immediately
-            self.progress_dialog.setCancelButton(None)  # Remove cancel button (downloads can't be safely cancelled)
-            self.progress_dialog.show()
-            
-            # Create and start download worker
-            self.download_worker = ModelDownloadWorker(model_name)
-            self.download_worker.progress_signal.connect(self.update_progress)
-            self.download_worker.finished_signal.connect(self.download_finished)
-            self.download_worker.start()
-
-    def update_progress(self, message):
-        """Update progress dialog with status message"""
-        if hasattr(self, 'progress_dialog'):
-            self.progress_dialog.setLabelText(message)
-
-    def download_finished(self, success, message):
-        """Handle download completion"""
-        # Close progress dialog
-        if hasattr(self, 'progress_dialog'):
-            self.progress_dialog.close()
-            delattr(self, 'progress_dialog')
-        
-        # Clean up worker
-        if hasattr(self, 'download_worker'):
-            self.download_worker.deleteLater()
-            delattr(self, 'download_worker')
-        
-        # Show result message
-        if success:
-            QMessageBox.information(self, "Success", message)
-            self.refresh_models()
-        else:
-            QMessageBox.critical(self, "Error", message)
+            success, message = download_model(model_name)  # <-- your function
+            if success:
+                QMessageBox.information(self, "Success", message)
+                self.refresh_models()
+            else:
+                QMessageBox.critical(self, "Error", message)
 
     def delete_selected_model(self):
         current_item = self.models_list.currentItem()
