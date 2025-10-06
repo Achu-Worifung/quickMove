@@ -517,7 +517,7 @@ background-color: rgb(139, 139, 139);
           <item>
            <widget class="QStackedWidget" name="stackedWidget">
             <property name="currentIndex">
-             <number>2</number>
+             <number>6</number>
             </property>
             <widget class="QWidget" name="select_autos">
              <layout class="QVBoxLayout" name="verticalLayout_12">
@@ -1373,8 +1373,8 @@ border:none</string>
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>571</width>
-                   <height>588</height>
+                   <width>619</width>
+                   <height>764</height>
                   </rect>
                  </property>
                  <property name="styleSheet">
@@ -2121,32 +2121,24 @@ font:20px
               <item>
                <widget class="QScrollArea" name="scrollArea_2">
                 <property name="styleSheet">
-                 <string notr="true">QComboBox{
-border: 1px solid #ced4da;
-border-radius:4px;
-padding-left:10px;
-outline:none;
-font-size:15px;
+                 <string notr="true">QComboBox {
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    padding-left: 10px;
+    outline: none;
+    font-size: 15px;
+    color: rgba(0, 0, 0, 100%);
+    background-color: #fff;
 }
-QComboBox:hover
-{
+
+QComboBox:hover {
     border: 1px solid #1e90ff;
 }
-
-/*styling the dropdown area*/
-QComboBox::drop-down
-{
-border:0px;
-}
-/*styling the dropdown arrow*/
-
-
 /*styling the combo box after open select menu*/
 QComboBox:on
 {
 border:4px solid #c2dbfe;
 }
-
 /*styling the list menu*/
 comboBox QListView
 {
@@ -2156,7 +2148,6 @@ padding:5px;
 background-color:#fff;
 outline:0px;
 }
-
 /*styling the the list items*/
 QComboBox QListView::item{
 padding-left:10px;
@@ -2178,22 +2169,6 @@ QSpinBox, QDoubleSpinBox {
     font-size: 14px;
 }
 
-/*
-QSpinBox::up-button, QDoubleSpinBox::up-button {
-/*   image: url(:/icons/Icons/up arrow.ico);
-    width: 30px;
-    height: 20px;
-    border: none;
-    background: #f8f9fa;
-}*/
-
-/*QSpinBox::down-button, QDoubleSpinBox::down-button {
-    width: 30px;
-    height: 20px;
-    border: none;
-   /* image: url(:/icons/Icons/arrow.ico);
-}*/
-
 QSpinBox:focus, QDoubleSpinBox:focus {
     border: 2px solid #1e90ff;
     background-color: #eef5ff;
@@ -2213,7 +2188,6 @@ QSpinBox:hover, QDoubleSpinBox:hover {
     border: 1px solid #1e90ff;
 }
 
-
 /*style the text*/
 QLabel
 {
@@ -2227,37 +2201,7 @@ border:0px;
 }
 
 
-QScrollArea#scrollArea_2 QScrollBar:vertical {
-    width: 10px;
-    background: black;
-    border-radius: 5px;
-    margin: 0px;
-}
 
-
-QScrollBar::handle:vertical {
-    background: rgb(175, 175, 175); ;
-    border-radius: 10px; /* Ensures the handle looks rounded */
-    min-height: 30px; /* Ensures the handle is visible and rounded */
-}
-
-QScrollBar::sub-line:vertical, QScrollBar::add-line:vertical {
-    background: yellow;
-    height: 10px; /* Keeping it small for aesthetics */
-    border-radius: 5px;
-}
-
-QScrollBar::add-line:vertical {
-    subcontrol-position: bottom;
-}
-
-QScrollBar::sub-line:vertical {
-    subcontrol-position: top;
-}
-
-QScrollBar::up-arrow:vertical, QScrollBar::down-arrow:vertical {
-    background: none;
-}
 QPushButton
 {
 
@@ -2271,6 +2215,52 @@ font:20px;
 border-radius:10px;
 height:25px;
 
+}
+
+QScrollArea#scrollArea_2 QScrollBar:vertical {
+    width: 10px;
+    background: #f1f1f1;         /* light gray track instead of black */
+    border-radius: 5px;
+    margin: 0px;
+}
+
+/* Scroll handle (the part you drag) */
+QScrollBar::handle:vertical {
+    background: #c1c1c1;         /* medium gray for good contrast */
+    border-radius: 5px;
+    min-height: 30px;
+    transition: background 0.3s ease;
+}
+
+/* Hover effect for handle */
+QScrollBar::handle:vertical:hover {
+    background: #a0a0a0;         /* darker when hovered */
+}
+
+/* Pressed state */
+QScrollBar::handle:vertical:pressed {
+    background: #808080;
+}
+
+/* Remove arrow buttons */
+QScrollBar::sub-line:vertical,
+QScrollBar::add-line:vertical {
+    height: 0;
+    width: 0;
+    background: none;
+    border: none;
+}
+
+/* Remove arrow icons */
+QScrollBar::up-arrow:vertical,
+QScrollBar::down-arrow:vertical {
+    background: none;
+}
+
+/* Optional: space at top/bottom (no buttons, just gap) */
+QScrollBar::add-page:vertical,
+QScrollBar::sub-page:vertical {
+    background: none;
 }
 </string>
                 </property>
@@ -2336,7 +2326,7 @@ height:25px;
                    </widget>
                   </item>
                   <item alignment="Qt::AlignHCenter">
-                   <widget class="QFrame" name="frame_2">
+                   <widget class="QFrame" name="manage_model_widget">
                     <property name="sizePolicy">
                      <sizepolicy hsizetype="Preferred" vsizetype="MinimumExpanding">
                       <horstretch>0</horstretch>
@@ -2350,22 +2340,7 @@ height:25px;
                      </size>
                     </property>
                     <property name="styleSheet">
-                     <string notr="true">QPushButton
-{
-
-    border-style: outlet;
-
-
-
-    border-color: none;
-    padding: 4px;
-font:20px;
-border-radius:10px;
-height:25px;
-
-}
-
-</string>
+                     <string notr="true"/>
                     </property>
                     <property name="frameShape">
                      <enum>QFrame::StyledPanel</enum>
@@ -2374,6 +2349,183 @@ height:25px;
                      <enum>QFrame::Raised</enum>
                     </property>
                     <layout class="QGridLayout" name="gridLayout_3">
+                     <item row="3" column="1">
+                      <widget class="QDoubleSpinBox" name="temperature">
+                       <property name="maximum">
+                        <double>1.000000000000000</double>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="5" column="1">
+                      <widget class="QSpinBox" name="best">
+                       <property name="minimumSize">
+                        <size>
+                         <width>200</width>
+                         <height>0</height>
+                        </size>
+                       </property>
+                       <property name="minimum">
+                        <number>1</number>
+                       </property>
+                       <property name="maximum">
+                        <number>3</number>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="4" column="1">
+                      <widget class="QSpinBox" name="cores">
+                       <property name="minimum">
+                        <number>1</number>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="0" column="1">
+                      <widget class="QComboBox" name="processing">
+                       <property name="minimumSize">
+                        <size>
+                         <width>0</width>
+                         <height>31</height>
+                        </size>
+                       </property>
+                       <property name="font">
+                        <font>
+                         <pointsize>-1</pointsize>
+                        </font>
+                       </property>
+                       <property name="styleSheet">
+                        <string notr="true"/>
+                       </property>
+                       <property name="insertPolicy">
+                        <enum>QComboBox::InsertAtTop</enum>
+                       </property>
+                       <property name="iconSize">
+                        <size>
+                         <width>50</width>
+                         <height>50</height>
+                        </size>
+                       </property>
+                       <property name="duplicatesEnabled">
+                        <bool>false</bool>
+                       </property>
+                       <property name="arrow" stdset="0">
+                        <iconset>
+                         <normaloff>../Icons/48792_player_record_icon.ico</normaloff>../Icons/48792_player_record_icon.ico</iconset>
+                       </property>
+                       <item>
+                        <property name="text">
+                         <string>CPU</string>
+                        </property>
+                       </item>
+                       <item>
+                        <property name="text">
+                         <string>GPU</string>
+                        </property>
+                       </item>
+                      </widget>
+                     </item>
+                     <item row="2" column="1">
+                      <widget class="QSpinBox" name="beam">
+                       <property name="correctionMode">
+                        <enum>QAbstractSpinBox::CorrectToPreviousValue</enum>
+                       </property>
+                       <property name="minimum">
+                        <number>1</number>
+                       </property>
+                       <property name="maximum">
+                        <number>10</number>
+                       </property>
+                       <property name="value">
+                        <number>5</number>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="1" column="1">
+                      <widget class="QComboBox" name="model">
+                       <property name="minimumSize">
+                        <size>
+                         <width>0</width>
+                         <height>31</height>
+                        </size>
+                       </property>
+                       <item>
+                        <property name="text">
+                         <string>Tiny</string>
+                        </property>
+                       </item>
+                       <item>
+                        <property name="text">
+                         <string>Small</string>
+                        </property>
+                       </item>
+                       <item>
+                        <property name="text">
+                         <string>Medium</string>
+                        </property>
+                       </item>
+                       <item>
+                        <property name="text">
+                         <string>Large-v2</string>
+                        </property>
+                       </item>
+                       <item>
+                        <property name="text">
+                         <string>Large-v3</string>
+                        </property>
+                       </item>
+                      </widget>
+                     </item>
+                     <item row="3" column="0">
+                      <widget class="QWidget" name="widget_27" native="true">
+                       <layout class="QHBoxLayout" name="horizontalLayout_25">
+                        <item>
+                         <widget class="QLabel" name="label_9">
+                          <property name="font">
+                           <font>
+                            <family>MS Shell Dig 2</family>
+                            <pointsize>-1</pointsize>
+                           </font>
+                          </property>
+                          <property name="text">
+                           <string>temperature</string>
+                          </property>
+                         </widget>
+                        </item>
+                        <item>
+                         <widget class="QPushButton" name="pushButton_16">
+                          <property name="toolTip">
+                           <string>Controls randomness in predictions. Lower values give more reliable transcriptions, while higher values allow more varied outputs (mainly for translation)</string>
+                          </property>
+                          <property name="text">
+                           <string/>
+                          </property>
+                          <property name="icon">
+                           <iconset>
+                            <normaloff>../Icons/4470663_description_about_app_web_info_icon.ico</normaloff>../Icons/4470663_description_about_app_web_info_icon.ico</iconset>
+                          </property>
+                          <property name="iconSize">
+                           <size>
+                            <width>25</width>
+                            <height>25</height>
+                           </size>
+                          </property>
+                         </widget>
+                        </item>
+                        <item>
+                         <spacer name="horizontalSpacer_10">
+                          <property name="orientation">
+                           <enum>Qt::Horizontal</enum>
+                          </property>
+                          <property name="sizeHint" stdset="0">
+                           <size>
+                            <width>214</width>
+                            <height>20</height>
+                           </size>
+                          </property>
+                         </spacer>
+                        </item>
+                       </layout>
+                      </widget>
+                     </item>
                      <item row="0" column="0">
                       <widget class="QWidget" name="widget_10" native="true">
                        <layout class="QHBoxLayout" name="horizontalLayout_12">
@@ -2418,6 +2570,107 @@ height:25px;
                           <property name="sizeHint" stdset="0">
                            <size>
                             <width>227</width>
+                            <height>20</height>
+                           </size>
+                          </property>
+                         </spacer>
+                        </item>
+                       </layout>
+                      </widget>
+                     </item>
+                     <item row="5" column="0">
+                      <widget class="QWidget" name="widget_29" native="true">
+                       <layout class="QHBoxLayout" name="horizontalLayout_27">
+                        <item>
+                         <widget class="QLabel" name="label_23">
+                          <property name="font">
+                           <font>
+                            <family>MS Shell Dig 2</family>
+                            <pointsize>-1</pointsize>
+                           </font>
+                          </property>
+                          <property name="text">
+                           <string>Best of</string>
+                          </property>
+                         </widget>
+                        </item>
+                        <item>
+                         <widget class="QPushButton" name="pushButton_18">
+                          <property name="toolTip">
+                           <string>Number of sampled candidates to consider when decoding. The best transcription is chosen among them. Only applies when not using beam search.</string>
+                          </property>
+                          <property name="text">
+                           <string/>
+                          </property>
+                          <property name="icon">
+                           <iconset>
+                            <normaloff>../Icons/4470663_description_about_app_web_info_icon.ico</normaloff>../Icons/4470663_description_about_app_web_info_icon.ico</iconset>
+                          </property>
+                          <property name="iconSize">
+                           <size>
+                            <width>25</width>
+                            <height>25</height>
+                           </size>
+                          </property>
+                         </widget>
+                        </item>
+                        <item>
+                         <spacer name="horizontalSpacer_12">
+                          <property name="orientation">
+                           <enum>Qt::Horizontal</enum>
+                          </property>
+                          <property name="sizeHint" stdset="0">
+                           <size>
+                            <width>248</width>
+                            <height>20</height>
+                           </size>
+                          </property>
+                         </spacer>
+                        </item>
+                       </layout>
+                      </widget>
+                     </item>
+                     <item row="4" column="0">
+                      <widget class="QWidget" name="widget_28" native="true">
+                       <layout class="QHBoxLayout" name="horizontalLayout_26">
+                        <item>
+                         <widget class="QLabel" name="label_10">
+                          <property name="font">
+                           <font>
+                            <family>MS Shell Dig 2</family>
+                            <pointsize>-1</pointsize>
+                           </font>
+                          </property>
+                          <property name="text">
+                           <string>working cores</string>
+                          </property>
+                         </widget>
+                        </item>
+                        <item>
+                         <widget class="QPushButton" name="pushButton_17">
+                          <property name="text">
+                           <string/>
+                          </property>
+                          <property name="icon">
+                           <iconset>
+                            <normaloff>../Icons/4470663_description_about_app_web_info_icon.ico</normaloff>../Icons/4470663_description_about_app_web_info_icon.ico</iconset>
+                          </property>
+                          <property name="iconSize">
+                           <size>
+                            <width>25</width>
+                            <height>25</height>
+                           </size>
+                          </property>
+                         </widget>
+                        </item>
+                        <item>
+                         <spacer name="horizontalSpacer_11">
+                          <property name="orientation">
+                           <enum>Qt::Horizontal</enum>
+                          </property>
+                          <property name="sizeHint" stdset="0">
+                           <size>
+                            <width>207</width>
                             <height>20</height>
                            </size>
                           </property>
@@ -2530,276 +2783,21 @@ height:25px;
                        </layout>
                       </widget>
                      </item>
-                     <item row="3" column="0">
-                      <widget class="QWidget" name="widget_27" native="true">
-                       <layout class="QHBoxLayout" name="horizontalLayout_25">
-                        <item>
-                         <widget class="QLabel" name="label_9">
-                          <property name="font">
-                           <font>
-                            <family>MS Shell Dig 2</family>
-                            <pointsize>-1</pointsize>
-                           </font>
-                          </property>
-                          <property name="text">
-                           <string>temperature</string>
-                          </property>
-                         </widget>
-                        </item>
-                        <item>
-                         <widget class="QPushButton" name="pushButton_16">
-                          <property name="toolTip">
-                           <string>Controls randomness in predictions. Lower values give more reliable transcriptions, while higher values allow more varied outputs (mainly for translation)</string>
-                          </property>
-                          <property name="text">
-                           <string/>
-                          </property>
-                          <property name="icon">
-                           <iconset>
-                            <normaloff>../Icons/4470663_description_about_app_web_info_icon.ico</normaloff>../Icons/4470663_description_about_app_web_info_icon.ico</iconset>
-                          </property>
-                          <property name="iconSize">
-                           <size>
-                            <width>25</width>
-                            <height>25</height>
-                           </size>
-                          </property>
-                         </widget>
-                        </item>
-                        <item>
-                         <spacer name="horizontalSpacer_10">
-                          <property name="orientation">
-                           <enum>Qt::Horizontal</enum>
-                          </property>
-                          <property name="sizeHint" stdset="0">
-                           <size>
-                            <width>214</width>
-                            <height>20</height>
-                           </size>
-                          </property>
-                         </spacer>
-                        </item>
-                       </layout>
-                      </widget>
-                     </item>
-                     <item row="5" column="0">
-                      <widget class="QWidget" name="widget_29" native="true">
-                       <layout class="QHBoxLayout" name="horizontalLayout_27">
-                        <item>
-                         <widget class="QLabel" name="label_23">
-                          <property name="font">
-                           <font>
-                            <family>MS Shell Dig 2</family>
-                            <pointsize>-1</pointsize>
-                           </font>
-                          </property>
-                          <property name="text">
-                           <string>Best of</string>
-                          </property>
-                         </widget>
-                        </item>
-                        <item>
-                         <widget class="QPushButton" name="pushButton_18">
-                          <property name="toolTip">
-                           <string>Number of sampled candidates to consider when decoding. The best transcription is chosen among them. Only applies when not using beam search.</string>
-                          </property>
-                          <property name="text">
-                           <string/>
-                          </property>
-                          <property name="icon">
-                           <iconset>
-                            <normaloff>../Icons/4470663_description_about_app_web_info_icon.ico</normaloff>../Icons/4470663_description_about_app_web_info_icon.ico</iconset>
-                          </property>
-                          <property name="iconSize">
-                           <size>
-                            <width>25</width>
-                            <height>25</height>
-                           </size>
-                          </property>
-                         </widget>
-                        </item>
-                        <item>
-                         <spacer name="horizontalSpacer_12">
-                          <property name="orientation">
-                           <enum>Qt::Horizontal</enum>
-                          </property>
-                          <property name="sizeHint" stdset="0">
-                           <size>
-                            <width>248</width>
-                            <height>20</height>
-                           </size>
-                          </property>
-                         </spacer>
-                        </item>
-                       </layout>
-                      </widget>
-                     </item>
-                     <item row="4" column="0">
-                      <widget class="QWidget" name="widget_28" native="true">
-                       <layout class="QHBoxLayout" name="horizontalLayout_26">
-                        <item>
-                         <widget class="QLabel" name="label_10">
-                          <property name="font">
-                           <font>
-                            <family>MS Shell Dig 2</family>
-                            <pointsize>-1</pointsize>
-                           </font>
-                          </property>
-                          <property name="text">
-                           <string>working cores</string>
-                          </property>
-                         </widget>
-                        </item>
-                        <item>
-                         <widget class="QPushButton" name="pushButton_17">
-                          <property name="text">
-                           <string/>
-                          </property>
-                          <property name="icon">
-                           <iconset>
-                            <normaloff>../Icons/4470663_description_about_app_web_info_icon.ico</normaloff>../Icons/4470663_description_about_app_web_info_icon.ico</iconset>
-                          </property>
-                          <property name="iconSize">
-                           <size>
-                            <width>25</width>
-                            <height>25</height>
-                           </size>
-                          </property>
-                         </widget>
-                        </item>
-                        <item>
-                         <spacer name="horizontalSpacer_11">
-                          <property name="orientation">
-                           <enum>Qt::Horizontal</enum>
-                          </property>
-                          <property name="sizeHint" stdset="0">
-                           <size>
-                            <width>207</width>
-                            <height>20</height>
-                           </size>
-                          </property>
-                         </spacer>
-                        </item>
-                       </layout>
-                      </widget>
-                     </item>
-                     <item row="0" column="1">
-                      <widget class="QComboBox" name="processing">
-                       <property name="minimumSize">
-                        <size>
-                         <width>0</width>
-                         <height>31</height>
-                        </size>
-                       </property>
-                       <property name="font">
-                        <font>
-                         <pointsize>-1</pointsize>
-                        </font>
-                       </property>
-                       <property name="styleSheet">
-                        <string notr="true"/>
-                       </property>
-                       <property name="arrow" stdset="0">
-                        <iconset>
-                         <normaloff>../Icons/arrow.ico</normaloff>../Icons/arrow.ico</iconset>
-                       </property>
-                       <item>
-                        <property name="text">
-                         <string>CPU</string>
-                        </property>
-                       </item>
-                       <item>
-                        <property name="text">
-                         <string>GPU</string>
-                        </property>
-                       </item>
-                      </widget>
-                     </item>
-                     <item row="1" column="1">
-                      <widget class="QComboBox" name="model">
-                       <property name="minimumSize">
-                        <size>
-                         <width>0</width>
-                         <height>31</height>
-                        </size>
-                       </property>
-                       <item>
-                        <property name="text">
-                         <string>Tiny</string>
-                        </property>
-                       </item>
-                       <item>
-                        <property name="text">
-                         <string>Small</string>
-                        </property>
-                       </item>
-                       <item>
-                        <property name="text">
-                         <string>Medium</string>
-                        </property>
-                       </item>
-                       <item>
-                        <property name="text">
-                         <string>Large-v2</string>
-                        </property>
-                       </item>
-                       <item>
-                        <property name="text">
-                         <string>Large-v3</string>
-                        </property>
-                       </item>
-                      </widget>
-                     </item>
-                     <item row="2" column="1">
-                      <widget class="QSpinBox" name="beam">
-                       <property name="correctionMode">
-                        <enum>QAbstractSpinBox::CorrectToPreviousValue</enum>
-                       </property>
-                       <property name="minimum">
-                        <number>1</number>
-                       </property>
-                       <property name="maximum">
-                        <number>10</number>
-                       </property>
-                       <property name="value">
-                        <number>5</number>
-                       </property>
-                      </widget>
-                     </item>
-                     <item row="3" column="1">
-                      <widget class="QDoubleSpinBox" name="temperature">
-                       <property name="maximum">
-                        <double>1.000000000000000</double>
-                       </property>
-                      </widget>
-                     </item>
-                     <item row="4" column="1">
-                      <widget class="QSpinBox" name="cores">
-                       <property name="minimum">
-                        <number>1</number>
-                       </property>
-                      </widget>
-                     </item>
-                     <item row="5" column="1">
-                      <widget class="QSpinBox" name="best">
-                       <property name="minimumSize">
-                        <size>
-                         <width>200</width>
-                         <height>0</height>
-                        </size>
-                       </property>
-                       <property name="minimum">
-                        <number>1</number>
-                       </property>
-                       <property name="maximum">
-                        <number>3</number>
-                       </property>
-                      </widget>
-                     </item>
                      <item row="6" column="1">
-                      <widget class="QPushButton" name="manage_model">
+                      <widget class="QFrame" name="frame_5">
+                       <property name="minimumSize">
+                        <size>
+                         <width>0</width>
+                         <height>57</height>
+                        </size>
+                       </property>
                        <property name="styleSheet">
-                        <string notr="true">    border-style: outlet;
+                        <string notr="true">
+
+QPushButton
+{
+
+    border-style: outlet;
 
 
 
@@ -2807,11 +2805,44 @@ height:25px;
     padding: 4px;
 font:20px;
 border-radius:10px;
-height:25px;</string>
+height:25px;
+border:1px solid black;
+}
+
+QPushButton:hover
+{
+background-color: rgb(139, 139, 139);
+
+}
+</string>
                        </property>
-                       <property name="text">
-                        <string>manage models</string>
+                       <property name="frameShape">
+                        <enum>QFrame::StyledPanel</enum>
                        </property>
+                       <property name="frameShadow">
+                        <enum>QFrame::Raised</enum>
+                       </property>
+                       <layout class="QGridLayout" name="gridLayout_9">
+                        <item row="0" column="0">
+                         <widget class="QPushButton" name="manage_model">
+                          <property name="minimumSize">
+                           <size>
+                            <width>0</width>
+                            <height>25</height>
+                           </size>
+                          </property>
+                          <property name="maximumSize">
+                           <size>
+                            <width>200</width>
+                            <height>16777215</height>
+                           </size>
+                          </property>
+                          <property name="text">
+                           <string>Manage Models</string>
+                          </property>
+                         </widget>
+                        </item>
+                       </layout>
                       </widget>
                      </item>
                     </layout>
