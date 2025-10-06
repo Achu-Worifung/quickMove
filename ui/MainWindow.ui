@@ -517,7 +517,7 @@ background-color: rgb(139, 139, 139);
           <item>
            <widget class="QStackedWidget" name="stackedWidget">
             <property name="currentIndex">
-             <number>6</number>
+             <number>2</number>
             </property>
             <widget class="QWidget" name="select_autos">
              <layout class="QVBoxLayout" name="verticalLayout_12">
@@ -538,8 +538,8 @@ background-color:rgb(255, 255, 255);</string>
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>226</width>
-                   <height>142</height>
+                   <width>619</width>
+                   <height>764</height>
                   </rect>
                  </property>
                  <layout class="QVBoxLayout" name="verticalLayout_9">
@@ -622,8 +622,8 @@ background-color:rgb(255, 255, 255);</string>
                         <rect>
                          <x>0</x>
                          <y>0</y>
-                         <width>206</width>
-                         <height>69</height>
+                         <width>599</width>
+                         <height>691</height>
                         </rect>
                        </property>
                        <layout class="QVBoxLayout" name="verticalLayout_4"/>
@@ -926,8 +926,8 @@ font:20px
                        <rect>
                         <x>0</x>
                         <y>0</y>
-                        <width>158</width>
-                        <height>58</height>
+                        <width>597</width>
+                        <height>508</height>
                        </rect>
                       </property>
                       <property name="focusPolicy">
@@ -1205,8 +1205,8 @@ border:none</string>
                      <rect>
                       <x>0</x>
                       <y>0</y>
-                      <width>412</width>
-                      <height>290</height>
+                      <width>606</width>
+                      <height>746</height>
                      </rect>
                     </property>
                     <property name="styleSheet">

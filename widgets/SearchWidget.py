@@ -22,6 +22,7 @@ from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import *
 import util.pyaudioandWhisper as transcriber
 from util import soundwave
+import json
 
 
 
@@ -84,11 +85,13 @@ class SearchWidget(QDialog):
         self.search_page = search_page
         
         self.init_page()
+        
+        #setting up the json files(translation)
        
         # self.name = name
         self.old_widget= []
         self.saved_widgets = []
-        self.version.addItems(['','KJV', 'NIV', 'ESV'])
+        self.version.addItems(['KJV', 'NIV', 'ESV', 'ASV', 'NLT'])
         #list of saved verse
         self.savedVerse = []
         self.Tracker = []
@@ -104,6 +107,12 @@ class SearchWidget(QDialog):
         self.locate_box_thread: Optional[locateVerseThread] = None
         self.last_query_time = 0
         self.displayed_verse = []
+        url = os.path.join(os.path.dirname(__file__), f'../bibles/{self.version.currentText()}_bible.json')
+        with open(url, 'r') as f:
+            self.bible_data = json.load(f)
+            
+            
+        self.version.currentIndexChanged.connect(self.change_translation)
 
         #initialize qsetting to store clipboard history
         self.settings = QSettings("MyApp", "AutomataSimulator")
@@ -137,7 +146,16 @@ class SearchWidget(QDialog):
         self.record.clicked.connect(lambda checked=False: self.startWhisper())
         
         # autoComplete_widget.lineedit.focusInEvent = self.openEye
-    
+    def change_translation(self):
+        url = os.path.join(os.path.dirname(__file__), f'../bibles/{self.version.currentText()}_bible.json')
+        with open(url, 'r') as f:
+            self.bible_data = json.load(f)
+        # print('changed translation', self.version.currentText())
+        #refreshing the search results
+        current_query = self.autoComplete_widget.lineedit.text()
+        if current_query and current_query.count(' ') >= 3:
+            self.handle_search(self.data, current_query)
+            
     def startWhisper(self):
         if self.listening_window is None or not self.listening_window.isVisible():
             parent = self.search_page
@@ -276,7 +294,7 @@ class SearchWidget(QDialog):
             # print('diplayed verses', self.displayed_verse)
             if not reference:
                 continue
-            #ensuring reference are uniqu
+            #ensuring reference are uniquE
             if reference in self.displayed_verse:
                 #placing it at the top
                 index = self.displayed_verse.index(reference)
@@ -301,11 +319,14 @@ class SearchWidget(QDialog):
       
         #sorting based on priority
         # print('here are the results', result)
-       
+        translation = self.version.currentText()
+        #COME HERE TO WORK ON TRANSLATION
         link = os.path.join(os.path.dirname(__file__), '../ui/result.ui')
         single_result = loadUi(link)
-        
-        body = getReference.boldedText(result['snippet'], query)
+
+        book, chapter, verse = getReference.parseReference(reference)
+
+        body = self.bible_data.get(book, {}).get(str(chapter), {}).get(str(verse), "Verse not found in this translation.")
         single_result.body.setText(body)
         single_result.title.setText(reference)
         # print('verse_key', verse_key)

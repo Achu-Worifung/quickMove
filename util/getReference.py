@@ -9,7 +9,15 @@ def getReference(text):
 
     # Return the first match or None if no match is found
     return matches[0] if matches else None
-
+def parseReference(reference):
+    # Split the reference into book, chapter, and verse
+    match = re.match(r'^(?P<book>(?:[1-3]?\s?[A-Za-z]+))\s+(?P<chapter>\d+):(?P<verse>\d+)$', reference)
+    if match:
+        book = match.group('book').strip()
+        chapter = int(match.group('chapter'))
+        verse = int(match.group('verse'))
+        return book, chapter, verse
+    return None, None, None
 def boldedText(text, enteredText):
 
     # print('text', text)
