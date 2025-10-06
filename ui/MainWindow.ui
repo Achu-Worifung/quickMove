@@ -33,6 +33,51 @@ background-color:transparent;
 border-radius:10px
 
 }
+QScrollArea#scrollArea_2 QScrollBar:vertical {
+    width: 10px;
+    background: #f1f1f1;         /* light gray track instead of black */
+    border-radius: 5px;
+    margin: 0px;
+}
+
+/* Scroll handle (the part you drag) */
+QScrollBar::handle:vertical {
+    background: #c1c1c1;         /* medium gray for good contrast */
+    border-radius: 5px;
+    min-height: 30px;
+    transition: background 0.3s ease;
+}
+
+/* Hover effect for handle */
+QScrollBar::handle:vertical:hover {
+    background: #a0a0a0;         /* darker when hovered */
+}
+
+/* Pressed state */
+QScrollBar::handle:vertical:pressed {
+    background: #808080;
+}
+
+/* Remove arrow buttons */
+QScrollBar::sub-line:vertical,
+QScrollBar::add-line:vertical {
+    height: 0;
+    width: 0;
+    background: none;
+    border: none;
+}
+
+/* Remove arrow icons */
+QScrollBar::up-arrow:vertical,
+QScrollBar::down-arrow:vertical {
+    background: none;
+}
+
+/* Optional: space at top/bottom (no buttons, just gap) */
+QScrollBar::add-page:vertical,
+QScrollBar::sub-page:vertical {
+    background: none;
+}
 
 
 
@@ -517,7 +562,7 @@ background-color: rgb(139, 139, 139);
           <item>
            <widget class="QStackedWidget" name="stackedWidget">
             <property name="currentIndex">
-             <number>6</number>
+             <number>2</number>
             </property>
             <widget class="QWidget" name="select_autos">
              <layout class="QVBoxLayout" name="verticalLayout_12">
@@ -893,7 +938,7 @@ font:20px
                      </property>
                      <property name="font">
                       <font>
-                       <pointsize>9</pointsize>
+                       <pointsize>15</pointsize>
                       </font>
                      </property>
                      <property name="text">
@@ -916,7 +961,52 @@ font:20px
                       <enum>Qt::NoFocus</enum>
                      </property>
                      <property name="styleSheet">
-                      <string notr="true"/>
+                      <string notr="true">QScrollArea#scrollArea_2 QScrollBar:vertical {
+    width: 10px;
+    background: #f1f1f1;         /* light gray track instead of black */
+    border-radius: 5px;
+    margin: 0px;
+}
+
+/* Scroll handle (the part you drag) */
+QScrollBar::handle:vertical {
+    background: #c1c1c1;         /* medium gray for good contrast */
+    border-radius: 5px;
+    min-height: 30px;
+    transition: background 0.3s ease;
+}
+
+/* Hover effect for handle */
+QScrollBar::handle:vertical:hover {
+    background: #a0a0a0;         /* darker when hovered */
+}
+
+/* Pressed state */
+QScrollBar::handle:vertical:pressed {
+    background: #808080;
+}
+
+/* Remove arrow buttons */
+QScrollBar::sub-line:vertical,
+QScrollBar::add-line:vertical {
+    height: 0;
+    width: 0;
+    background: none;
+    border: none;
+}
+
+/* Remove arrow icons */
+QScrollBar::up-arrow:vertical,
+QScrollBar::down-arrow:vertical {
+    background: none;
+}
+
+/* Optional: space at top/bottom (no buttons, just gap) */
+QScrollBar::add-page:vertical,
+QScrollBar::sub-page:vertical {
+    background: none;
+}
+</string>
                      </property>
                      <property name="widgetResizable">
                       <bool>true</bool>

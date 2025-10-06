@@ -250,18 +250,10 @@ def run_transcription(recording_page, search_Page = None, lineEdit = None):
                     
                     # print(f"Transcription for segment {counter}:")
                     segment_text = ""
-                    keyword = ["the bible says", "the bible", "the word of god", "the word of god says", "the word of god says that", "the word of god says that the bible says, verse"]
                     for segment in segments:
                        lineEdit.setText(lineEdit.text() + segment.text.strip() + " ")
-                        # here is the segment  Hello there, can you hear me?
-                        # here is the segment  Hello there, can you hear me? I just want to check out much excitement this.
-                        # a segment is not a word but it can be a sentence
-                    for key in keyword:
-                        location = segment.text.lower().find(key)
-                        print('here is the location', location)
-                        if location != -1:
-                            search_txt = segment.text.lower().replace(key, "")
-                            break
+                        
+                    
                            
 
                         
