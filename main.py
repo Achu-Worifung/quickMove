@@ -112,6 +112,7 @@ class MainWindow(QMainWindow):
     def closeEvent(self, event):
         if self.curr_page == "settings":
             self.moveFromSettings()
+
             
         self.settings.setValue("geometry", self.saveGeometry())
         self.settings.setValue("prev_verse", "")
@@ -154,8 +155,8 @@ class MainWindow(QMainWindow):
             newWidth = 0
         self.functions.setFixedWidth(newWidth)
     def moveToCreate(self):
-        if self.curr_page == "settings":
-            self.moveFromSettings()
+        self.saveSettings()
+
         self.toggleMenu()
         self.stackedWidget.setCurrentIndex(1)
         self.curr_page = "create"
@@ -166,8 +167,8 @@ class MainWindow(QMainWindow):
         self.stackedWidget.setCurrentIndex(1)
         pass
     def moveToAbout(self):
-        if self.curr_page == "settings":
-            self.moveFromSettings()
+        self.saveSettings()
+
         #hiding the nav bar
         self.toggleMenu()
         self.stackedWidget.setCurrentIndex(3)
@@ -177,9 +178,12 @@ class MainWindow(QMainWindow):
     # def moveToHistory(self):
     #     self.curr_page = "history"
     #     pass
-    def moveTOSearchArea(self):
+    def saveSettings(self):
         if self.curr_page == "settings":
             self.moveFromSettings()
+       
+    def moveTOSearchArea(self):
+        self.saveSettings()
         self.curr_page = "searchArea"
         self.toggleMenu()
         self.stackedWidget.setCurrentIndex(5)
@@ -188,6 +192,8 @@ class MainWindow(QMainWindow):
         self.modepage = SearchArea(page)
         pass
     def moveToSettings(self):
+        self.saveSettings()
+
         self.curr_page = "settings"
         self.toggleMenu()
         self.stackedWidget.setCurrentIndex(6)
@@ -199,9 +205,9 @@ class MainWindow(QMainWindow):
         pass
     def moveFromSettings(self):
         # print('were changes made', self.settings.value("changesmade"))
-        changes = self.settings.value("changesmade")
-        print('were changes made', changes)
-        if bool(changes) == True:
+        changes = len(self.modepage.made_changes) == 0 
+        print('this is changes', changes)
+        if not changes:
             print('were changes made', self.settings.value("changesmade"))
             link = os.path.join(os.path.dirname(__file__), './ui/settingwarning.ui')
             from widgets.Warning import Warnings
@@ -222,7 +228,8 @@ class MainWindow(QMainWindow):
     def moveHome(self):
         # if self.curr_page == "home":
         #    self.toggleMenu()
-          
+        self.saveSettings()
+
         if self.curr_page == 'create':
             #retrieving the latest data
             self.toggleMenu()
@@ -267,7 +274,7 @@ class MainWindow(QMainWindow):
 
     
     def setUpDefaultSettings(self):
-        deafult_processing = "CPU"
+        deafult_processing = "GPU" if torch.cuda.is_available() else "CPU"
         default_cores = max(1, torch.get_num_threads())
         if torch.cuda.is_available():
             self.settings.setValue('default_prcessing', "GPU")

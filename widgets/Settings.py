@@ -19,17 +19,15 @@ class Settings:
         self.settings = QSettings("MyApp", "AutomataSimulator")
         
         self.basedir = self.settings.value("basedir")
-        self.change = False
     
     
-        self.changes = []
+        self.made_changes = {}
+
         
         # Set up the page
         self.page_setup()
         self.setup_values()
         
-        self.changedMade = False
-        self.changes.clear() 
     def processing(self):
         print("Processing clicked")
     def setup_values(self):
@@ -73,35 +71,21 @@ class Settings:
                 self.settings.setValue(box.objectName(), default)
             
         self.settings.sync()
-    # In your settings UI file, add this button and connect it:
     def open_model_manager(self):
         # Pass the page_widget (which is a QWidget) as the parent instead of self
         dialog = ModelManagerDialog(self.page_widget)
         dialog.exec_()
-        # saved_processing = self.settings.value("processing")
-        # index = self.processing.findText(saved_processing)
-        # if index != -1:
-        #     self.processing.setCurrentIndex(index)
-        # else:
-        #     self.processing.setCurrentIndex(0)
+
     def setting_changed(self, obj = None):
-        self.settings.setValue("changesmade", True)
-        self.changes.append(obj)
-        self.settings.sync()
+        object_name = obj.objectName()
+        new_value = (obj.currentText() if isinstance(obj, QComboBox) else obj.value())
+        self.made_changes[object_name] = new_value
     
     def save_settings(self):
-        for box in self.changes:
-            if isinstance(box, QComboBox):
-                self.settings.setValue(box.objectName(), box.currentText())
-                print("Combo box name", box.objectName(), "value", box.currentText())
-            elif isinstance(box, QSpinBox):
-                self.settings.setValue(box.objectName(), box.value())
-            elif isinstance(box, QDoubleSpinBox):
-                self.settings.setValue(box.objectName(), box.value())
+        for change in self.made_changes:
+            self.settings.setValue(change, self.made_changes[change])
         self.settings.setValue("changesmade", False)
-        self.settings.sync()
-        self.settings.sync()
-        self.changes.clear()
+        self.made_changes.clear()
     
     def reset_settings(self):
         defaults = self.settings.value("default_settings")
@@ -119,9 +103,6 @@ class Settings:
                 box.setValue(float(defaults[index]))
                 self.settings.setValue(box.objectName(), defaults[index])
             index += 1
-        self.settings.setValue("changesmade", False)
-        self.settings.sync()
-        self.changes.clear()
                 
       
         
