@@ -9,3 +9,4 @@ models/*
 *.pyc
 */__pycache__/
 Icons/*
+bart-large-mnli/*

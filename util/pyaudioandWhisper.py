@@ -1,3 +1,4 @@
+import threading
 import pyaudio
 import numpy as np
 from faster_whisper import WhisperModel
@@ -9,6 +10,7 @@ import tempfile
 import httpx
 from dotenv import load_dotenv  # Add this import
 from urllib.parse import quote_plus
+from transformers import pipeline
 
 settings = QSettings("MyApp", "AutomataSimulator")
     
@@ -53,6 +55,34 @@ def run_transcription(recording_page, search_Page = None, lineEdit = None):
     # Setting up whisper model
     print(f"processing {processing} model {model_size} computational type {computation_type} cpu cores {cpu_cores}" )
     model_size = model_size.lower()
+    bible_classifier_model = None
+    # Prefer a local cached model directory if it exists; adjust path if your models are stored elsewhere
+    local_model_dir = os.path.normpath(
+        os.path.join(os.path.dirname(__file__), '..', 'models', 'facebook', 'bart-large-mnli')
+    )
+    auto_search_thrad = None
+    model_source = local_model_dir if os.path.isdir(local_model_dir) else 'facebook/bart-large-mnli'
+    try:
+        bible_classifier_model = pipeline(
+            'zero-shot-classification',
+            model=model_source,
+            device=0 if torch.cuda.is_available() else -1
+        )
+        print(f"Bible classifier model load71ed from {model_source}")
+    except Exception as e:
+        print(f"Failed to load classifier from {model_source}: {e}")
+        # fallback to hub id explicitly
+        try:
+            bible_classifier_model = pipeline(
+                'zero-shot-classification',
+                model='facebook/bart-large-mnli',
+                device=0 if torch.cuda.is_available() else -1
+            )
+            print("Bible classifier model loaded from Hugging Face hub (facebook/bart-large-mnli)")
+        except Exception as e2:
+            print(f"Final fallback failed: {e2}")
+            bible_classifier_model = None
+    
     if processing == "GPU" and torch.cuda.is_available():  # Fixed: removed 'not'
         model = WhisperModel(
             model_size,
@@ -137,6 +167,8 @@ def run_transcription(recording_page, search_Page = None, lineEdit = None):
         
         return False
 
+  
+        
     # Initial audio setup
     if not initialize_audio():
         print("Failed to initialize audio. Exiting.")
@@ -252,12 +284,32 @@ def run_transcription(recording_page, search_Page = None, lineEdit = None):
                     segment_text = ""
                     for segment in segments:
                        lineEdit.setText(lineEdit.text() + segment.text.strip() + " ")
-                        
-                    
+                       
+                       #classify each segment using the bible classifier
+                       result = bible_classifier_model(segment.text.strip(), candidate_labels=["bible", "not bible"])
+                       print(f"Segment: {segment.text.strip()}")
+                       label = result['labels'][0]
+                       score = result['scores'][0]
+                       print(f"Classified as: {label} with score {score}")
+                       #search if the label is bible add score baseline after fine tunning
+                       if label == 'bible':
+                            if auto_search_thrad and auto_search_thrad.isRunning():
+                               auto_search_thrad.terminate()
+                               auto_search_thrad.wait()
+                               print("Terminated previous search thread")
                            
-
-                        
-                     
+                            auto_search_thrad = SearchThread(
+                                api_key=os.getenv('API_KEY'),
+                                engine_id=os.getenv('SEARCH_ENGINE_ID'),
+                                query=segment.text.strip()
+                            )
+                            auto_search_thrad.finished.connect(perform_auto_search)
+                            auto_search_thrad.start()
+                            print("Started new search thread")
+                            print("auto search thrad", auto_search_thrad)
+                            print("auto search thrad is running", auto_search_thrad.isRunning())
+                                
+                          
                     if segment_text.strip():
                         line_edit.setText(line_edit.text() + segment_text.strip() + " ")
                     else:
@@ -292,7 +344,8 @@ def run_transcription(recording_page, search_Page = None, lineEdit = None):
                 audio.terminate()
             except:
                 print("Error terminating audio")
-        
+def perform_auto_search(results,query):
+    print('performing auto search for query:', query)
 class SearchResultWorker(QThread):
     finish = pyqtSignal()
     def __init__(self, parent=None):
@@ -316,7 +369,7 @@ class SearchResultWorker(QThread):
 
 
 class SearchThread(QThread):
-    finished = pyqtSignal(list, str)
+    results = pyqtSignal(list, str)
 
     def __init__(self, api_key: str, engine_id: str, query: str):
         super().__init__()
@@ -344,4 +397,4 @@ class SearchThread(QThread):
         reversed_items = results.get("items", [])[::-1]
         # print('results reversed hello', reversed_items)
         self.finished.emit(reversed_items, self.query)
-        # print('here are the items',results.get("items", []))
+        # # # print('here are the items',results.get("items", []))
