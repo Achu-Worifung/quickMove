@@ -310,12 +310,18 @@ class SearchWidget(QDialog):
             self.add_verse_widget(query, result, reference)
         
     
+    def add_auto_search_results(self, results, query):
+       for result in results:
+              reference = getReference.getReference(result['title'])
+              if not reference:
+                continue
+              self.add_verse_widget(query, result, reference)
 
-            
-
+    def callback(self, results, query):
+        self.add_auto_search_results(results, query)
        
 #add verse widget to the searchPane
-    def add_verse_widget(self,query, result, reference):
+    def add_verse_widget(self,query, result, reference, confidence = None):
       
         #sorting based on priority
         # print('here are the results', result)
@@ -329,6 +335,9 @@ class SearchWidget(QDialog):
         body = self.bible_data.get(book, {}).get(str(chapter), {}).get(str(verse), "Verse not found in this translation.")
         single_result.body.setText(body)
         single_result.title.setText(reference)
+        #displaying the confidence of the search result
+        if confidence:
+            single_result.confidence.setText(f'Confidence: {confidence}')
         # print('verse_key', verse_key)
         
         single_result.save.clicked.connect(lambda checked=False,t=reference, b=body: self.savedVerses(t, b))
@@ -502,7 +511,8 @@ class WhisperWindow(QFrame):
         self.search_widget = search_widget
         
         # Start transcription in a separate thread
-        self.transcription_thread = TranscriptionWorker(self, search_page=parent)
+        self.transcription_thread = TranscriptionWorker(self, search_page=parent, callback=self.search_widget.callback)
+
         self.transcription_thread.start()
 
         # Create the soundwave label
@@ -594,12 +604,13 @@ class WhisperWindow(QFrame):
 class TranscriptionWorker(QThread):
     finished = pyqtSignal()
 
-    def __init__(self, parent=None, search_page = None):
+    def __init__(self, parent=None, search_page = None, callback=None):
         super().__init__(parent)
         self.record_page = parent
         self.search_page = search_page
         self.lineEdit = self.record_page.lineEdit
+        self.callback = callback
 
     def run(self):
-        transcriber.run_transcription(self.record_page, self.search_page, self.lineEdit)
+        transcriber.run_transcription(self.record_page, self.search_page, self.lineEdit, self.callback)
         self.finished.emit()  # Signal when transcription is done

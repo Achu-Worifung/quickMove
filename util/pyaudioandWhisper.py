@@ -13,7 +13,7 @@ from urllib.parse import quote_plus
 from transformers import pipeline
 
 settings = QSettings("MyApp", "AutomataSimulator")
-    
+callback_func = None
 def get_energy_threshold(audio_data, threshold_value=0.05):
     # print('here is the energy threshold', threshold_value)
     audio_data = np.frombuffer(audio_data, dtype=np.int16).astype(np.float32) / 32768.0  # Normalize
@@ -21,8 +21,10 @@ def get_energy_threshold(audio_data, threshold_value=0.05):
     # print('here is the energy', energy)
     return energy > threshold_value
 
-def run_transcription(recording_page, search_Page = None, lineEdit = None):
+def run_transcription(recording_page, search_Page = None, lineEdit = None, callback = None):
     print('here is the search page', search_Page)
+    global callback_func
+    callback_func = callback
     # --------------------loading all the variables from settings------------------
     print('hers is the the line edit', type(lineEdit))
     
@@ -298,16 +300,19 @@ def run_transcription(recording_page, search_Page = None, lineEdit = None):
                                auto_search_thrad.wait()
                                print("Terminated previous search thread")
                            
-                            auto_search_thrad = SearchThread(
-                                api_key=os.getenv('API_KEY'),
-                                engine_id=os.getenv('SEARCH_ENGINE_ID'),
-                                query=segment.text.strip()
-                            )
-                            auto_search_thrad.finished.connect(perform_auto_search)
+                            auto_search_thrad = threading.Thread(target=perform_auto_search, args=(segment.text.strip(),))
                             auto_search_thrad.start()
-                            print("Started new search thread")
-                            print("auto search thrad", auto_search_thrad)
-                            print("auto search thrad is running", auto_search_thrad.isRunning())
+                            
+                            # auto_search_thrad = SearchThread(
+                            #     api_key=os.getenv('API_KEY'),
+                            #     engine_id=os.getenv('SEARCH_ENGINE_ID'),
+                            #     query=segment.text.strip()
+                            # )
+                            # auto_search_thrad.finished.connect(perform_auto_search)
+                            # auto_search_thrad.start()
+                            # print("Started new search thread")
+                            # print("auto search thrad", auto_search_thrad)
+                            # print("auto search thrad is running", auto_search_thrad.isRunning())
                                 
                           
                     if segment_text.strip():
@@ -344,8 +349,28 @@ def run_transcription(recording_page, search_Page = None, lineEdit = None):
                 audio.terminate()
             except:
                 print("Error terminating audio")
-def perform_auto_search(results,query):
-    print('performing auto search for query:', query)
+
+def perform_auto_search(query):
+    if not query:
+        return
+    query = query.strip() + ' KJV Bible verse'
+    url = 'https://customsearch.googleapis.com/customsearch/v1?'
+    params = {
+        "key": os.environ.get('API_KEY'),
+        "cx": os.environ.get('SEARCH_ENGINE_ID'),
+        "q": quote_plus(query),
+        "safe": "active",  
+        'hl': 'en',
+        'num': 10,
+        
+    }
+    response = httpx.get(url, params=params)
+    response.raise_for_status()
+    results = response.json()
+    # print('results for real', results)
+    reversed_items = results.get("items", [])[::-1]
+    print('here is the top result from auto search', reversed_items[0])
+    callback_func(reversed_items, query)
 class SearchResultWorker(QThread):
     finish = pyqtSignal()
     def __init__(self, parent=None):
