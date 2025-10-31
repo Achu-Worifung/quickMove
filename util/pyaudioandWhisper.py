@@ -13,7 +13,6 @@ from urllib.parse import quote_plus
 from transformers import pipeline
 
 settings = QSettings("MyApp", "AutomataSimulator")
-callback_func = None
 def get_energy_threshold(audio_data, threshold_value=0.05):
     # print('here is the energy threshold', threshold_value)
     audio_data = np.frombuffer(audio_data, dtype=np.int16).astype(np.float32) / 32768.0  # Normalize
@@ -21,10 +20,10 @@ def get_energy_threshold(audio_data, threshold_value=0.05):
     # print('here is the energy', energy)
     return energy > threshold_value
 
-def run_transcription(recording_page, search_Page = None, lineEdit = None, callback = None):
+def run_transcription(recording_page, search_Page=None, lineEdit=None, worker_thread=None):
     print('here is the search page', search_Page)
-    global callback_func
-    callback_func = callback
+    print('here is the search page', search_Page)
+    
     # --------------------loading all the variables from settings------------------
     print('hers is the the line edit', type(lineEdit))
     
@@ -294,14 +293,11 @@ def run_transcription(recording_page, search_Page = None, lineEdit = None, callb
                        score = result['scores'][0]
                        print(f"Classified as: {label} with score {score}")
                        #search if the label is bible add score baseline after fine tunning
-                       if label == 'bible':
-                            if auto_search_thrad and auto_search_thrad.isRunning():
-                               auto_search_thrad.terminate()
-                               auto_search_thrad.wait()
-                               print("Terminated previous search thread")
-                           
-                            auto_search_thrad = threading.Thread(target=perform_auto_search, args=(segment.text.strip(),))
-                            auto_search_thrad.start()
+                       if label == 'bible' and worker_thread:
+                           perform_auto_search(
+                                query=segment.text.strip().lower(), 
+                                worker_thread=worker_thread 
+                            )
                             
                             # auto_search_thrad = SearchThread(
                             #     api_key=os.getenv('API_KEY'),
@@ -350,27 +346,40 @@ def run_transcription(recording_page, search_Page = None, lineEdit = None, callb
             except:
                 print("Error terminating audio")
 
-def perform_auto_search(query):
-    if not query:
+def perform_auto_search(query, worker_thread):
+    if not query or not worker_thread:
+        print("Invalid query or worker thread")
         return
-    query = query.strip() + ' KJV Bible verse'
+    query_full = query.strip() + ' KJV Bible verse' # Use a new var for the full query
     url = 'https://customsearch.googleapis.com/customsearch/v1?'
     params = {
         "key": os.environ.get('API_KEY'),
         "cx": os.environ.get('SEARCH_ENGINE_ID'),
-        "q": quote_plus(query),
+        "q": quote_plus(query_full),
         "safe": "active",  
         'hl': 'en',
         'num': 10,
-        
     }
-    response = httpx.get(url, params=params)
-    response.raise_for_status()
-    results = response.json()
-    # print('results for real', results)
-    reversed_items = results.get("items", [])[::-1]
-    print('here is the top result from auto search', reversed_items[0])
-    callback_func(reversed_items, query)
+    try:
+      
+        response = httpx.get(url, params=params)
+        response.raise_for_status()
+        results = response.json()
+        
+        reversed_items = results.get("items", [])[::-1]
+        
+        if reversed_items:
+            print('here is the top result from auto search', reversed_items[0])
+            
+           
+            worker_thread.autoSearchResults.emit(reversed_items, query_full)
+            
+        
+        
+    except httpx.HTTPStatusError as e:
+        print(f"Auto-search HTTP error: {e}")
+    except Exception as e:
+        print(f"Error in auto-search: {e}")
 class SearchResultWorker(QThread):
     finish = pyqtSignal()
     def __init__(self, parent=None):

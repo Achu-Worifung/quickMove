@@ -146,6 +146,25 @@ class SearchWidget(QDialog):
         self.record.clicked.connect(lambda checked=False: self.startWhisper())
         
         # autoComplete_widget.lineedit.focusInEvent = self.openEye
+    
+    def startWhisper(self):
+        if self.listening_window is None or not self.listening_window.isVisible():
+            parent = self.search_page
+            
+            self.listening_window = WhisperWindow(parent, search_widget=self)
+            self.listening_window.setWindowFlags(Qt.Window | Qt.FramelessWindowHint)
+            self.listening_window.show()
+        else:
+            print('Listening window already open')
+    
+    def add_auto_search_results(self, results, query):
+       print("add_auto_search_results called on main thread.") # Debug print
+       for result in results:
+              reference = getReference.getReference(result['title'])
+              if not reference:
+                continue
+              self.add_verse_widget(query, result, reference)
+              
     def change_translation(self):
         url = os.path.join(os.path.dirname(__file__), f'../bibles/{self.version.currentText()}_bible.json')
         with open(url, 'r') as f:
@@ -511,7 +530,9 @@ class WhisperWindow(QFrame):
         self.search_widget = search_widget
         
         # Start transcription in a separate thread
-        self.transcription_thread = TranscriptionWorker(self, search_page=parent, callback=self.search_widget.callback)
+        self.transcription_thread = TranscriptionWorker(self, search_page=parent)
+
+        self.transcription_thread.autoSearchResults.connect(self.search_widget.add_auto_search_results)
 
         self.transcription_thread.start()
 
@@ -603,14 +624,20 @@ class WhisperWindow(QFrame):
 
 class TranscriptionWorker(QThread):
     finished = pyqtSignal()
+    autoSearchResults = pyqtSignal(list, str)
 
-    def __init__(self, parent=None, search_page = None, callback=None):
+    def __init__(self, parent=None, search_page = None):
         super().__init__(parent)
         self.record_page = parent
         self.search_page = search_page
         self.lineEdit = self.record_page.lineEdit
-        self.callback = callback
 
     def run(self):
-        transcriber.run_transcription(self.record_page, self.search_page, self.lineEdit, self.callback)
-        self.finished.emit()  # Signal when transcription is done
+        
+        transcriber.run_transcription(
+            recording_page=self.record_page, 
+            search_Page=self.search_page, 
+            lineEdit=self.lineEdit, 
+            worker_thread=self 
+        )
+        self.finished.emit()
