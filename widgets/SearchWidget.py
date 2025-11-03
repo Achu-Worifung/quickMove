@@ -331,23 +331,24 @@ class SearchWidget(QDialog):
     
     def add_auto_search_results(self, results, query, confidence = None):
         print('here is the score', confidence)
-        for result in results:
-              reference = getReference.getReference(result['title'])
-              if not reference:
+        for result in results[::-1]: #reversing again here
+            reference = getReference.getReference(result['title'])
+            if not reference:
                 continue
-              #ensuring reference are uniquE
-              if reference in self.displayed_verse:
-                    #placing it at the top
-                    index = self.displayed_verse.index(reference)
-                    remove_widget = self.searchPane.takeAt(index)
-                    if remove_widget.widget():
-                        remove_widget.widget().deleteLater()
-                        remove_widget.widget().setParent(None)
-                        # self.searchPane.removeItem(remove_widget)
+            #ensuring reference are uniquE
+            if reference in self.displayed_verse:
+                #placing it at the top
+                index = self.displayed_verse.index(reference)
+                remove_widget = self.searchPane.takeAt(index)
+                if remove_widget.widget():
+                    remove_widget.widget().deleteLater()
+                    remove_widget.widget().setParent(None)
+                    # self.searchPane.removeItem(remove_widget)
 
-              else:
-                  self.displayed_verse.append(reference)
-              self.add_verse_widget(query, result, reference, confidence=confidence)
+            else:
+                self.displayed_verse.append(reference)
+                print('appended to verse', self.displayed_verse[-1])
+            self.add_verse_widget(query, result, reference, confidence=confidence)
 
     def callback(self, results, query, confidence = None):
         self.add_auto_search_results(results, query, confidence)

@@ -375,8 +375,9 @@ def perform_auto_search(query, worker_thread, score=None, max_len=1):
         results = response.json()
         
         items = results.get("items", [])
-        
-        if items:
+        print('here are all the items from auto search', items)
+        reversed_items = items[::-1]
+        if reversed_items and worker_thread:
             print('here is the top result from auto search', items[0])
             worker_thread.autoSearchResults.emit(items[:max_len], query_full, score)
             
