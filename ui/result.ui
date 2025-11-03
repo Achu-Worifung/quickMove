@@ -75,6 +75,9 @@ border-radius: 30px;</string>
               </size>
              </property>
              <layout class="QHBoxLayout" name="horizontalLayout">
+              <property name="topMargin">
+               <number>0</number>
+              </property>
               <item>
                <widget class="QLabel" name="title">
                 <property name="sizePolicy">
@@ -123,7 +126,7 @@ border-radius: 30px;</string>
                 </property>
                 <property name="minimumSize">
                  <size>
-                  <width>0</width>
+                  <width>35</width>
                   <height>35</height>
                  </size>
                 </property>
@@ -135,7 +138,7 @@ border-radius: 30px;</string>
                 </property>
                 <property name="font">
                  <font>
-                  <pointsize>16</pointsize>
+                  <pointsize>14</pointsize>
                   <weight>75</weight>
                   <bold>true</bold>
                  </font>
@@ -144,10 +147,16 @@ border-radius: 30px;</string>
                  <cursorShape>PointingHandCursor</cursorShape>
                 </property>
                 <property name="styleSheet">
-                 <string notr="true"/>
+                 <string notr="true">background-color: #0be642;
+color:white;
+border-radius: 10px;
+</string>
                 </property>
                 <property name="text">
-                 <string/>
+                 <string>.00</string>
+                </property>
+                <property name="alignment">
+                 <set>Qt::AlignCenter</set>
                 </property>
                </widget>
               </item>

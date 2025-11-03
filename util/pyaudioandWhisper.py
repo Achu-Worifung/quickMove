@@ -45,6 +45,7 @@ def run_transcription(recording_page, search_Page=None, lineEdit=None, worker_th
     
     max_record_len = int(settings.value('maxlen'))  # Maximum recording length in seconds
     computation_type = "float16" if processing == "GPU" else "int8"
+    auto_search_size = int(settings.value('auto_search_size') or 1)
     
     line_edit = recording_page.lineEdit
     
@@ -301,7 +302,9 @@ def run_transcription(recording_page, search_Page=None, lineEdit=None, worker_th
                        if label == 'bible' and worker_thread:
                            perform_auto_search(
                                 query=segment.text.strip().lower(), 
-                                worker_thread=worker_thread 
+                                worker_thread=worker_thread,
+                                score=score,
+                                max_len=auto_search_size
                             )
                             
                             # auto_search_thrad = SearchThread(
@@ -351,7 +354,7 @@ def run_transcription(recording_page, search_Page=None, lineEdit=None, worker_th
             except:
                 print("Error terminating audio")
 
-def perform_auto_search(query, worker_thread):
+def perform_auto_search(query, worker_thread, score=None, max_len=1):
     if not query or not worker_thread:
         print("Invalid query or worker thread")
         return
@@ -371,13 +374,11 @@ def perform_auto_search(query, worker_thread):
         response.raise_for_status()
         results = response.json()
         
-        reversed_items = results.get("items", [])[::-1]
+        items = results.get("items", [])
         
-        if reversed_items:
-            print('here is the top result from auto search', reversed_items[0])
-            
-           
-            worker_thread.autoSearchResults.emit(reversed_items, query_full)
+        if items:
+            print('here is the top result from auto search', items[0])
+            worker_thread.autoSearchResults.emit(items[:max_len], query_full, score)
             
         
         

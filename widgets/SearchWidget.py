@@ -329,8 +329,9 @@ class SearchWidget(QDialog):
             self.add_verse_widget(query, result, reference)
         
     
-    def add_auto_search_results(self, results, query):
-       for result in results:
+    def add_auto_search_results(self, results, query, confidence = None):
+        print('here is the score', confidence)
+        for result in results:
               reference = getReference.getReference(result['title'])
               if not reference:
                 continue
@@ -346,11 +347,11 @@ class SearchWidget(QDialog):
 
               else:
                   self.displayed_verse.append(reference)
-              self.add_verse_widget(query, result, reference)
+              self.add_verse_widget(query, result, reference, confidence=confidence)
 
-    def callback(self, results, query):
-        self.add_auto_search_results(results, query)
-       
+    def callback(self, results, query, confidence = None):
+        self.add_auto_search_results(results, query, confidence)
+
 #add verse widget to the searchPane
     def add_verse_widget(self,query, result, reference, confidence = None):
       
@@ -368,7 +369,8 @@ class SearchWidget(QDialog):
         single_result.title.setText(reference)
         #displaying the confidence of the search result
         if confidence:
-            single_result.confidence.setText(f'Confidence: {confidence}')
+            single_result.confidence.setText(f'{confidence:.2f}')
+
         # print('verse_key', verse_key)
         
         single_result.save.clicked.connect(lambda checked=False,t=reference, b=body: self.savedVerses(t, b))
@@ -636,7 +638,7 @@ class WhisperWindow(QFrame):
 
 class TranscriptionWorker(QThread):
     finished = pyqtSignal()
-    autoSearchResults = pyqtSignal(list, str)
+    autoSearchResults = pyqtSignal(list, str, float)  # Emit results, query, and confidence
 
     def __init__(self, parent=None, search_page = None):
         super().__init__(parent)
