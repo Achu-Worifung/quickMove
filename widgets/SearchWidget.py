@@ -334,6 +334,18 @@ class SearchWidget(QDialog):
               reference = getReference.getReference(result['title'])
               if not reference:
                 continue
+              #ensuring reference are uniquE
+              if reference in self.displayed_verse:
+                    #placing it at the top
+                    index = self.displayed_verse.index(reference)
+                    remove_widget = self.searchPane.takeAt(index)
+                    if remove_widget.widget():
+                        remove_widget.widget().deleteLater()
+                        remove_widget.widget().setParent(None)
+                        # self.searchPane.removeItem(remove_widget)
+
+              else:
+                  self.displayed_verse.append(reference)
               self.add_verse_widget(query, result, reference)
 
     def callback(self, results, query):

@@ -10,7 +10,7 @@ import tempfile
 import httpx
 from dotenv import load_dotenv  # Add this import
 from urllib.parse import quote_plus
-from transformers import pipeline
+from transformers import AutoModelForSequenceClassification, AutoTokenizer, pipeline
 
 settings = QSettings("MyApp", "AutomataSimulator")
 def get_energy_threshold(audio_data, threshold_value=0.05):
@@ -58,31 +58,36 @@ def run_transcription(recording_page, search_Page=None, lineEdit=None, worker_th
     model_size = model_size.lower()
     bible_classifier_model = None
     # Prefer a local cached model directory if it exists; adjust path if your models are stored elsewhere
-    local_model_dir = os.path.normpath(
-        os.path.join(os.path.dirname(__file__), '..', 'models', 'facebook', 'bart-large-mnli')
-    )
-    auto_search_thrad = None
-    model_source = local_model_dir if os.path.isdir(local_model_dir) else 'facebook/bart-large-mnli'
+    # local_model_dir = os.path.normpath(
+        # os.path.join(os.path.dirname(__file__), '..', 'models', 'facebook', 'bart-large-mnli')
+    # )
+    # print('local model dir', local_model_dir)
+    # print('is this a valid dir', os.path.isdir(local_model_dir))
+    # model_source = local_model_dir if os.path.isdir(local_model_dir) else 'facebook/bart-large-mnli'
+    
+    model_source = 'finetuned_distilbert_bert'
+    auto_search_thread = None
     try:
         bible_classifier_model = pipeline(
-            'zero-shot-classification',
+            'text-classification',
             model=model_source,
             device=0 if torch.cuda.is_available() else -1
         )
-        print(f"Bible classifier model load71ed from {model_source}")
+        print(f"Bible classifier model loaded from {model_source}")
     except Exception as e:
         print(f"Failed to load classifier from {model_source}: {e}")
-        # fallback to hub id explicitly
-        try:
-            bible_classifier_model = pipeline(
-                'zero-shot-classification',
-                model='facebook/bart-large-mnli',
-                device=0 if torch.cuda.is_available() else -1
-            )
-            print("Bible classifier model loaded from Hugging Face hub (facebook/bart-large-mnli)")
-        except Exception as e2:
-            print(f"Final fallback failed: {e2}")
-            bible_classifier_model = None
+        # # fallback to hub id explicitly
+        # try:
+        #     bible_classifier_model = pipeline(
+        #         'zero-shot-classification',
+        #         model='facebook/bart-large-mnli',
+        #         device=0 if torch.cuda.is_available() else -1
+        #     )
+        #     print("Bible classifier model loaded from Hugging Face hub (facebook/bart-large-mnli)")
+        pass
+        # except Exception as e2:
+        #     print(f"Final fallback failed: {e2}")
+        #     bible_classifier_model = None
     
     if processing == "GPU" and torch.cuda.is_available():  # Fixed: removed 'not'
         model = WhisperModel(
@@ -287,10 +292,10 @@ def run_transcription(recording_page, search_Page=None, lineEdit=None, worker_th
                        lineEdit.setText(lineEdit.text() + segment.text.strip() + " ")
                        
                        #classify each segment using the bible classifier
-                       result = bible_classifier_model(segment.text.strip(), candidate_labels=["bible", "not bible"])
+                       result = bible_classifier_model(segment.text.strip())
                        print(f"Segment: {segment.text.strip()}")
-                       label = result['labels'][0]
-                       score = result['scores'][0]
+                       label = result[0]['label']
+                       score = result[0]['score']
                        print(f"Classified as: {label} with score {score}")
                        #search if the label is bible add score baseline after fine tunning
                        if label == 'bible' and worker_thread:
