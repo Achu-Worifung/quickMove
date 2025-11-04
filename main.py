@@ -23,6 +23,7 @@ try:
 except ImportError:
     pass
 
+
 basedir = os.path.dirname(__file__)
 
 #for custom size grip

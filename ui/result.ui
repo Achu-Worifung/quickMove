@@ -60,6 +60,12 @@ border-radius: 30px;</string>
            <string notr="true"/>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_4">
+           <property name="topMargin">
+            <number>0</number>
+           </property>
+           <property name="bottomMargin">
+            <number>0</number>
+           </property>
            <item>
             <widget class="QWidget" name="widget" native="true">
              <property name="sizePolicy">
@@ -76,6 +82,9 @@ border-radius: 30px;</string>
              </property>
              <layout class="QHBoxLayout" name="horizontalLayout">
               <property name="topMargin">
+               <number>0</number>
+              </property>
+              <property name="bottomMargin">
                <number>0</number>
               </property>
               <item>
@@ -217,6 +226,12 @@ border-radius: 10px;
            </size>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_2">
+           <property name="topMargin">
+            <number>0</number>
+           </property>
+           <property name="bottomMargin">
+            <number>0</number>
+           </property>
            <item>
             <widget class="QPushButton" name="save">
              <property name="sizePolicy">

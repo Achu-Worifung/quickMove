@@ -11,6 +11,11 @@ import httpx
 from dotenv import load_dotenv  # Add this import
 from urllib.parse import quote_plus
 from transformers import AutoModelForSequenceClassification, AutoTokenizer, pipeline
+import transformers
+transformers.utils.logging.set_verbosity_error()
+from util.util import resource_path
+
+basedir = os.path.dirname(__file__)
 
 settings = QSettings("MyApp", "AutomataSimulator")
 def get_energy_threshold(audio_data, threshold_value=0.05):
@@ -71,7 +76,7 @@ def run_transcription(recording_page, search_Page=None, lineEdit=None, worker_th
     try:
         bible_classifier_model = pipeline(
             'text-classification',
-            model=model_source,
+            model=resource_path(model_source),
             device=0 if torch.cuda.is_available() else -1
         )
         print(f"Bible classifier model loaded from {model_source}")
@@ -95,7 +100,7 @@ def run_transcription(recording_page, search_Page=None, lineEdit=None, worker_th
             model_size,
             device='cuda',
             compute_type=computation_type,
-            download_root=f'./models/{model_size}' 
+            download_root=resource_path(os.path.join(f'./models/{model_size}')) 
         )
     elif processing == "CPU":
         model = WhisperModel(
@@ -104,7 +109,7 @@ def run_transcription(recording_page, search_Page=None, lineEdit=None, worker_th
             compute_type=computation_type,
             num_workers=cpu_cores,
             cpu_threads=8,
-            download_root=f'./models/{model_size}' #where downloaded models are stored
+            download_root=resource_path(os.path.join(f'./models/{model_size}')) #where downloaded models are stored
         )
     else:
         # Fallback to CPU if GPU requested but not available
@@ -115,7 +120,7 @@ def run_transcription(recording_page, search_Page=None, lineEdit=None, worker_th
             compute_type='int8',  # Use int8 for CPU fallback
             num_workers=cpu_cores,
             cpu_threads=8,
-            download_root=f'./models/{model_size}'
+            download_root=resource_path(os.path.join(f'./models/{model_size}'))
         )
 
     # Recording settings
