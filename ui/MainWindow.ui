@@ -562,7 +562,7 @@ background-color: rgb(139, 139, 139);
           <item>
            <widget class="QStackedWidget" name="stackedWidget">
             <property name="currentIndex">
-             <number>6</number>
+             <number>2</number>
             </property>
             <widget class="QWidget" name="select_autos">
              <layout class="QVBoxLayout" name="verticalLayout_12">
@@ -583,8 +583,8 @@ background-color:rgb(255, 255, 255);</string>
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>226</width>
-                   <height>142</height>
+                   <width>600</width>
+                   <height>764</height>
                   </rect>
                  </property>
                  <layout class="QVBoxLayout" name="verticalLayout_9">
@@ -667,8 +667,8 @@ background-color:rgb(255, 255, 255);</string>
                         <rect>
                          <x>0</x>
                          <y>0</y>
-                         <width>206</width>
-                         <height>69</height>
+                         <width>580</width>
+                         <height>691</height>
                         </rect>
                        </property>
                        <layout class="QVBoxLayout" name="verticalLayout_4"/>
@@ -938,8 +938,11 @@ font:20px
                      </property>
                      <property name="font">
                       <font>
-                       <pointsize>15</pointsize>
+                       <pointsize>12</pointsize>
                       </font>
+                     </property>
+                     <property name="cursor">
+                      <cursorShape>IBeamCursor</cursorShape>
                      </property>
                      <property name="text">
                       <string/>
@@ -1016,8 +1019,8 @@ QScrollBar::sub-page:vertical {
                        <rect>
                         <x>0</x>
                         <y>0</y>
-                        <width>597</width>
-                        <height>508</height>
+                        <width>578</width>
+                        <height>526</height>
                        </rect>
                       </property>
                       <property name="focusPolicy">
@@ -1192,35 +1195,21 @@ font:20px
                       <string notr="true">border-width:2px;
 border-color: rgb(27, 188, 155);
 background-color:  rgb(220, 220, 220);
-border-radius: 20px</string>
+</string>
                      </property>
                      <layout class="QHBoxLayout" name="horizontalLayout_17">
-                      <item>
-                       <widget class="QPushButton" name="pushButton_5">
-                        <property name="styleSheet">
-                         <string notr="true">selection-background-color: rgb(53, 255, 100);
-    border-style: none;
-
-
-    border-color: none;
-    padding: 4px;
-font:20px</string>
-                        </property>
-                        <property name="text">
-                         <string/>
-                        </property>
-                        <property name="icon">
-                         <iconset>
-                          <normaloff>../Icons/close.ico</normaloff>../Icons/close.ico</iconset>
-                        </property>
-                        <property name="iconSize">
-                         <size>
-                          <width>30</width>
-                          <height>30</height>
-                         </size>
-                        </property>
-                       </widget>
-                      </item>
+                      <property name="leftMargin">
+                       <number>0</number>
+                      </property>
+                      <property name="topMargin">
+                       <number>0</number>
+                      </property>
+                      <property name="rightMargin">
+                       <number>0</number>
+                      </property>
+                      <property name="bottomMargin">
+                       <number>0</number>
+                      </property>
                       <item>
                        <widget class="QLineEdit" name="lineEdit_3">
                         <property name="minimumSize">
@@ -1247,6 +1236,9 @@ border:none</string>
                        <widget class="QPushButton" name="listen">
                         <property name="cursor">
                          <cursorShape>PointingHandCursor</cursorShape>
+                        </property>
+                        <property name="styleSheet">
+                         <string notr="true">border-radius: 25px</string>
                         </property>
                         <property name="text">
                          <string/>
@@ -1295,7 +1287,7 @@ border:none</string>
                      <rect>
                       <x>0</x>
                       <y>0</y>
-                      <width>606</width>
+                      <width>587</width>
                       <height>746</height>
                      </rect>
                     </property>
@@ -1463,7 +1455,7 @@ border:none</string>
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>619</width>
+                   <width>600</width>
                    <height>764</height>
                   </rect>
                  </property>

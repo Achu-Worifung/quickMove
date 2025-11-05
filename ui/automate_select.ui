@@ -22,7 +22,7 @@
   <property name="styleSheet">
    <string notr="true">background-color: rgb(220, 220, 220);
 border-color: rgb(192, 192, 192);
-border-radius: 30px;</string>
+border-radius: 10px;</string>
   </property>
   <layout class="QHBoxLayout" name="horizontalLayout">
    <item>

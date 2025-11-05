@@ -142,7 +142,7 @@ class SearchWidget(QDialog):
         # customLineEdit = autoComplete_widget.lineedit
         # adding an infocuse listerner to get the location of the search bar
         self.autoComplete_widget.lineedit.focusOutEvent = self.get_prev_verse  
-        self.autoComplete_widget.lineedit.focusInEvent = self.openEye
+        # self.autoComplete_widget.lineedit.focusInEvent = self.openEye
         self.prevVerse.clicked.connect(lambda checked=False:   QTimer.singleShot(0, lambda: Simulate.present_prev_verse(self.name, self.data)))
         self.record.clicked.connect(lambda checked=False: self.startWhisper())
         
@@ -186,10 +186,10 @@ class SearchWidget(QDialog):
         else:
             print('Listening window already open')
 
-    def openEye(self, event):
+    # def openEye(self, event):
        
-        QLineEdit.focusInEvent(self.autoComplete_widget.lineedit, event)
-        self.searchBarContainer.findChild(QPushButton).setIcon(QIcon(self.basedir + '/Icons/open.ico'))
+    #     QLineEdit.focusInEvent(self.autoComplete_widget.lineedit, event)
+    #     self.searchBarContainer.findChild(QPushButton).setIcon(QIcon(self.basedir + '/Icons/open.ico'))
     def init_page(self):
         self.prevVerse = self.search_page.findChild(QPushButton, 'prev_verse_3')
         self.version = self.search_page.findChild(QComboBox, 'version_3')
@@ -216,8 +216,8 @@ class SearchWidget(QDialog):
             self.locate_box_thread.start()
             super().focusOutEvent(event)
          # Call the original focusOutEvent to maintain the default behavior
-        QLineEdit.focusOutEvent(self.autoComplete_widget.lineedit, event)
-        self.searchBarContainer.findChild(QPushButton).setIcon(QIcon(self.basedir + '/Icons/close.ico'))
+        # QLineEdit.focusOutEvent(self.autoComplete_widget.lineedit, event)
+        # self.searchBarContainer.findChild(QPushButton).setIcon(QIcon(self.basedir + '/Icons/close.ico'))
     def handle_locate_results(self, result):
         """
         Slot to process the results from locateVerseThread.

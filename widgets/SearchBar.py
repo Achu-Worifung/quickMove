@@ -23,14 +23,16 @@ class StyledPopup(QtWidgets.QListView):
                 background-color: #dcdcdc;
                 color: black;
                 outline: 0;
-                padding: 5px;
-                font-size: 15px;
+                padding: 4px;               
+                font-size: 12px;            
                 font: MS Shell Dlg 2;
-                border-radius: 8px;
             }
             QListView::item {
-                padding: 6px;
-                border-radius: 5px;
+                padding-bottom: 10px;       /* increased vertical padding */
+                padding-left: 8px;
+                padding-right: 8px;
+                border-radius: 6px; 
+                height: 70px;               /* slightly increased item height */
             }
             QListView::item:selected {
                 background-color: #e6e6e6;
@@ -123,7 +125,7 @@ class SuggestionModel(QtGui.QStandardItemModel):
                     if suggestion not in self.suggestions:
                         self.suggestions.add(suggestion)
                         item = QtGui.QStandardItem(suggestion)
-                        item.setFont(QtGui.QFont("MS Shell Dlg 2", 12))  
+                        item.setFont(QtGui.QFont("MS Shell Dlg 2", 18))  # larger item font
                         self.appendRow(item)
                         if self.rowCount() >= self.max_suggestions:
                             break
