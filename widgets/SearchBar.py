@@ -5,13 +5,18 @@ from PyQt5.QtWidgets import *
 
 
 class StyledPopup(QtWidgets.QListView):
-    def __init__(self, parent=None):
+    def __init__(self, search_bar, width_widget=None, parent=None):
         super(StyledPopup, self).__init__(parent)
-        # Set custom properties for the popup
+        
+        self.search_bar = search_bar  # Store reference to the actual search bar
+        self.width_widget = width_widget or search_bar  # Widget to match width from
+        
         self.setWindowFlags(QtCore.Qt.Popup | QtCore.Qt.FramelessWindowHint)
         self.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
         self.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
+        self.setUniformItemSizes(True)
+
         self.setStyleSheet("""
             QListView {
                 border: 1px solid #ccc;
@@ -22,12 +27,10 @@ class StyledPopup(QtWidgets.QListView):
                 font-size: 15px;
                 font: MS Shell Dlg 2;
                 border-radius: 8px;
-                
             }
             QListView::item {
-                padding: 5px;
+                padding: 6px;
                 border-radius: 5px;
-               
             }
             QListView::item:selected {
                 background-color: #e6e6e6;
@@ -38,6 +41,38 @@ class StyledPopup(QtWidgets.QListView):
             }
         """)
 
+    ## ========================================================================
+    ##  THE FIX: SIMPLIFIED LOGIC
+    ##  Align everything (Width, X, and Y) to the search_bar (QLineEdit)
+    ## ========================================================================
+    def showEvent(self, event):
+        """
+        Align popup width and position to the width_widget (container with eye icon)
+        """
+        
+        # 1. Use width_widget for WIDTH
+        self.setFixedWidth(self.width_widget.width())
+
+        # 2. Calculate height
+        row_h = self.sizeHintForRow(0) if self.model().rowCount() else 30
+        max_h = row_h * min(6, self.model().rowCount() or 1) + 10
+        self.setFixedHeight(max_h)
+
+        # 3. Use width_widget for POSITION (X and Y) instead of search_bar
+        pos = self.width_widget.mapToGlobal(QtCore.QPoint(0, self.width_widget.height()))
+        
+        # 4. Check if it goes off the bottom of the available screen
+        desktop = QtWidgets.QApplication.desktop()
+        screen_rect = desktop.availableGeometry(self.width_widget) 
+        
+        if pos.y() + max_h > screen_rect.bottom():
+            # If it goes off the bottom, move it *above* the widget
+            pos = self.width_widget.mapToGlobal(QtCore.QPoint(0, -max_h))
+            
+        self.move(pos)
+        
+        super().showEvent(event)
+
 
 class SuggestionModel(QtGui.QStandardItemModel):
     def __init__(self, parent=None):
@@ -45,6 +80,7 @@ class SuggestionModel(QtGui.QStandardItemModel):
         self._manager = QtNetwork.QNetworkAccessManager(self)
         self._reply = None
         self.suggestions = set()
+        self.max_suggestions = QtCore.QSettings().value('suggestion_length', 3, type=int)
 
     @QtCore.pyqtSlot(str)
     def search(self, text):
@@ -80,14 +116,17 @@ class SuggestionModel(QtGui.QStandardItemModel):
                 suggestions = ET.fromstring(content)
                 self.clear()
                 self.suggestions.clear()
+                print('here are the suggestions', suggestions)
                 
                 for data in suggestions.iter("suggestion"):
                     suggestion = data.attrib["data"]
                     if suggestion not in self.suggestions:
                         self.suggestions.add(suggestion)
                         item = QtGui.QStandardItem(suggestion)
-                        item.setFont(QtGui.QFont("MS Shell Dlg 2", 12))  # Font and size
+                        item.setFont(QtGui.QFont("MS Shell Dlg 2", 12))  
                         self.appendRow(item)
+                        if self.rowCount() >= self.max_suggestions:
+                            break
             except ET.ParseError:
                 print("Error parsing suggestions XML")
             except Exception as e:
@@ -98,12 +137,12 @@ class SuggestionModel(QtGui.QStandardItemModel):
 
 
 class Completer(QtWidgets.QCompleter):
-    def __init__(self, parent=None, **kwargs):
+    def __init__(self, search_bar, width_widget=None, parent=None, **kwargs):
         super(Completer, self).__init__(parent, **kwargs)
         self.setCompletionMode(QtWidgets.QCompleter.UnfilteredPopupCompletion)
-        
-        # Set the custom popup
-        self.popup = StyledPopup()
+
+        # pass search_bar and width_widget to popup
+        self.popup = StyledPopup(search_bar, width_widget, parent)
         self.setPopup(self.popup)
 
     def splitPath(self, path):
@@ -112,90 +151,46 @@ class Completer(QtWidgets.QCompleter):
 
 
 class AutocompleteWidget(QtWidgets.QWidget):
-    """
-    A custom QWidget that provides an autocomplete-enabled QLineEdit.
-    This widget wraps a QLineEdit (or a provided bar widget) with a completer
-    that suggests entries as the user types. The suggestions are managed by a
-    custom SuggestionModel and displayed using a Completer with case-insensitive
-    matching.
-    Args:
-        bar (QLineEdit, optional): An existing QLineEdit to use. If None, a new QLineEdit is created.
-    Attributes:
-        bar (QLineEdit): The line edit used for text input.
-        _model (SuggestionModel): The model providing autocomplete suggestions.
-        lineedit (QLineEdit): The line edit widget with autocomplete enabled.
-    Methods:
-        setPopupWidth(width):
-            Sets the minimum width of the autocomplete popup to match the line edit,
-            and adjusts the popup's height.
-    """
-    def __init__(self, bar=None):
-        super(AutocompleteWidget, self).__init__(bar)
+    def __init__(self, bar=None, width_widget=None, parent=None):
+        super(AutocompleteWidget, self).__init__(parent)
         
-        print('bar', type( bar))
+        print('bar', type(bar))
         self.bar = bar
+        self.width_widget = width_widget  # Store the widget to match width from
         
         self._model = SuggestionModel(self)
-        completer = Completer(self, caseSensitivity=QtCore.Qt.CaseInsensitive)
-        completer.setModel(self._model)
-    
         
         self.lineedit = self.bar if bar else QtWidgets.QLineEdit(self)
         self.lineedit.setPlaceholderText("Search...")
-        # self.lineedit.setAlignment(QtCore.Qt.AlignCenter)
+
+        if not bar:
+            layout = QtWidgets.QHBoxLayout(self)
+            layout.setContentsMargins(0, 0, 0, 0)
+            layout.addWidget(self.lineedit)
+            self.setLayout(layout)
+        
+        active_width_widget = self.width_widget or self
+        
+        completer = Completer(self.lineedit, active_width_widget, self, caseSensitivity=QtCore.Qt.CaseInsensitive)
+        completer.setModel(self._model)
+        
         self.lineedit.setCompleter(completer)
         self.lineedit.returnPressed.connect(self.handle_enter)
         
 
     def handle_enter(self):
-        # print('enter pressed')
-        # text = self.lineedit.text()
-        # print(f"Enter pressed with text: {text}")
         if self._model.rowCount() > 0:
-            top_item = self._model.item(0)
+            top_item = self.model().item(0)
             if top_item:
                 self.lineedit.setText(top_item.text() + ' ')
-                # self.lineedit.setFocus()
-                #have it perform the search 
-                
                 return
-
-        # Set minimum height for the line edit
-        # self.lineedit.setMinimumHeight(35)
-        
-        # Apply styling
-        # self.lineedit.setStyleSheet("""
-        #     QLineEdit {
-        #         border-radius: 10px;
-        #         font-size: 20px;
-        #         padding: 0 10px;
-        #         border: 1px solid #ccc;
-        #         background-color: white;
-        #     }
-        #     QLineEdit:focus {
-        #         border: 1px solid #4a90e2;
-        #         outline: none;
-        #     }
-        # """)
-
-        # layout = QtWidgets.QVBoxLayout(self)
-        # layout.addWidget(self.lineedit)
-        # layout.setContentsMargins(0, 0, 0, 0)
-        # self.setLayout(layout)
-
-    def setPopupWidth(self, width):
-        """Set the width of the popup to match the line edit"""
-        self.lineedit.completer().popup().setMinimumWidth(width + 50)
-        
-        self.lineedit.completer().popup().setMaximumHeight(10)
-        self.lineedit.completer().popup().setMinimumHeight(10)
 
 
 class AnotherWidget(QtWidgets.QWidget):
     def __init__(self, parent=None):
         super(AnotherWidget, self).__init__(parent)
         
-        self.autocomplete_widget = AutocompleteWidget(self)
+        self.autocomplete_widget = AutocompleteWidget(parent=self)
         
         layout = QtWidgets.QVBoxLayout(self)
         layout.addWidget(self.autocomplete_widget)
@@ -204,13 +199,6 @@ class AnotherWidget(QtWidgets.QWidget):
         layout.addWidget(other_label)
         
         self.setLayout(layout)
-        
-        # Set the popup width to match the line edit
-        self.autocomplete_widget.setPopupWidth(self.autocomplete_widget.lineedit.width() + 50)
-        
-    # def handle_search(self, data, text):
-    #     # Implement your search handling here
-    #     pass
 
 
 if __name__ == "__main__":

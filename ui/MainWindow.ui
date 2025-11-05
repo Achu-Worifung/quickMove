@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>859</width>
+    <width>840</width>
     <height>879</height>
    </rect>
   </property>
@@ -83,8 +83,8 @@ QScrollBar::sub-page:vertical {
 
 </string>
    </property>
-   <layout class="QGridLayout" name="gridLayout_2">
-    <item row="0" column="0">
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <item>
      <widget class="QFrame" name="frame">
       <property name="styleSheet">
        <string notr="true">QFrame#frame{
@@ -562,7 +562,7 @@ background-color: rgb(139, 139, 139);
           <item>
            <widget class="QStackedWidget" name="stackedWidget">
             <property name="currentIndex">
-             <number>2</number>
+             <number>6</number>
             </property>
             <widget class="QWidget" name="select_autos">
              <layout class="QVBoxLayout" name="verticalLayout_12">
@@ -583,8 +583,8 @@ background-color:rgb(255, 255, 255);</string>
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>619</width>
-                   <height>764</height>
+                   <width>226</width>
+                   <height>142</height>
                   </rect>
                  </property>
                  <layout class="QVBoxLayout" name="verticalLayout_9">
@@ -667,8 +667,8 @@ background-color:rgb(255, 255, 255);</string>
                         <rect>
                          <x>0</x>
                          <y>0</y>
-                         <width>599</width>
-                         <height>691</height>
+                         <width>206</width>
+                         <height>69</height>
                         </rect>
                        </property>
                        <layout class="QVBoxLayout" name="verticalLayout_4"/>
@@ -2362,8 +2362,8 @@ QScrollBar::sub-page:vertical {
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>609</width>
-                   <height>967</height>
+                   <width>590</width>
+                   <height>1093</height>
                   </rect>
                  </property>
                  <layout class="QVBoxLayout" name="verticalLayout_8">
@@ -2390,6 +2390,178 @@ QScrollBar::sub-page:vertical {
                     <property name="text">
                      <string>SETTINGS</string>
                     </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QWidget" name="suggestions" native="true">
+                    <property name="sizePolicy">
+                     <sizepolicy hsizetype="Preferred" vsizetype="MinimumExpanding">
+                      <horstretch>0</horstretch>
+                      <verstretch>0</verstretch>
+                     </sizepolicy>
+                    </property>
+                    <property name="minimumSize">
+                     <size>
+                      <width>0</width>
+                      <height>120</height>
+                     </size>
+                    </property>
+                    <layout class="QGridLayout" name="gridLayout_2">
+                     <item row="0" column="0">
+                      <widget class="QWidget" name="widget_37" native="true">
+                       <layout class="QHBoxLayout" name="horizontalLayout_34">
+                        <item>
+                         <widget class="QLabel" name="label_31">
+                          <property name="font">
+                           <font>
+                            <family>MS Shell Dig 2</family>
+                            <pointsize>-1</pointsize>
+                           </font>
+                          </property>
+                          <property name="text">
+                           <string>Suggestion Length</string>
+                          </property>
+                         </widget>
+                        </item>
+                        <item>
+                         <widget class="QPushButton" name="pushButton_27">
+                          <property name="cursor">
+                           <cursorShape>WhatsThisCursor</cursorShape>
+                          </property>
+                          <property name="toolTip">
+                           <string>length of suggestions during search</string>
+                          </property>
+                          <property name="text">
+                           <string/>
+                          </property>
+                          <property name="icon">
+                           <iconset>
+                            <normaloff>../Icons/4470663_description_about_app_web_info_icon.ico</normaloff>../Icons/4470663_description_about_app_web_info_icon.ico</iconset>
+                          </property>
+                          <property name="iconSize">
+                           <size>
+                            <width>25</width>
+                            <height>25</height>
+                           </size>
+                          </property>
+                         </widget>
+                        </item>
+                        <item>
+                         <spacer name="horizontalSpacer_20">
+                          <property name="orientation">
+                           <enum>Qt::Horizontal</enum>
+                          </property>
+                          <property name="sizeHint" stdset="0">
+                           <size>
+                            <width>227</width>
+                            <height>20</height>
+                           </size>
+                          </property>
+                         </spacer>
+                        </item>
+                       </layout>
+                      </widget>
+                     </item>
+                     <item row="0" column="1">
+                      <widget class="QSpinBox" name="suggestion_length">
+                       <property name="sizePolicy">
+                        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                         <horstretch>0</horstretch>
+                         <verstretch>0</verstretch>
+                        </sizepolicy>
+                       </property>
+                       <property name="minimumSize">
+                        <size>
+                         <width>200</width>
+                         <height>0</height>
+                        </size>
+                       </property>
+                       <property name="minimum">
+                        <number>1</number>
+                       </property>
+                       <property name="maximum">
+                        <number>10</number>
+                       </property>
+                      </widget>
+                     </item>
+                     <item row="1" column="0">
+                      <widget class="QWidget" name="widget_38" native="true">
+                       <layout class="QHBoxLayout" name="horizontalLayout_35">
+                        <item>
+                         <widget class="QLabel" name="label_32">
+                          <property name="font">
+                           <font>
+                            <family>MS Shell Dig 2</family>
+                            <pointsize>-1</pointsize>
+                           </font>
+                          </property>
+                          <property name="text">
+                           <string>auto search length</string>
+                          </property>
+                         </widget>
+                        </item>
+                        <item>
+                         <widget class="QPushButton" name="pushButton_28">
+                          <property name="cursor">
+                           <cursorShape>WhatsThisCursor</cursorShape>
+                          </property>
+                          <property name="toolTip">
+                           <string>number of results returned by auto search</string>
+                          </property>
+                          <property name="text">
+                           <string/>
+                          </property>
+                          <property name="icon">
+                           <iconset>
+                            <normaloff>../Icons/4470663_description_about_app_web_info_icon.ico</normaloff>../Icons/4470663_description_about_app_web_info_icon.ico</iconset>
+                          </property>
+                          <property name="iconSize">
+                           <size>
+                            <width>25</width>
+                            <height>25</height>
+                           </size>
+                          </property>
+                         </widget>
+                        </item>
+                        <item>
+                         <spacer name="horizontalSpacer_21">
+                          <property name="orientation">
+                           <enum>Qt::Horizontal</enum>
+                          </property>
+                          <property name="sizeHint" stdset="0">
+                           <size>
+                            <width>227</width>
+                            <height>20</height>
+                           </size>
+                          </property>
+                         </spacer>
+                        </item>
+                       </layout>
+                      </widget>
+                     </item>
+                     <item row="1" column="1">
+                      <widget class="QSpinBox" name="auto_length">
+                       <property name="sizePolicy">
+                        <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+                         <horstretch>0</horstretch>
+                         <verstretch>0</verstretch>
+                        </sizepolicy>
+                       </property>
+                       <property name="minimumSize">
+                        <size>
+                         <width>200</width>
+                         <height>0</height>
+                        </size>
+                       </property>
+                       <property name="minimum">
+                        <number>1</number>
+                       </property>
+                       <property name="maximum">
+                        <number>10</number>
+                       </property>
+                      </widget>
+                     </item>
+                    </layout>
                    </widget>
                   </item>
                   <item>
@@ -2582,6 +2754,9 @@ QScrollBar::sub-page:vertical {
                         </item>
                         <item>
                          <widget class="QPushButton" name="pushButton_16">
+                          <property name="cursor">
+                           <cursorShape>WhatsThisCursor</cursorShape>
+                          </property>
                           <property name="toolTip">
                            <string>Controls randomness in predictions. Lower values give more reliable transcriptions, while higher values allow more varied outputs (mainly for translation)</string>
                           </property>
@@ -2634,6 +2809,9 @@ QScrollBar::sub-page:vertical {
                         </item>
                         <item>
                          <widget class="QPushButton" name="pushButton_3">
+                          <property name="cursor">
+                           <cursorShape>WhatsThisCursor</cursorShape>
+                          </property>
                           <property name="toolTip">
                            <string>Select the processing device. GPU provides the fastest inference if available; CPU is slower but works everywhere.</string>
                           </property>
@@ -2686,6 +2864,9 @@ QScrollBar::sub-page:vertical {
                         </item>
                         <item>
                          <widget class="QPushButton" name="pushButton_18">
+                          <property name="cursor">
+                           <cursorShape>WhatsThisCursor</cursorShape>
+                          </property>
                           <property name="toolTip">
                            <string>Number of sampled candidates to consider when decoding. The best transcription is chosen among them. Only applies when not using beam search.</string>
                           </property>
@@ -2738,6 +2919,9 @@ QScrollBar::sub-page:vertical {
                         </item>
                         <item>
                          <widget class="QPushButton" name="pushButton_17">
+                          <property name="cursor">
+                           <cursorShape>WhatsThisCursor</cursorShape>
+                          </property>
                           <property name="text">
                            <string/>
                           </property>
@@ -2787,6 +2971,9 @@ QScrollBar::sub-page:vertical {
                         </item>
                         <item>
                          <widget class="QPushButton" name="pushButton_14">
+                          <property name="cursor">
+                           <cursorShape>WhatsThisCursor</cursorShape>
+                          </property>
                           <property name="toolTip">
                            <string>Select the Whisper model to use. Smaller models run faster with lower accuracy, while larger models give higher accuracy but need more memory and processing time</string>
                           </property>
@@ -2839,6 +3026,9 @@ QScrollBar::sub-page:vertical {
                         </item>
                         <item>
                          <widget class="QPushButton" name="pushButton_15">
+                          <property name="cursor">
+                           <cursorShape>WhatsThisCursor</cursorShape>
+                          </property>
                           <property name="toolTip">
                            <string>Number of candidates explored when decoding speech. Higher values improve accuracy but increase processing time.</string>
                           </property>
@@ -2927,6 +3117,9 @@ background-color: rgb(139, 139, 139);
                             <height>16777215</height>
                            </size>
                           </property>
+                          <property name="cursor">
+                           <cursorShape>PointingHandCursor</cursorShape>
+                          </property>
                           <property name="text">
                            <string>Manage Models</string>
                           </property>
@@ -3012,6 +3205,9 @@ height:25px;
                         </item>
                         <item>
                          <widget class="QPushButton" name="pushButton_11">
+                          <property name="cursor">
+                           <cursorShape>WhatsThisCursor</cursorShape>
+                          </property>
                           <property name="toolTip">
                            <string>Number of audio channels. Mono (1) is best for speech recognition; Stereo (2) captures richer sound.</string>
                           </property>
@@ -3064,6 +3260,9 @@ height:25px;
                         </item>
                         <item>
                          <widget class="QPushButton" name="pushButton_13">
+                          <property name="cursor">
+                           <cursorShape>WhatsThisCursor</cursorShape>
+                          </property>
                           <property name="toolTip">
                            <string>Audio sampling rate in Hz. 16000 is standard for speech recognition; higher values capture more detail but use more resources.</string>
                           </property>
@@ -3123,6 +3322,9 @@ margin:0px</string>
                         </item>
                         <item>
                          <widget class="QPushButton" name="pushButton_19">
+                          <property name="cursor">
+                           <cursorShape>WhatsThisCursor</cursorShape>
+                          </property>
                           <property name="toolTip">
                            <string>Minimum audio energy required to register as speech. Lower values make the recorder more sensitive to quiet voices, while higher values ignore soft background noise.</string>
                           </property>
@@ -3175,6 +3377,9 @@ margin:0px</string>
                         </item>
                         <item alignment="Qt::AlignLeft">
                          <widget class="QPushButton" name="pushButton_4">
+                          <property name="cursor">
+                           <cursorShape>WhatsThisCursor</cursorShape>
+                          </property>
                           <property name="toolTip">
                            <string>Shortest allowed recording time in seconds. Any clip shorter than this will be discarded.</string>
                           </property>
@@ -3227,6 +3432,9 @@ margin:0px</string>
                         </item>
                         <item>
                          <widget class="QPushButton" name="pushButton_12">
+                          <property name="cursor">
+                           <cursorShape>WhatsThisCursor</cursorShape>
+                          </property>
                           <property name="toolTip">
                            <string>Size of audio data blocks processed at a time. Larger chunks reduce CPU load but increase latency.</string>
                           </property>
@@ -3279,6 +3487,9 @@ margin:0px</string>
                         </item>
                         <item>
                          <widget class="QPushButton" name="pushButton_9">
+                          <property name="cursor">
+                           <cursorShape>WhatsThisCursor</cursorShape>
+                          </property>
                           <property name="toolTip">
                            <string>Longest allowed recording time in seconds. Recording will stop automatically if this limit is reached.</string>
                           </property>
@@ -3318,6 +3529,9 @@ margin:0px</string>
                        <layout class="QGridLayout" name="gridLayout_5">
                         <item row="0" column="1">
                          <widget class="QPushButton" name="pushButton_21">
+                          <property name="cursor">
+                           <cursorShape>WhatsThisCursor</cursorShape>
+                          </property>
                           <property name="toolTip">
                            <string>Length of continuous silence (in ms) that marks the end of a recording.</string>
                           </property>
@@ -3419,6 +3633,9 @@ background-color: rgb(139, 139, 139);
                             <height>16777215</height>
                            </size>
                           </property>
+                          <property name="cursor">
+                           <cursorShape>PointingHandCursor</cursorShape>
+                          </property>
                           <property name="text">
                            <string>reset to deault</string>
                           </property>
@@ -3437,6 +3654,9 @@ background-color: rgb(139, 139, 139);
                             <width>200</width>
                             <height>16777215</height>
                            </size>
+                          </property>
+                          <property name="cursor">
+                           <cursorShape>PointingHandCursor</cursorShape>
                           </property>
                           <property name="text">
                            <string>save changes</string>

@@ -107,6 +107,7 @@ class SearchWidget(QDialog):
         self.locate_box_thread: Optional[locateVerseThread] = None
         self.last_query_time = 0
         self.displayed_verse = []
+        
         url = os.path.join(os.path.dirname(__file__), f'../bibles/{self.version.currentText()}_bible.json')
         with open(url, 'r') as f:
             self.bible_data = json.load(f)
@@ -130,7 +131,7 @@ class SearchWidget(QDialog):
         self.init_page()
         from widgets.SearchBar import AutocompleteWidget
 
-        self.autoComplete_widget = AutocompleteWidget(self.search_bar[0])
+        self.autoComplete_widget = AutocompleteWidget(bar=self.search_bar[0], width_widget=self.searchBarContainer)
         self.search_bar[0].textChanged.connect(
             lambda text, d=self.data: self.handle_search(d, text)
         )

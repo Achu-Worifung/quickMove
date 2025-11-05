@@ -50,7 +50,7 @@ def run_transcription(recording_page, search_Page=None, lineEdit=None, worker_th
     
     max_record_len = int(settings.value('maxlen'))  # Maximum recording length in seconds
     computation_type = "float16" if processing == "GPU" else "int8"
-    auto_search_size = int(settings.value('auto_search_size') or 1)
+    auto_search_size = int(settings.value('auto_length') or 1)
     
     line_edit = recording_page.lineEdit
     

@@ -34,7 +34,7 @@ class Settings:
         self.mange_models = self.page_widget.findChild(QPushButton, "manage_model")
         self.mange_models.clicked.connect(self.open_model_manager)
         comboBox = [self.processing, self.model, self.channel, self.chunks, self.rate]
-        spinBox = [self.beam, self.core, self.best,self.silence]
+        spinBox = [self.beam, self.core, self.best,self.silence, self.suggest_len, self.auto_searchlen]
         doubleSpinBox = [self.temp, self.energy, self.minlen, self.maxlen]
         for box in comboBox:
             print("Box name", box)
@@ -90,7 +90,7 @@ class Settings:
     def reset_settings(self):
         defaults = self.settings.value("default_settings")
         print("Defaults", defaults)
-        settings = [self.processing, self.model, self.beam, self.temp, self.core, self.best, self.energy, self.minlen, self.maxlen, self.channel, self.chunks, self.rate, self.silence]
+        settings = [self.processing, self.model, self.beam, self.temp, self.core, self.best, self.energy, self.minlen, self.maxlen, self.channel, self.chunks, self.rate, self.silence, self.suggest_len, self.auto_searchlen]
         index = 0
         for box in settings:
             if isinstance(box, QComboBox):
@@ -115,6 +115,8 @@ class Settings:
         self.temp = self.page_widget.findChild(QDoubleSpinBox, "temperature")
         self.core = self.page_widget.findChild(QSpinBox, "cores")
         self.best = self.page_widget.findChild(QSpinBox, "best")
+        self.suggest_len = self.page_widget.findChild(QSpinBox, "suggestion_length")
+        self.auto_searchlen = self.page_widget.findChild(QSpinBox, "auto_length")
         
         self.energy = self.page_widget.findChild(QDoubleSpinBox, "energy")
         self.minlen = self.page_widget.findChild(QDoubleSpinBox, "minlen")

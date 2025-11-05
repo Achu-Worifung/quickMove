@@ -303,6 +303,8 @@ class MainWindow(QMainWindow):
         
         self.settings.setValue("minlen", 1)
         self.settings.setValue("maxlen", 5)
+        self.settings.setValue('auto_length', 1)
+        self.settings.setValue('suggestion_length', 3)
         # self.settings.setValue("silencelen", 0.90)
         
         
@@ -329,7 +331,7 @@ class MainWindow(QMainWindow):
         self.minimize_button.clicked.connect(self.showMinimized)
         # self.expand.clicked.connect(self.expandWindow)
         self.menu.clicked.connect(self.toggleMenu)
-        self.about.clicked.connect(self.moveToAbout)
+        # self.about.clicked.connect(self.moveToAbout)
         # self.history.clicked.connect(self.moveToHistory)
         self.searchArea.clicked.connect(self.moveTOSearchArea)
         self.create.clicked.connect(self.moveToCreate)
