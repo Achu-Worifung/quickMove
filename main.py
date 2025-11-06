@@ -33,6 +33,7 @@ class CustomSizeGrip(QSizeGrip):
         super().__init__(parent)
         # Make the size grip larger
         self.setMinimumSize(20, 20)
+        self.setCursor(Qt.SizeAllCursor)
         # Set a stylesheet to make it visible
         self.setStyleSheet("""
                 QSizeGrip {
@@ -78,6 +79,7 @@ class MainWindow(QMainWindow):
         sizegrip = CustomSizeGrip(self)
         sizegrip.setVisible(True)
         sizegrip.setObjectName("size_grip")
+        sizegrip.setCursor(Qt.SizeAllCursor)
         self.mainContent.layout().addWidget(sizegrip, 0, Qt.AlignBottom | Qt.AlignRight)
 
         # Initialize settings

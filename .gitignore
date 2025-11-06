@@ -11,3 +11,5 @@ bart-large-mnli/*
 finetuned_distilbert_bert
 release
 QuickMoveInstaller.exe
+*.jar
+*.txt

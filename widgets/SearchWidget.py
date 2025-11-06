@@ -196,7 +196,7 @@ class SearchWidget(QDialog):
         self.searchPane = self.search_page.findChild(QVBoxLayout, 'searchPane_3')
         self.savedVerse_pane = self.search_page.findChild(QVBoxLayout, 'saved_verse_pane')
         self.search_bar = self.search_page.findChildren(QLineEdit)
-        self.history = self.search_page.findChild(QLabel, 'history_4')
+        self.history = self.search_page.findChild(QLineEdit, 'history')
         
         self.searchBarContainer = self.search_page.findChild(QWidget, 'widget_15')
         #getting the rcord button
@@ -245,7 +245,7 @@ class SearchWidget(QDialog):
         #getting the values
         original = self.settings.value('copied_reference')
         displayed = self.settings.value('displayed_reference')
-        self.history.setText(f'Original Reference: {original} Currently Displayed Verse: <b>{displayed}</b>')
+        self.history.setText(f'Original Reference: {original} Currently Displayed Verse: {displayed}')
         #clearing the values to avoid persistence
         # self.settings.setValue('copied_reference', '').
         # self.settings.setValue('displayed_reference', '')
@@ -372,6 +372,8 @@ class SearchWidget(QDialog):
         #displaying the confidence of the search result
         if confidence:
             single_result.confidence.setText(f'{confidence:.2f}')
+        else:
+            single_result.confidence.setStyleSheet('color: transparent;')
 
         # print('verse_key', verse_key)
         

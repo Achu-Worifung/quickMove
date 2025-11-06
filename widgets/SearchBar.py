@@ -43,10 +43,7 @@ class StyledPopup(QtWidgets.QListView):
             }
         """)
 
-    ## ========================================================================
-    ##  THE FIX: SIMPLIFIED LOGIC
-    ##  Align everything (Width, X, and Y) to the search_bar (QLineEdit)
-    ## ========================================================================
+
     def showEvent(self, event):
         """
         Align popup width and position to the width_widget (container with eye icon)
@@ -181,8 +178,9 @@ class AutocompleteWidget(QtWidgets.QWidget):
         
 
     def handle_enter(self):
-        if self._model.rowCount() > 0:
-            top_item = self.model().item(0)
+        # Use the model instance (not call it) and guard against empty model
+        if self._model and self._model.rowCount() > 0:
+            top_item = self._model.item(0)
             if top_item:
                 self.lineedit.setText(top_item.text() + ' ')
                 return
