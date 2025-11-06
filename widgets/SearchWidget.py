@@ -22,6 +22,7 @@ from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import *
 import util.pyaudioandWhisper as transcriber
 from util import soundwave
+from PyQt5.QtWidgets import QSizePolicy
 import json
 
 

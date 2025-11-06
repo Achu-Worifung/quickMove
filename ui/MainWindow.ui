@@ -560,7 +560,7 @@ background-color: rgb(139, 139, 139);
           <item>
            <widget class="QStackedWidget" name="stackedWidget">
             <property name="currentIndex">
-             <number>2</number>
+             <number>6</number>
             </property>
             <widget class="QWidget" name="select_autos">
              <layout class="QVBoxLayout" name="verticalLayout_12">
@@ -2683,6 +2683,11 @@ QScrollBar::sub-page:vertical {
                        <item>
                         <property name="text">
                          <string>Tiny</string>
+                        </property>
+                       </item>
+                       <item>
+                        <property name="text">
+                         <string>Base</string>
                         </property>
                        </item>
                        <item>
