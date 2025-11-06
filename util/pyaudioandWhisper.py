@@ -188,6 +188,7 @@ def run_transcription(recording_page, search_Page=None, lineEdit=None, worker_th
 
     print("Recording...")
     counter = 1
+    prev_segment_text = "" #keep track of prev segment text to provide more context for the next segment
 
     try:
         while True:
@@ -293,43 +294,39 @@ def run_transcription(recording_page, search_Page=None, lineEdit=None, worker_th
                     )
                     
                     # print(f"Transcription for segment {counter}:")
-                    segment_text = ""
-                    for segment in segments:
-                       lineEdit.setText(lineEdit.text() + segment.text.strip() + " ")
-                       
-                       #classify each segment using the bible classifier
-                       result = bible_classifier_model(segment.text.strip())
-                       print(f"Segment: {segment.text.strip()}")
-                       label = result[0]['label']
-                       score = result[0]['score']
-                       print(f"Classified as: {label} with score {score}")
-                       #search if the label is bible add score baseline after fine tunning
-                       if label == 'bible' and worker_thread:
-                           perform_auto_search(
-                                query=segment.text.strip().lower(), 
-                                worker_thread=worker_thread,
-                                score=score,
-                                max_len=auto_search_size
-                            )
+                    full_trans = [segment.text.strip().lower() for segment in segments]
+                    print('full trans', full_trans)
+                    full_text = " ".join(full_trans)
+                    lineEdit.setText(lineEdit.text() + " " + full_text + " ")
+                    print('here is the full text', full_text)
+                    
+                    #classify each segment using the bible classifier
+                    if full_trans:
+                        result = bible_classifier_model(prev_segment_text + " " + full_text.lower())
+                        label = result[0]['label']
+                        score = result[0]['score']
+                    else:
+                        label = None
+                        score = None
+                    
+                    print(f"Classified as: {label} with score {score}")
+                    #search if the label is bible add score baseline after fine tunning
+                    if label == 'bible' and worker_thread:
+                        perform_auto_search(
+                            query=prev_segment_text + " " + full_text.lower(), 
+                            worker_thread=worker_thread,
+                            score=score,
+                            max_len=auto_search_size
+                        )
                             
-                            # auto_search_thrad = SearchThread(
-                            #     api_key=os.getenv('API_KEY'),
-                            #     engine_id=os.getenv('SEARCH_ENGINE_ID'),
-                            #     query=segment.text.strip()
-                            # )
-                            # auto_search_thrad.finished.connect(perform_auto_search)
-                            # auto_search_thrad.start()
-                            # print("Started new search thread")
-                            # print("auto search thrad", auto_search_thrad)
-                            # print("auto search thrad is running", auto_search_thrad.isRunning())
                                 
                           
-                    if segment_text.strip():
-                        line_edit.setText(line_edit.text() + segment_text.strip() + " ")
+                    if full_text.strip():
+                        line_edit.setText(line_edit.text() + full_text.strip() + " ")
                     else:
                         # print("No speech detected in this segment.")
                         pass
-                        
+                    prev_segment_text = full_text
                     counter += 1
                     
                 except Exception as e:
@@ -380,7 +377,7 @@ def perform_auto_search(query, worker_thread, score=None, max_len=1):
         results = response.json()
         
         items = results.get("items", [])
-        print('here are all the items from auto search', items)
+        print('here ist the length of items', len(items))
         reversed_items = items[::-1]
         if reversed_items and worker_thread:
             print('here is the top result from auto search', items[0])
@@ -429,7 +426,7 @@ class SearchThread(QThread):
         params = {
             "key": self.api_key,
             "cx": self.engine_id,
-            "q": quote_plus(self.query  ),  
+            "q": self.query + ' KJV',  
             "safe": "active",  # Optional
             'hl': 'en',
             'num': 10,

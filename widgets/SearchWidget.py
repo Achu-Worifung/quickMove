@@ -82,7 +82,7 @@ class locateVerseThread(QThread):
 class SearchWidget(QDialog):
     def __init__(self, search_page, data=None, index=None):
         super().__init__()
-        
+        print("SearchWidget init started")
         self.search_page = search_page
         
         self.init_page()
