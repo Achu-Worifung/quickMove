@@ -139,7 +139,7 @@ for pkg in ['tokenizers', 'torch', 'numpy', 'sentencepiece', 'huggingface_hub', 
         pass
 
 # Recursive inclusion of local model folders (if present)
-for folder in ['models', 'finetuned_distilbert_bert']:
+for folder in ['models', 'finetuned_distilbert_bert', 'bibles']:
     if os.path.exists(folder):
         for file in glob.glob(f'{folder}/**/*', recursive=True):
             if os.path.isfile(file):

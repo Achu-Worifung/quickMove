@@ -84,7 +84,7 @@ class SearchWidget(QDialog):
         super().__init__()
         print("SearchWidget init started")
         self.search_page = search_page
-        
+         
         self.init_page()
         
         #setting up the json files(translation)
@@ -92,7 +92,6 @@ class SearchWidget(QDialog):
         # self.name = name
         self.old_widget= []
         self.saved_widgets = []
-        self.version.addItems(['KJV', 'NIV', 'ESV', 'ASV', 'NLT'])
         #list of saved verse
         self.savedVerse = []
         self.Tracker = []
@@ -139,6 +138,8 @@ class SearchWidget(QDialog):
         
         # for the listening window
         self.listening_window = None
+        # Guard to avoid concurrent creation of listening window (prevents double-open)
+        self._creating_listening_window = False
         
         # customLineEdit = autoComplete_widget.lineedit
         # adding an infocuse listerner to get the location of the search bar
@@ -150,15 +151,25 @@ class SearchWidget(QDialog):
         # autoComplete_widget.lineedit.focusInEvent = self.openEye
     
     def startWhisper(self):
-        if self.listening_window is None or not self.listening_window.isVisible():
+        """Create/show listening window once; protected against re-entrant calls."""
+        # Fast path: already visible
+        if self.listening_window is not None and self.listening_window.isVisible():
+            return
+
+        # Prevent concurrent creation (race when multiple signals fire)
+        if self._creating_listening_window:
+            return
+
+        self._creating_listening_window = True
+        try:
             parent = self.search_page
-            
             self.listening_window = WhisperWindow(parent, search_widget=self)
+            # ensure the instance is visible flag is set before returning
             self.listening_window.setWindowFlags(Qt.Window | Qt.FramelessWindowHint)
             self.listening_window.show()
-        else:
-            print('Listening window already open')
-    
+        finally:
+            self._creating_listening_window = False
+
     def add_auto_search_results(self, results, query):
        print("add_auto_search_results called on main thread.") # Debug print
        for result in results:
@@ -178,14 +189,24 @@ class SearchWidget(QDialog):
             self.handle_search(self.data, current_query)
             
     def startWhisper(self):
-        if self.listening_window is None or not self.listening_window.isVisible():
+        """Create/show listening window once; protected against re-entrant calls."""
+        # Fast path: already visible
+        if self.listening_window is not None and self.listening_window.isVisible():
+            return
+
+        # Prevent concurrent creation (race when multiple signals fire)
+        if self._creating_listening_window:
+            return
+
+        self._creating_listening_window = True
+        try:
             parent = self.search_page
-            
             self.listening_window = WhisperWindow(parent, search_widget=self)
+            # ensure the instance is visible flag is set before returning
             self.listening_window.setWindowFlags(Qt.Window | Qt.FramelessWindowHint)
             self.listening_window.show()
-        else:
-            print('Listening window already open')
+        finally:
+            self._creating_listening_window = False
 
     # def openEye(self, event):
        
@@ -202,6 +223,8 @@ class SearchWidget(QDialog):
         self.searchBarContainer = self.search_page.findChild(QWidget, 'widget_15')
         #getting the rcord button
         self.record = self.search_page.findChild(QPushButton, 'listen')
+        self.version.addItems(['KJV', 'NIV', 'ESV', 'ASV', 'NLT'])
+
         
         print('listen button', self.record)
 
