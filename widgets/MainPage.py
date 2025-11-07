@@ -1,4 +1,3 @@
-
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import Qt
 from PyQt5 import QtCore
@@ -20,36 +19,53 @@ class MainPage(QWidget):
         self.data = []
         
     def setupUi(self, data=None):
-        #deleteing anything that is in the layout
-        widget = self.page.findChild(QWidget, 'created_autos')
-        if widget:
-            print("in widget setup",widget.layout())
-            clearLayout(widget.layout())
-        # print('set up ran')
-        if not data:
-            self.data = walk.get_data()
-
-        datapane = self.page.findChild(QWidget, 'created_autos').layout()
-        if not  self.data["Automata"]:
-           pass
+        # Ensure we don't crash if the page/widget is missing
+        created_widget = self.page.findChild(QtWidgets.QWidget, 'created_autos')
+        if created_widget:
+            # Clear any existing items safely
+            if created_widget.layout() is not None:
+                clearLayout(created_widget.layout())
         else:
-        
-            # clearLayout(datapane)
+            # Nothing to populate
+            return
 
-            ui_path = os.path.join(os.path.dirname(__file__), '../ui/automate_select.ui')
+        # Prefer explicitly passed data, otherwise load persisted data
+        if data is not None:
+            self.data = data
+        else:
+            self.data = walk.get_data() or {}
 
-            for i, automaton in enumerate( self.data['Automata']):
+        # Ensure we have a layout to add to; create one if necessary
+        datapane = created_widget.layout()
+        if datapane is None:
+            datapane = QVBoxLayout()
+            created_widget.setLayout(datapane)
+
+        automata_list = self.data.get('Automata', [])
+        if not automata_list:
+            return
+
+        ui_path = os.path.join(os.path.dirname(__file__), '../ui/automate_select.ui')
+
+        for i, automaton in enumerate(automata_list):
+            try:
                 single_automata = loadUi(ui_path)
-                single_automata.name.setText(automaton['name'])
-                # print(automaton)
+            except Exception:
+                # if the .ui file is missing or loadUi fails, skip this entry
+                continue
 
-                # Use partial to capture the current value of i
-                single_automata.use.clicked.connect(partial(self.getStarted, automaton = automaton))
+            # Safely set fields and connect buttons if they exist
+            if hasattr(single_automata, 'name'):
+                single_automata.name.setText(automaton.get('name', ''))
+
+            if hasattr(single_automata, 'use'):
+                single_automata.use.clicked.connect(partial(self.getStarted, automaton=automaton))
+            if hasattr(single_automata, 'modify'):
                 single_automata.modify.clicked.connect(partial(self.mod, automaton))
-                single_automata.delete_2.clicked.connect(partial(self.delete, button_name = automaton['name']))
+            if hasattr(single_automata, 'delete_2'):
+                single_automata.delete_2.clicked.connect(partial(self.delete, button_name=automaton.get('name')))
 
-                datapane.addWidget(single_automata)
-                
+            datapane.addWidget(single_automata)
         
 
     def delete(self, button_name=None):
@@ -93,4 +109,3 @@ class MainPage(QWidget):
         search_page = self.page.parent().layout().itemAt(2).widget()
         search_page = SearchWidget(search_page=search_page, data = automaton, index = 2)
         self.page.parent().setCurrentIndex(2)
-      
