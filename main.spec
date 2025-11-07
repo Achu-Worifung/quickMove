@@ -1,123 +1,203 @@
 # -*- mode: python ; coding: utf-8 -*-
-import os
-from PyInstaller.utils.hooks import collect_submodules, collect_data_files
 
-# Define Tesseract paths
+import os
+import glob
+import sys
+
+from PyInstaller.utils.hooks import (
+    collect_submodules,
+    collect_data_files,
+    collect_all,
+)
+from PyInstaller.building.build_main import Analysis, PYZ, EXE, COLLECT
+
+# ---------------------------------------------------------------------
+# 📦 Paths and Core Config
+# ---------------------------------------------------------------------
 TESSERACT_PATH = r'C:\Program Files\Tesseract-OCR'
 TESSDATA_PATH = os.path.join(TESSERACT_PATH, 'tessdata')
 
-# Comprehensive hidden imports for transformers and related packages
-transformers_hidden_imports = collect_submodules('transformers')
-transformers_hidden_imports += [
-    'pytesseract',
-    'torch',
-    'numpy',
-    'tokenizers',
-    'sentencepiece',
-    'protobuf',  # Explicitly add missing import
-    'protobuf.descriptor',
-    'protobuf.json_format',
-    'requests',
-    'tqdm',
-    'regex',
-    'sacremotes',
-    'dataclasses',
-    'scipy.special._cdflib',  # Missing scipy component
-    'sip',  # Missing sip
-    'whisper',
-    'whisper.tokenizer',
+# ---------------------------------------------------------------------
+# 🧠 Collect package metadata / binaries for optional packages
+# ---------------------------------------------------------------------
+# faster_whisper and ctranslate2 (if present)
+fw_datas, fw_binaries, fw_hidden = [], [], []
+ct2_datas, ct2_binaries, ct2_hidden = [], [], []
+try:
+    fw_datas, fw_binaries, fw_hidden = collect_all('faster_whisper')
+except Exception:
+    print("faster_whisper not found or collect_all failed; continuing...")
+
+try:
+    ct2_datas, ct2_binaries, ct2_hidden = collect_all('ctranslate2')
+except Exception:
+    print("ctranslate2 not found or collect_all failed; continuing...")
+
+# Collect transformers fully (this is critical to avoid lazy-loading issues)
+t_datas, t_binaries, t_hidden = [], [], []
+try:
+    t_datas, t_binaries, t_hidden = collect_all('transformers')
+except Exception:
+    print("collect_all('transformers') failed; continuing (we'll still attempt other measures).")
+
+# ---------------------------------------------------------------------
+# 🧠 Hidden imports - COMPREHENSIVE transformers support
+# ---------------------------------------------------------------------
+hidden_imports = []
+
+# Collect ALL transformers submodules to avoid lazy loading issues
+try:
+    hidden_imports += collect_submodules('transformers')
+    hidden_imports += collect_submodules('transformers.models')
+except Exception:
+    print("collect_submodules for transformers failed; continuing...")
+
+# Core dependencies (explicitly included)
+hidden_imports += [
+    'pytesseract', 'torch', 'numpy', 'tokenizers', 'sentencepiece',
+    'requests', 'tqdm', 'regex', 'dataclasses', 'filelock',
+    'huggingface_hub', 'safetensors', 'accelerate',
 ]
 
-# Add common model-specific imports
-model_specific_imports = [
+# Explicit common model entrypoints
+hidden_imports += [
+    'transformers.models.auto',
     'transformers.models.bert',
-    'transformers.models.distilbert', 
+    'transformers.models.distilbert',
     'transformers.models.roberta',
     'transformers.models.gpt2',
     'transformers.models.t5',
     'transformers.models.whisper',
 ]
 
-transformers_hidden_imports += model_specific_imports
+# Additional transformers internals that sometimes are missed
+hidden_imports += [
+    'transformers.tokenization_utils',
+    'transformers.tokenization_utils_base',
+    'transformers.tokenization_utils_fast',
+    'transformers.configuration_utils',
+    'transformers.modeling_utils',
+    'transformers.file_utils',
+]
 
-a = Analysis(
-    ['main.py'],
-    pathex=[os.path.abspath('.')],
-    binaries=[
-        # Include Tesseract executable and required DLLs
-        (r'C:\Program Files\Tesseract-OCR\tesseract.exe', '.'),
-        (r'C:\Program Files\Tesseract-OCR\libtesseract-5.dll', '.'),
-        (r'C:\Program Files\Tesseract-OCR\leptonica-1.82.0.dll', '.'),
-        (r'C:\Program Files\Tesseract-OCR\zlib1.dll', '.'),
-        (r'C:\Program Files\Tesseract-OCR\libwebp-7.dll', '.'),
-        (r'C:\Program Files\Tesseract-OCR\openjp2.dll', '.'),
-    ],
-    datas=[
-        ('ui/*.ui', 'ui'),
-        ('Icons/*.ico', 'Icons'),
-        ('finetuned_distilbert_bert/*', 'finetuned_distilbert_bert'),
-        ('logo.ico', '.'),
-        # Create models directory for runtime downloads
-        ('models', 'models'),
-        # Add Tesseract training data
-        (os.path.join(TESSDATA_PATH, 'eng.traineddata'), 'tessdata'),
-        # Add .env file
-        ('.env', '.'),
-    ],
-    hiddenimports=transformers_hidden_imports,
-    hookspath=[],
-    hooksconfig={},
-    runtime_hooks=[],
-    excludes=[],
-    noarchive=False,
-    optimize=0,
-)
+# Add hidden imports discovered by collect_all for optional packages
+hidden_imports += list(fw_hidden) if fw_hidden else []
+hidden_imports += list(ct2_hidden) if ct2_hidden else []
+hidden_imports += list(t_hidden) if t_hidden else []
 
-# Function to safely collect and format data files
-def safe_collect_data_files(package_name):
+# ---------------------------------------------------------------------
+# 🧾 Safe collect extra datas
+# ---------------------------------------------------------------------
+def safe_collect(package_name):
     try:
-        datas = collect_data_files(package_name)
-        # Convert to 3-tuples: (src, dest, 'DATA')
-        return [(src, dest, 'DATA') for src, dest in datas]
+        return collect_data_files(package_name)
     except Exception as e:
         print(f"Warning: Could not collect data files for {package_name}: {e}")
         return []
 
-# Collect all data files from transformers and related packages
-transformers_datas = safe_collect_data_files('transformers')
-tokenizers_datas = safe_collect_data_files('tokenizers')
-torch_datas = safe_collect_data_files('torch')
-
-a.datas.extend(transformers_datas)
-a.datas.extend(tokenizers_datas) 
-a.datas.extend(torch_datas)
-
-# Add additional packages that might be needed
-additional_packages = ['numpy', 'torch', 'tokenizers', 'sentencepiece', 'protobuf', 'scipy']
-for pkg in additional_packages:
-    try:
-        pkg_datas = safe_collect_data_files(pkg)
-        a.datas.extend(pkg_datas)
-        a.hiddenimports.extend(collect_submodules(pkg))
-    except Exception as e:
-        print(f"Warning: Could not process {pkg}: {e}")
-
-# Ensure all datas entries are 3-tuples
-def ensure_3_tuples(datas_list):
-    fixed_list = []
-    for item in datas_list:
-        if len(item) == 2:
-            # Convert (src, dest) to (src, dest, 'DATA')
-            fixed_list.append((item[0], item[1], 'DATA'))
+# ---------------------------------------------------------------------
+# 🔹 Flattening function for datas/binaries
+# ---------------------------------------------------------------------
+def flatten_entries(entries):
+    """Flatten and normalize datas/binaries into (src, dest) tuples."""
+    normalized = []
+    for e in entries:
+        if isinstance(e, (list, tuple)):
+            if len(e) >= 2:
+                normalized.append((e[0], e[1]))
+            else:
+                print(f"Skipping invalid entry (too few elements): {e}")
         else:
-            fixed_list.append(item)
-    return fixed_list
+            print(f"Skipping invalid entry (not tuple/list): {e}")
+    return normalized
 
-# Fix the datas list
-a.datas = ensure_3_tuples(a.datas)
+# ---------------------------------------------------------------------
+# 🧩 Binaries and Datas
+# ---------------------------------------------------------------------
+binaries = [
+    (os.path.join(TESSERACT_PATH, 'tesseract.exe'), '.'),
+    (os.path.join(TESSERACT_PATH, 'libtesseract-5.dll'), '.'),
+    (os.path.join(TESSERACT_PATH, 'leptonica-1.82.0.dll'), '.'),
+    (os.path.join(TESSERACT_PATH, 'zlib1.dll'), '.'),
+    (os.path.join(TESSERACT_PATH, 'libwebp-7.dll'), '.'),
+    (os.path.join(TESSERACT_PATH, 'openjp2.dll'), '.'),
+] + list(fw_binaries) + list(ct2_binaries) + list(t_binaries)
+
+datas = [
+    ('ui/*.ui', 'ui'),
+    ('Icons/*.ico', 'Icons'),
+    ('logo.ico', '.'),
+    (os.path.join(TESSDATA_PATH, 'eng.traineddata'), 'tessdata'),
+    ('.env', '.'),
+] + list(fw_datas) + list(ct2_datas) + list(t_datas)
+
+# Add safe collect for widely used packages
+for pkg in ['tokenizers', 'torch', 'numpy', 'sentencepiece', 'huggingface_hub', 'safetensors']:
+    try:
+        datas += safe_collect(pkg)
+    except Exception:
+        pass
+
+# Recursive inclusion of local model folders (if present)
+for folder in ['models', 'finetuned_distilbert_bert']:
+    if os.path.exists(folder):
+        for file in glob.glob(f'{folder}/**/*', recursive=True):
+            if os.path.isfile(file):
+                rel_path = os.path.dirname(os.path.relpath(file, '.'))
+                datas.append((file, rel_path))
+
+# Normalize datas/binaries
+datas = flatten_entries(datas)
+binaries = flatten_entries(binaries)
+
+# ---------------------------------------------------------------------
+# 🧪 Runtime hook to fix transformers lazy loading
+# ---------------------------------------------------------------------
+runtime_hook_content = r"""
+import sys
+import os
+
+# Prefer offline behavior for transformers in the frozen app
+os.environ['TRANSFORMERS_OFFLINE'] = '1'
+os.environ['HF_HUB_OFFLINE'] = '1'
+
+# When frozen, force transformers to avoid dynamic disk access that expects packages in normal layout.
+if hasattr(sys, 'frozen'):
+    try:
+        import transformers
+        # Mark offline (this helps avoid HF network calls)
+        transformers.utils.is_offline_mode = lambda: True
+    except Exception:
+        # If transformers can't import here, we'll rely on the included datas/hiddenimports.
+        pass
+"""
+
+hook_path = 'pyinstaller_transformers_hook.py'
+with open(hook_path, 'w', encoding='utf-8') as f:
+    f.write(runtime_hook_content)
+
+# ---------------------------------------------------------------------
+# Analysis - IMPORTANT: set noarchive=True so modules are extracted to disk
+# ---------------------------------------------------------------------
+a = Analysis(
+    ['main.py'],
+    pathex=[os.path.abspath('.')],
+    binaries=binaries,
+    datas=datas,
+    hiddenimports=hidden_imports,
+    hookspath=[],
+    hooksconfig={},
+    runtime_hooks=[hook_path],
+    excludes=[],
+    noarchive=True,        # <- critical: prevents packing modules into the PYZ archive
+    optimize=0,
+)
 
 pyz = PYZ(a.pure)
 
+# ---------------------------------------------------------------------
+# EXE / COLLECT - debug-friendly settings (toggle for release)
+# ---------------------------------------------------------------------
 exe = EXE(
     pyz,
     a.scripts,
@@ -127,13 +207,10 @@ exe = EXE(
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
-    upx=True,
-    console=False,
+    upx=False,             # disable UPX for debugging; set to True for release if desired
+    console=True,          # enable console during debug so you can see tracebacks
     disable_windowed_traceback=False,
     argv_emulation=False,
-    target_arch=None,
-    codesign_identity=None,
-    entitlements_file=None,
     icon='logo.ico',
 )
 
@@ -142,7 +219,7 @@ coll = COLLECT(
     a.binaries,
     a.datas,
     strip=False,
-    upx=True,
+    upx=False,             # disable UPX at collection stage too
     upx_exclude=[],
     name='main',
 )

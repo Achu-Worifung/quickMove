@@ -36,41 +36,92 @@ class Settings:
         comboBox = [self.processing, self.model, self.channel, self.chunks, self.rate]
         spinBox = [self.beam, self.core, self.best,self.silence, self.suggest_len, self.auto_searchlen]
         doubleSpinBox = [self.temp, self.energy, self.minlen, self.maxlen]
+
+        # Load values from QSettings into widgets WITHOUT emitting change signals
         for box in comboBox:
-            print("Box name", box)
             saved_value = self.settings.value(box.objectName())
-            print("Saved value", saved_value, " here si the type of the saved value", type(saved_value))
-            
-            
-            box.currentTextChanged.connect(lambda value, b=box: self.setting_changed(b))
-            index = box.findText(str(saved_value))
-                
-            if index != -1:
-                box.setCurrentIndex(index)
+            # block signals while setting initial value so setting_changed is NOT invoked
+            box.blockSignals(True)
+            if saved_value is not None:
+                index = box.findText(str(saved_value))
+                if index != -1:
+                    box.setCurrentIndex(index)
+                else:
+                    # Persist current widget text as default if not present in settings
+                    default = box.currentText()
+                    self.settings.setValue(box.objectName(), default)
+                    # leave widget as-is
             else:
                 default = box.currentText()
                 self.settings.setValue(box.objectName(), default)
-                box.setCurrentIndex
+            box.blockSignals(False)
+            # connect after initial value is set
+            box.currentTextChanged.connect(lambda value, b=box: self.setting_changed(b))
         for box in spinBox:
-            box.valueChanged.connect(lambda value, b=box: self.setting_changed(b))
-            print("Box name", box)
+            box.blockSignals(True)
             saved_value = self.settings.value(box.objectName())
-            if saved_value:
-                box.setValue(int(saved_value))
+            if saved_value is not None:
+                try:
+                    box.setValue(int(saved_value))
+                except Exception:
+                    # fallback: keep current value
+                    pass
             else:
                 default = box.value()
                 self.settings.setValue(box.objectName(), default)
+            box.blockSignals(False)
+            box.valueChanged.connect(lambda value, b=box: self.setting_changed(b))
         for box in doubleSpinBox:
-            print("Box name", box.objectName())
-            box.valueChanged.connect(lambda value, b=box: self.setting_changed(b))
+            box.blockSignals(True)
             saved_value = self.settings.value(box.objectName())
-            if saved_value:
-                box.setValue(float(saved_value))
+            if saved_value is not None:
+                try:
+                    box.setValue(float(saved_value))
+                except Exception:
+                    pass
             else:
                 default = box.value()
                 self.settings.setValue(box.objectName(), default)
+            box.blockSignals(False)
+            box.valueChanged.connect(lambda value, b=box: self.setting_changed(b))
             
         self.settings.sync()
+
+    def reload_ui_from_settings(self):
+        """Reload UI widgets to reflect values currently persisted in QSettings
+        without emitting change signals (used after discard or reset)."""
+        comboBox = [self.processing, self.model, self.channel, self.chunks, self.rate]
+        spinBox = [self.beam, self.core, self.best,self.silence, self.suggest_len, self.auto_searchlen]
+        doubleSpinBox = [self.temp, self.energy, self.minlen, self.maxlen]
+
+        for box in comboBox:
+            saved_value = self.settings.value(box.objectName())
+            box.blockSignals(True)
+            if saved_value is not None:
+                idx = box.findText(str(saved_value))
+                if idx != -1:
+                    box.setCurrentIndex(idx)
+            box.blockSignals(False)
+        for box in spinBox:
+            saved_value = self.settings.value(box.objectName())
+            box.blockSignals(True)
+            if saved_value is not None:
+                try:
+                    box.setValue(int(saved_value))
+                except Exception:
+                    pass
+            box.blockSignals(False)
+        for box in doubleSpinBox:
+            saved_value = self.settings.value(box.objectName())
+            box.blockSignals(True)
+            if saved_value is not None:
+                try:
+                    box.setValue(float(saved_value))
+                except Exception:
+                    pass
+            box.blockSignals(False)
+
+
     def open_model_manager(self):
         # Pass the page_widget (which is a QWidget) as the parent instead of self
         dialog = ModelManagerDialog(self.page_widget)
@@ -79,14 +130,28 @@ class Settings:
     def setting_changed(self, obj = None):
         object_name = obj.objectName()
         new_value = (obj.currentText() if isinstance(obj, QComboBox) else obj.value())
+        print(f'{object_name} changed to {new_value}')
         self.made_changes[object_name] = new_value
+        # mark that there are unsaved changes
+        self.settings.setValue("changesmade", True)
     
     def save_settings(self):
-        for change in self.made_changes:
+        for change in list(self.made_changes.keys()):
             self.settings.setValue(change, self.made_changes[change])
+        # persist and clear pending changes
         self.settings.setValue("changesmade", False)
+        self.settings.sync()
         self.made_changes.clear()
-    
+    def discard_changes(self):
+        # Clear pending changes and reload UI from persisted settings
+        self.made_changes.clear()
+        self.settings.setValue("changesmade", False)
+        self.settings.sync()
+        # ensure UI matches persisted settings and does NOT trigger setting_changed
+        try:
+            self.reload_ui_from_settings()
+        except Exception:
+            pass
     def reset_settings(self):
         defaults = self.settings.value("default_settings")
         print("Defaults", defaults)
@@ -105,7 +170,6 @@ class Settings:
             index += 1
                 
       
-        
         
         
     def page_setup(self):
@@ -150,7 +214,6 @@ class Settings:
         # self.settings.sync()
         print("Processing value saved")
     
-
 
 
 

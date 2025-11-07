@@ -1,7 +1,7 @@
 
 import sys
 from PyQt5.QtWidgets import QDialog
-
+import transformers.models.auto  
 import os
 from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QLabel, QPushButton, QTableWidgetItem, QMainWindow,QSizeGrip
 from PyQt5.QtGui import QIcon
@@ -208,9 +208,9 @@ class MainWindow(QMainWindow):
         pass
     def moveFromSettings(self):
         # print('were changes made', self.settings.value("changesmade"))
-        changes = len(self.modepage.made_changes) == 0 
+        changes = len(self.modepage.made_changes) > 0 
         print('this is changes', changes)
-        if not changes:
+        if  changes:
             print('were changes made', self.settings.value("changesmade"))
             link = os.path.join(os.path.dirname(__file__), './ui/settingwarning.ui')
             from widgets.Warning import Warnings
@@ -220,11 +220,12 @@ class MainWindow(QMainWindow):
 
             if result == QDialog.Accepted:
                 if warning_dialog.clicked_button == "discard":
+                    self.modepage.discard_changes()
+
                     return
                 elif warning_dialog.clicked_button == "save":
                    print('here is the settings page', self.modepage)
                    self.modepage.save_settings()
-            self.settings.setValue("changesmade", False)
             self.settings.sync()
 
  

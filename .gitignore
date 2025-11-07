@@ -13,3 +13,4 @@ release
 QuickMoveInstaller.exe
 *.jar
 *.txt
+Outputs/
