@@ -10,7 +10,6 @@ from PyQt5.QtWidgets import (QApplication, QPushButton, QMainWindow,
                            QWidget, QVBoxLayout)
 from PyQt5.QtCore import QRect
 
-overlays = []
 class SearchArea(QWidget):
     def __init__(self, page_widget):
         super().__init__()
@@ -24,6 +23,7 @@ class SearchArea(QWidget):
         self.configure= self.page_widget.findChild(QPushButton, 'configure')
         
         self.label = self.page_widget.findChild(QLabel, 'current_config')
+        self.overlays = []
         
        
         
@@ -33,25 +33,27 @@ class SearchArea(QWidget):
         self.updateLable()
         
     def updateLable(self):
-        current = self.settings.value('search_area')
-        if current:
-            self.label.setText(f"Current search area: {current}")
+        self.current = self.settings.value('search_area')
+        if self.current:
+            self.label.setText(f"Current search area: {self.current}")
         else:
             self.label.setText("No search area configured")
         
-
+    
     def show_overlay(self):
-        global overlays
-        overlays = []
+        if not self.current:
+            msg.warningBox(self, 'Error', 'Please configure the search area first')
+            return
+        self.overlays = []
         # Clear any existing overlays
-        for overlay in overlays:
+        for overlay in self.overlays:
             overlay.close()
-            overlays.clear()
+        self.overlays.clear()
         
         # Create an overlay for each screen
         for screen in QApplication.screens():
-            overlay = ScreenOverlay(screen)
-            overlays.append(overlay)
+            overlay = ScreenOverlay(screen, self.overlays)
+            self.overlays.append(overlay)
             overlay.show()
 
     def configureSearch(self):
@@ -73,10 +75,11 @@ class SearchArea(QWidget):
         self.event_tracker_thread.create_new_automaton()
         
 class ScreenOverlay(QWidget):
-    def __init__(self, screen):
+    def __init__(self, screen, overlays):
         super().__init__()
         self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.Tool)
         self.setAttribute(Qt.WA_TranslucentBackground)
+        self.overlays = overlays
         
         # Set the geometry to cover the entire screen
         self.setGeometry(screen.geometry())
@@ -105,7 +108,6 @@ class ScreenOverlay(QWidget):
             painter.drawRect(self.square_rect)
     
     def mousePressEvent(self, event):
-        global overlays
-        for overlay in overlays:
+        for overlay in self.overlays:
             overlay.close()
             # overlay.clear()

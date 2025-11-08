@@ -1,8 +1,12 @@
 
+import os
+
+from util.util import resource_path
+os.environ['QT_ENABLE_HIGHDPI_SCALING'] = '1'
+os.environ['QT_SCALE_FACTOR'] = '1'
+os.environ['QT_SCREEN_SCALE_FACTORS'] = '1'
 import sys
 from PyQt5.QtWidgets import QDialog
-import transformers.models.auto  
-import os
 from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QLabel, QPushButton, QTableWidgetItem, QMainWindow,QSizeGrip
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import Qt, QSettings, QThread, pyqtSignal
@@ -13,15 +17,18 @@ from util.clearLayout import clearLayout
 from widgets.SearchWidget import SearchWidget
 from functools import partial
 import torch
-
-
+from PyQt5 import QtCore, QtWidgets, QtGui
+QtCore.QCoreApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True)
+QtCore.QCoreApplication.setAttribute(QtCore.Qt.AA_UseHighDpiPixmaps, True)
 # Setting Application ID (for Windows taskbar icon)
-try:
-    from ctypes import windll
-    myappid = 'amc.quickmove.automatasimulator'
-    windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
-except ImportError:
-    pass
+if sys.platform == "win32":
+    try:
+        import ctypes
+        
+        app_id = u"amc.quickmove.automatasimulator"  
+        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(app_id)
+    except Exception:
+        pass
 
 
 basedir = os.path.dirname(__file__)
@@ -66,12 +73,14 @@ class MainWindow(QMainWindow):
         super().__init__()
 
         # Load UI file
-        ui_path = os.path.join(os.path.dirname(__file__), './ui/MainWindow.ui')
+        ui_path = resource_path('./ui/MainWindow.ui')
         assert os.path.exists(ui_path), f"UI file not found: {ui_path}"
         loadUi(ui_path, self)
 
         # Set app icon and remove window controls
-        self.setWindowIcon(QIcon(os.path.join(basedir, "logo.ico")))
+        icon_path = resource_path("logo.ico")
+        if os.path.exists(icon_path):
+            self.setWindowIcon(QtGui.QIcon(icon_path))
         self.setWindowFlags(Qt.FramelessWindowHint)
         
 

@@ -24,7 +24,7 @@ import util.pyaudioandWhisper as transcriber
 from util import soundwave
 from PyQt5.QtWidgets import QSizePolicy
 import json
-
+from util.findVerseBox import findPrevDisplayedVerse
 
 
 class Tracker():
@@ -406,7 +406,11 @@ class SearchWidget(QDialog):
         self.old_widget.append(single_result)
         # self.verse_widgets[verse_key] = single_result
         def mouse_click(event, verse_key):
+            prev_verse = findPrevDisplayedVerse()
+            print('prev_verse', prev_verse)
             QTimer.singleShot(0, lambda: self.present(verse_key, self.data))
+            self.history.setText(f'Prev Displayed Verse: {prev_verse}')
+            
 
         
         # Bind `verse_key` explicitly

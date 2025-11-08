@@ -366,21 +366,6 @@ max-width:80px
        <item>
         <widget class="QWidget" name="mainContent" native="true">
          <layout class="QHBoxLayout" name="horizontalLayout_4">
-          <property name="spacing">
-           <number>0</number>
-          </property>
-          <property name="leftMargin">
-           <number>0</number>
-          </property>
-          <property name="topMargin">
-           <number>0</number>
-          </property>
-          <property name="rightMargin">
-           <number>0</number>
-          </property>
-          <property name="bottomMargin">
-           <number>0</number>
-          </property>
           <item>
            <widget class="QWidget" name="functions" native="true">
             <property name="minimumSize">
@@ -560,7 +545,7 @@ background-color: rgb(139, 139, 139);
           <item>
            <widget class="QStackedWidget" name="stackedWidget">
             <property name="currentIndex">
-             <number>6</number>
+             <number>2</number>
             </property>
             <widget class="QWidget" name="select_autos">
              <layout class="QVBoxLayout" name="verticalLayout_12">
@@ -581,18 +566,15 @@ background-color:rgb(255, 255, 255);</string>
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>600</width>
-                   <height>764</height>
+                   <width>576</width>
+                   <height>746</height>
                   </rect>
                  </property>
                  <layout class="QVBoxLayout" name="verticalLayout_9">
-                  <property name="sizeConstraint">
-                   <enum>QLayout::SetDefaultConstraint</enum>
-                  </property>
                   <item alignment="Qt::AlignLeft">
                    <widget class="QWidget" name="widget_12" native="true">
                     <property name="sizePolicy">
-                     <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+                     <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
                       <horstretch>0</horstretch>
                       <verstretch>0</verstretch>
                      </sizepolicy>
@@ -654,6 +636,53 @@ background-color:rgb(255, 255, 255);</string>
                    <layout class="QVBoxLayout" name="verticalLayout_10">
                     <item>
                      <widget class="QScrollArea" name="scrollArea">
+                      <property name="styleSheet">
+                       <string notr="true">QScrollArea:vertical {
+    width: 10px;
+    background: #f1f1f1;         /* light gray track instead of black */
+    border-radius: 5px;
+    margin: 0px;
+}
+
+/* Scroll handle (the part you drag) */
+QScrollBar::handle:vertical {
+    background: #c1c1c1;         /* medium gray for good contrast */
+    border-radius: 5px;
+    min-height: 30px;
+    transition: background 0.3s ease;
+}
+
+/* Hover effect for handle */
+QScrollBar::handle:vertical:hover {
+    background: #a0a0a0;         /* darker when hovered */
+}
+
+/* Pressed state */
+QScrollBar::handle:vertical:pressed {
+    background: #808080;
+}
+
+/* Remove arrow buttons */
+QScrollBar::sub-line:vertical,
+QScrollBar::add-line:vertical {
+    height: 0;
+    width: 0;
+    background: none;
+    border: none;
+}
+
+/* Remove arrow icons */
+QScrollBar::up-arrow:vertical,
+QScrollBar::down-arrow:vertical {
+    background: none;
+}
+
+/* Optional: space at top/bottom (no buttons, just gap) */
+QScrollBar::add-page:vertical,
+QScrollBar::sub-page:vertical {
+    background: none;
+}</string>
+                      </property>
                       <property name="widgetResizable">
                        <bool>true</bool>
                       </property>
@@ -665,8 +694,8 @@ background-color:rgb(255, 255, 255);</string>
                         <rect>
                          <x>0</x>
                          <y>0</y>
-                         <width>580</width>
-                         <height>691</height>
+                         <width>556</width>
+                         <height>673</height>
                         </rect>
                        </property>
                        <layout class="QVBoxLayout" name="verticalLayout_4"/>
@@ -1062,7 +1091,11 @@ background-color:  rgb(220, 220, 220);
                         </property>
                         <property name="font">
                          <font>
-                          <pointsize>17</pointsize>
+                          <pointsize>14</pointsize>
+                          <weight>50</weight>
+                          <bold>false</bold>
+                          <underline>false</underline>
+                          <strikeout>false</strikeout>
                          </font>
                         </property>
                         <property name="styleSheet">
@@ -1187,8 +1220,8 @@ QScrollBar::sub-page:vertical {
                        <rect>
                         <x>0</x>
                         <y>0</y>
-                        <width>578</width>
-                        <height>526</height>
+                        <width>554</width>
+                        <height>508</height>
                        </rect>
                       </property>
                       <property name="focusPolicy">
@@ -1266,8 +1299,8 @@ border:none</string>
                      <rect>
                       <x>0</x>
                       <y>0</y>
-                      <width>587</width>
-                      <height>746</height>
+                      <width>563</width>
+                      <height>728</height>
                      </rect>
                     </property>
                     <property name="styleSheet">
@@ -1434,8 +1467,8 @@ border:none</string>
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>600</width>
-                   <height>764</height>
+                   <width>576</width>
+                   <height>746</height>
                   </rect>
                  </property>
                  <property name="styleSheet">
@@ -2068,7 +2101,56 @@ font:20px
                  </size>
                 </property>
                 <property name="styleSheet">
-                 <string notr="true">border:none</string>
+                 <string notr="true">#textBrowser
+{
+
+border:none
+}
+QScrollArea:vertical {
+    width: 10px;
+    background: #f1f1f1;         /* light gray track instead of black */
+    border-radius: 5px;
+    margin: 0px;
+}
+
+/* Scroll handle (the part you drag) */
+QScrollBar::handle:vertical {
+    background: #c1c1c1;         /* medium gray for good contrast */
+    border-radius: 5px;
+    min-height: 30px;
+    transition: background 0.3s ease;
+}
+
+/* Hover effect for handle */
+QScrollBar::handle:vertical:hover {
+    background: #a0a0a0;         /* darker when hovered */
+}
+
+/* Pressed state */
+QScrollBar::handle:vertical:pressed {
+    background: #808080;
+}
+
+/* Remove arrow buttons */
+QScrollBar::sub-line:vertical,
+QScrollBar::add-line:vertical {
+    height: 0;
+    width: 0;
+    background: none;
+    border: none;
+}
+
+/* Remove arrow icons */
+QScrollBar::up-arrow:vertical,
+QScrollBar::down-arrow:vertical {
+    background: none;
+}
+
+/* Optional: space at top/bottom (no buttons, just gap) */
+QScrollBar::add-page:vertical,
+QScrollBar::sub-page:vertical {
+    background: none;
+}</string>
                 </property>
                 <property name="html">
                  <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
@@ -2333,7 +2415,7 @@ QScrollBar::sub-page:vertical {
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>590</width>
+                   <width>566</width>
                    <height>1093</height>
                   </rect>
                  </property>

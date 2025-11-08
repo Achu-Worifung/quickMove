@@ -32,23 +32,24 @@ def run_transcription(recording_page, search_Page=None, lineEdit=None, worker_th
     # --------------------loading all the variables from settings------------------
     print('hers is the the line edit', type(lineEdit))
     
-    beam_size = int(settings.value('beam'))
-    best_of = int(settings.value('best'))
-    temperature = float(settings.value('temperature'))
-    language = settings.value('language')
+    beam_size = int(settings.value('beam') or 5)
+    best_of = int(settings.value('best') or 2)
+    temperature = float(settings.value('temperature') or 0.00)
+    language = settings.value('language') or 'en'
     # vad_filter = settings.value('vad_filter')
-    energy_threshold = float(settings.value('energy_threshold'))
+    energy_threshold = float(settings.value('energy_threshold') or 0.10)
     # vad_parameters = settings.value('vad_parameters')
-    model_size = settings.value('model').lower()
-    cpu_cores = int(settings.value('cpu_cores'))
-    processing = settings.value('processing')
-    CHANNELS = int(settings.value('channel'))
-    RATE = int(settings.value('rate'))  # 16kHz sample rate for Whisper
-    CHUNK = int(settings.value('chunks'))
-    silence_length = float( settings.value('silence'))  # Minimum silence duration for VAD in seconds
-    min_record_len = int(settings.value('minlen'))  # Minimum recording length in seconds
+    model_size = (settings.value('model') or 'tiny').lower()
+    cpu_cores = int(settings.value('cpu_cores') or 1)
+    processing = settings.value('processing') or ('CPU' if not torch.cuda.is_available() else 'GPU')
+    # Recording settings
+    CHANNELS = int(settings.value('channel') or 1)
+    RATE = int(settings.value('rate') or 16000)  # 16kHz sample rate for Whisper
+    CHUNK = int(settings.value('chunks') or 1024)
+    silence_length = float(settings.value('silence') or 0.5)  # Minimum silence duration for VAD in seconds
+    min_record_len = int(settings.value('minlen') or 1)  # Minimum recording length in seconds
     
-    max_record_len = int(settings.value('maxlen'))  # Maximum recording length in seconds
+    max_record_len = int(settings.value('maxlen') or 5)  # Maximum recording length in seconds
     computation_type = "float16" if processing == "GPU" else "int8"
     auto_search_size = int(settings.value('auto_length') or 1)
     

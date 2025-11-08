@@ -24,7 +24,7 @@ class StyledPopup(QtWidgets.QListView):
                 color: black;
                 outline: 0;
                 padding: 4px;               
-                font-size: 12px;            
+                font-size: 1.2em;            
                 font: MS Shell Dlg 2;
             }
             QListView::item {
