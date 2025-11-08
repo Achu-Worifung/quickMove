@@ -3,9 +3,23 @@ from PyQt5.QtCore import QSettings
 import pytesseract
 import cv2
 import numpy as np
+from util.util import resource_path
+from util import Message as msg
+import os
 
 # Set Tesseract path (Windows)
-pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
+bundled_tesseract = resource_path("tesseract.exe")
+system_tesseract  = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+if os.path.exists(bundled_tesseract):
+    pytesseract.pytesseract.tesseract_cmd = bundled_tesseract
+    os.environ["TESSDATA_PREFIX"] = resource_path("tessdata")
+elif os.path.exists(system_tesseract):
+    pytesseract.pytesseract.tesseract_cmd = system_tesseract
+    os.environ["TESSDATA_PREFIX"] = r"C:\Program Files\Tesseract-OCR\tessdata"
+else:
+    msg.warningBox(None, "Tesseract Not Found", 
+                   "Tesseract OCR executable not found. Please install Tesseract OCR "
+                   "from https://github.com/UB-Mannheim/tesseract/wiki")
 
 def findPrevDisplayedVerse():
     try:
