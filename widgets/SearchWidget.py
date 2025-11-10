@@ -587,27 +587,47 @@ class WhisperWindow(QFrame):
         print(f"Start recording called, checkbox checked: {self.record_btn.isChecked()}")
         if self.record_btn.isChecked():
             if not self.transcription_thread.isRunning():
+                # Create new thread if old one finished
+                self.transcription_thread = TranscriptionWorker(self, search_page=self.search_page)
+                self.transcription_thread.autoSearchResults.connect(self.search_widget.add_auto_search_results)
                 self.transcription_thread.start()
             print("Starting soundwave visualization")
             self.soundwave_label.start_recording_visualization()
         else:
             print("Stopping soundwave visualization")
-            self.transcription_thread.terminate()
+            # Use graceful stop instead of terminate
+            if self.transcription_thread.isRunning():
+                self.transcription_thread.stop_transcription()
+                # Wait for graceful shutdown (with timeout)
+                if not self.transcription_thread.wait(5000):  # 5 second timeout
+                    print("Transcription didn't stop gracefully, forcing termination")
+                    self.transcription_thread.terminate()
+                    self.transcription_thread.wait()
             self.soundwave_label.stop_recording_visualization()
 
     def close(self):
         print("WhisperWindow closing")
         if hasattr(self, 'soundwave_label'):
             self.soundwave_label.stop_recording_visualization()
+        
+        # Graceful shutdown of transcription thread
         if self.transcription_thread.isRunning():
-            self.transcription_thread.terminate()
-            self.transcription_thread.wait()
-            print('Terminated transcription thread')
+            print("Requesting graceful transcription shutdown...")
+            self.transcription_thread.stop_transcription()
+            
+            # Wait up to 5 seconds for graceful shutdown
+            if not self.transcription_thread.wait(5000):
+                print("Timeout waiting for graceful shutdown, forcing termination")
+                self.transcription_thread.terminate()
+                self.transcription_thread.wait()
+            else:
+                print("Transcription stopped gracefully")
+        
         if self.search_widget:
             self.search_widget.listening_window = None
             self.record_btn.setChecked(False)
-            
             print('Cleared listening_window reference in SearchWidget')
+        
         super().close()
 
     def mousePressEvent(self, event):
@@ -632,17 +652,25 @@ class TranscriptionWorker(QThread):
     finished = pyqtSignal()
     autoSearchResults = pyqtSignal(list, str, float)  # Emit results, query, and confidence
 
-    def __init__(self, parent=None, search_page = None):
+    def __init__(self, parent=None, search_page=None):
         super().__init__(parent)
         self.record_page = parent
         self.search_page = search_page
         self.lineEdit = self.record_page.lineEdit
+        # Create controller for graceful shutdown
+        self.controller = transcriber.TranscriptionController()
 
     def run(self):
         transcriber.run_transcription(
             recording_page=self.record_page,
             search_Page=self.search_page,
             lineEdit=self.lineEdit,
-            worker_thread=self
+            worker_thread=self,
+            controller=self.controller  # Pass controller here
         )
         self.finished.emit()
+    
+    def stop_transcription(self):
+        """Request transcription to stop gracefully"""
+        print("Stopping transcription gracefully...")
+        self.controller.stop()
