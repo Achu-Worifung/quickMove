@@ -15,7 +15,7 @@ def get_model_info(model_name):
 
 def list_downloaded_models():
     """List all downloaded models and their sizes"""
-    models_dir = './models'
+    models_dir = resource_path('models')
     downloaded_models = []
     
     if os.path.exists(models_dir):
@@ -42,7 +42,7 @@ def list_downloaded_models():
 def delete_model(model_name):
     """Delete a downloaded model"""
     import shutil
-    model_path = os.path.join('./models', model_name)
+    model_path = os.path.join(resource_path('models'), model_name)
     if os.path.exists(model_path):
         try:
             shutil.rmtree(model_path)
@@ -54,7 +54,7 @@ def delete_model(model_name):
 
 def get_total_models_size():
     """Get total size of all downloaded models"""
-    models_dir = './models'
+    models_dir = resource_path('models')
     total_size = 0
     
     if os.path.exists(models_dir):
@@ -69,7 +69,9 @@ def download_model(model_name):
     """Download a model using faster-whisper's download function"""
     from faster_whisper import download_model as fw_download_model
     try:
-        fw_download_model(model_name, cache_dir=f"./models/{model_name}")
+        cache_dir = resource_path(f"models/{model_name}")
+        os.makedirs(cache_dir, exist_ok=True)
+        fw_download_model(model_name, cache_dir=cache_dir)
         return True, f"Model '{model_name}' downloaded successfully"
     except Exception as e:
         return False, f"Error downloading model: {e}"

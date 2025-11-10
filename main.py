@@ -171,7 +171,7 @@ class MainWindow(QMainWindow):
     def moveToCreate(self):
         self.saveSettings()
 
-        self.toggleMenu()
+        # self.toggleMenu()
         self.stackedWidget.setCurrentIndex(1)
         self.curr_page = "create"
         
@@ -184,7 +184,7 @@ class MainWindow(QMainWindow):
         self.saveSettings()
 
         #hiding the nav bar
-        self.toggleMenu()
+        # self.toggleMenu()
         self.stackedWidget.setCurrentIndex(3)
         self.curr_page = "about"
         
@@ -199,27 +199,30 @@ class MainWindow(QMainWindow):
     def moveTOSearchArea(self):
         self.saveSettings()
         self.curr_page = "searchArea"
-        self.toggleMenu()
+        # self.toggleMenu()
         self.stackedWidget.setCurrentIndex(5)
-        from widgets.SearchArea import SearchArea
-        page = self.stackedWidget.layout().itemAt(5).widget()
-        self.modepage = SearchArea(page)
-        pass
+        if not hasattr(self, 'search_area_page') or self.search_area_page is None:
+            from widgets.SearchArea import SearchArea
+            page = self.stackedWidget.layout().itemAt(5).widget()
+            self.search_area_page = SearchArea(page)
+        self.stackedWidget.setCurrentIndex(5)
+        
     def moveToSettings(self):
         self.saveSettings()
 
         self.curr_page = "settings"
-        self.toggleMenu()
+        # self.toggleMenu()
         self.stackedWidget.setCurrentIndex(6)
         self.curr_page = "settings"
         
-        from widgets.Settings import Settings 
-        page = self.stackedWidget.layout().itemAt(6).widget()
-        self.modepage = Settings(page)
-        pass
+        if not hasattr(self, 'settings_page') or self.settings_page is None:
+            from widgets.Settings import Settings 
+            page = self.stackedWidget.layout().itemAt(6).widget()
+            self.settings_page = Settings(page)
+        self.stackedWidget.setCurrentIndex(6)
     def moveFromSettings(self):
         # print('were changes made', self.settings.value("changesmade"))
-        changes = len(self.modepage.made_changes) > 0 
+        changes = len(self.settings_page.made_changes) > 0 
         print('this is changes', changes)
         if  changes:
             print('were changes made', self.settings.value("changesmade"))
@@ -231,12 +234,12 @@ class MainWindow(QMainWindow):
 
             if result == QDialog.Accepted:
                 if warning_dialog.clicked_button == "discard":
-                    self.modepage.discard_changes()
+                    self.settings_page.discard_changes()
 
                     return
                 elif warning_dialog.clicked_button == "save":
-                   print('here is the settings page', self.modepage)
-                   self.modepage.save_settings()
+                   print('here is the settings page', self.settings_page)
+                   self.settings_page.save_settings()
             self.settings.sync()
 
  
@@ -260,7 +263,6 @@ class MainWindow(QMainWindow):
 
             
         else:
-            self.toggleMenu()
             self.stackedWidget.setCurrentIndex(0)
             
         self.curr_page = "home"
@@ -287,8 +289,8 @@ class MainWindow(QMainWindow):
 
     def MainPage(self):
         page = self.stackedWidget.layout().itemAt(0).widget()
-        if not hasattr(self, 'modepage') or self.modepage is None:
-            self.modepage = MainPage(page)
+        if not hasattr(self, 'homepage') or self.homepage is None:
+            self.homepage = MainPage(page)
         self.stackedWidget.setCurrentIndex(0)
 
     
