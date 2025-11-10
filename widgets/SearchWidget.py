@@ -387,6 +387,7 @@ class SearchWidget(QDialog):
         """Called when user clicks "save" on a result - create widget and persist."""
         existing_titles = {v.get('title') for v in self.savedVerse.get('savedVerses', [])}
         if title in existing_titles:
+            print(f"Already saved: {title}")
             return
         # Create widget and persist
         self._create_saved_widget(title, body, persist=True)
