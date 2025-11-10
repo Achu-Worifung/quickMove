@@ -38,6 +38,10 @@ class Tracker():
         return f"Tracker(reference='{self.reference}', priority={self.priority})"
 
 class SearchThread(QThread):
+    """
+    Runs a Google Custom Search API query in a separate thread.
+    Includes a graceful stop mechanism.
+    """
     finished = pyqtSignal(list, str)
 
     def __init__(self, api_key: str, engine_id: str, query: str):
@@ -45,6 +49,7 @@ class SearchThread(QThread):
         self.api_key = api_key
         self.engine_id = engine_id
         self.query = query
+        self._is_running = True # Flag for graceful stop
 
     def run(self):
         url = 'https://customsearch.googleapis.com/customsearch/v1?'
@@ -56,12 +61,43 @@ class SearchThread(QThread):
             'hl': 'en',
             'num': 10,
         }
-        header =  {"User-Agent": "Mozilla/5.0"}
-        response = httpx.get(url, params=params, headers=header)
-        response.raise_for_status()
-        results = response.json()
-        reversed_items = results.get("items", [])[::-1]
-        self.finished.emit(reversed_items, self.query)
+        header = {"User-Agent": "Mozilla/5.0"}
+
+        try:
+            # Use a client with a timeout so the thread doesn't block indefinitely
+            with httpx.Client(timeout=5.0) as client:
+                # Check if we were stopped before the request
+                if not self._is_running:
+                    self.finished.emit([], self.query)
+                    return
+                
+                response = client.get(url, params=params, headers=header)
+
+                # Check if we were stopped while waiting for the request
+                if not self._is_running:
+                    self.finished.emit([], self.query)
+                    return
+
+                response.raise_for_status()
+                results = response.json()
+                reversed_items = results.get("items", [])[::-1]
+
+                # Final check before emitting
+                if self._is_running:
+                    self.finished.emit(reversed_items, self.query)
+
+        except (httpx.RequestError, httpx.TimeoutException) as e:
+            print(f"Search request failed: {e}")
+            if self._is_running:
+                self.finished.emit([], self.query) # Emit empty on error
+        except Exception as e:
+            print(f"An unexpected error occurred in SearchThread: {e}")
+            if self._is_running:
+                self.finished.emit([], self.query) # Emit empty on error
+
+    def stop(self):
+        """Signals the thread to stop gracefully."""
+        self._is_running = False
 
 
 class locateVerseThread(QThread):
@@ -92,7 +128,7 @@ class SearchWidget(QDialog):
         self.data = data or {}
         self.name = (data or {}).get('name', 'unknown')
         self.verse_tracker = OrderedDict()
-        self.verse_widgets: Dict[str, QDialog] = {}
+        # self.verse_widgets: Dict[str, QDialog] = {} # <-- Removed, was unused
         self.search_thread: Optional[SearchThread] = None
         self.locate_box_thread: Optional[locateVerseThread] = None
         self.last_query_time = 0
@@ -161,12 +197,12 @@ class SearchWidget(QDialog):
 
 
     def add_auto_search_results(self, results, query):
-       print("add_auto_search_results called on main thread.") # Debug print
-       for result in results:
-              reference = getReference.getReference(result['title'])
-              if not reference:
-                continue
-              self.add_verse_widget(query, result, reference)
+        print("add_auto_search_results called on main thread.") # Debug print
+        for result in results:
+                reference = getReference.getReference(result['title'])
+                if not reference:
+                    continue
+                self.add_verse_widget(query, result, reference)
 
 
     def change_translation(self):
@@ -207,7 +243,7 @@ class SearchWidget(QDialog):
             self.locate_box_thread = locateVerseThread()
             self.locate_box_thread.finished.connect(self.handle_locate_results)
             self.locate_box_thread.start()
-            super().focusOutEvent(event)
+            super(QDialog, self).focusOutEvent(event) # Corrected super call
 
 
     def handle_locate_results(self, result):
@@ -228,9 +264,9 @@ class SearchWidget(QDialog):
 
 
     def prevVerse(self):
-       print('data', self.data)
-       Simulate.present_prev_verse(self.name)
-       self.updateHistoryLabel()
+        print('data', self.data)
+        Simulate.present_prev_verse(self.name)
+        self.updateHistoryLabel()
 
 
     #
@@ -241,20 +277,25 @@ class SearchWidget(QDialog):
         """Remove and delete all widget children of a QLayout."""
         if layout is None:
             return
-        widgets = []
-        # iterate in reverse to be safe
-        for i in reversed(range(layout.count())):
-            item = layout.takeAt(i)
+        
+        # Collect widgets to be deleted
+        widgets_to_delete = []
+        while layout.count():
+            item = layout.takeAt(0)
             if item is None:
                 continue
-            w = item.widget()
-            if w is not None:
-                widgets.append(w)
-        for w in widgets:
+                
+            widget = item.widget()
+            if widget is not None:
+                widgets_to_delete.append(widget)
+
+        # Delete all collected widgets
+        for w in widgets_to_delete:
             try:
                 w.setParent(None)
                 w.deleteLater()
-            except Exception:
+            except Exception as e:
+                print(f"Error deleting widget: {e}")
                 pass
 
 
@@ -320,7 +361,7 @@ class SearchWidget(QDialog):
 
     def _create_saved_widget(self, title, body, persist=True):
         """Create the saved.ui widget and insert into the saved pane.
-           persist=False prevents writing to disk (used when populating from disk)."""
+            persist=False prevents writing to disk (used when populating from disk)."""
         link = os.path.join(os.path.dirname(__file__), '../ui/saved.ui')
         saved = loadUi(link)
         saved.title.setText(title)
@@ -358,21 +399,21 @@ class SearchWidget(QDialog):
     def update_verse_tracker(self, new_results, query):
         widget_to_remove = []
         # clearing the layout of old results
-        for i in range(self.searchPane.count()):
-            widget_to_remove.append(self.searchPane.itemAt(i).widget())
-        for widget in widget_to_remove:
-            self.searchPane.removeWidget(widget)
-            if widget:
-                widget.deleteLater()
+        self.clear_layout(self.searchPane) # Use the robust clear_layout function
+
         self.old_widget.clear()
         self.displayed_verse.clear()
-        print('current contedents', self.searchPane.count())
+        print('current contents', self.searchPane.count())
+        
         # adding the new results to the layout
-        self.searchPane.update()
+        self.searchPane.update() # May not be necessary, but harmless
         for result in new_results:
             reference = getReference.getReference(result['title'])
             if not reference:
                 continue
+            
+            # This check is now redundant because we clear the layout first,
+            # but it's safe to leave as a double-check.
             if reference in self.displayed_verse:
                 index = self.displayed_verse.index(reference)
                 remove_widget = self.searchPane.takeAt(index)
@@ -441,20 +482,18 @@ class SearchWidget(QDialog):
             print('erasing query')
 
             self.displayed_verse.clear()
-            widgets_to_remove = []
-            for i in range(self.searchPane.count()):
-                widget = self.searchPane.itemAt(i).widget()
-                if widget:
-                    widgets_to_remove.append(widget)
-
-            for widget in widgets_to_remove:
-                self.searchPane.removeWidget(widget)
-                widget.deleteLater()
+            # Use robust clear_layout
+            self.clear_layout(self.searchPane) 
 
             self.old_widget.clear()
             self.verse_tracker = OrderedDict()
-            self.old_widget = []
-            self.saved_widgets = []
+            # self.saved_widgets = [] # <-- Do not clear saved_widgets here
+            
+            # Stop any running search
+            if self.search_thread and self.search_thread.isRunning():
+                self.search_thread.stop()
+                self.search_thread.wait()
+
             self.search_thread = None
             self.last_query_time = 0
             print('after erasing', self.searchPane.count())
@@ -466,16 +505,22 @@ class SearchWidget(QDialog):
             return
 
         if self.search_thread and self.search_thread.isRunning():
-            self.search_thread.terminate()
+            # --- MODIFIED: Use graceful stop ---
+            self.search_thread.stop()
             self.search_thread.wait()
 
         self.search_thread = SearchThread(self.api_key, self.engine_id, query)
-        self.search_thread.finished.connect(
-            lambda results, q=query: self.handle_search_results(results, q)
-        )
+        
+        # --- MODIFIED: Direct signal-slot connection ---
+        # This is cleaner and avoids potential lambda reference issues.
+        # The thread signal pyqtSignal(list, str) matches the
+        # slot arguments handle_search_results(self, results, query).
+        self.search_thread.finished.connect(self.handle_search_results)
+        
         self.search_thread.start()
 
     def handle_search_results(self, results, query):
+        """Slot to receive results from SearchThread."""
         if results:
             self.update_verse_tracker(results, query)
         elif not results and self.searchPane.count() > 0 and self.double_search:
@@ -489,6 +534,12 @@ class SearchWidget(QDialog):
             if item.widget():
                 item.widget().deleteLater()
                 self.delete_saved_verse(saved.title.text())
+            
+            # --- ADDED: Remove from Python list ---
+            # This ensures the Python reference is dropped,
+            # allowing the widget to be fully garbage collected.
+            if saved in self.saved_widgets:
+                self.saved_widgets.remove(saved)
         pass
 
     def present(self, title, automata):
@@ -513,6 +564,7 @@ class SearchWidget(QDialog):
     #
     def _refresh_saved_bodies(self):
         """Update displayed body texts of saved widgets to match current bible_data."""
+        # Iterate over a copy of the list in case a widget is somehow invalid
         for saved_widget in list(self.saved_widgets):
             try:
                 title = saved_widget.title.text()
@@ -520,6 +572,8 @@ class SearchWidget(QDialog):
                 body = self.bible_data.get(book, {}).get(str(chapter), {}).get(str(verse_num), saved_widget.body.text())
                 saved_widget.body.setText(body)
             except Exception:
+                # This could happen if a widget was deleted but still in the list
+                # (though our 'delete' fix should prevent this)
                 continue
 
     def _refresh_searchpane_bodies(self):
@@ -625,7 +679,7 @@ class WhisperWindow(QFrame):
         
         if self.search_widget:
             self.search_widget.listening_window = None
-            self.record_btn.setChecked(False)
+            # self.record_btn.setChecked(False) # This line might cause an error if widget is being destroyed
             print('Cleared listening_window reference in SearchWidget')
         
         super().close()
