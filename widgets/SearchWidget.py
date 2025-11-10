@@ -392,55 +392,49 @@ class SearchWidget(QDialog):
         self._create_saved_widget(title, body, persist=True)
 
 
-    #
-    # ------------------ EXISTING SEARCH + RESULT LOGIC ------------------
-    #
+
 
     def update_verse_tracker(self, new_results, query):
-        widget_to_remove = []
-        # clearing the layout of old results
-        self.clear_layout(self.searchPane) # Use the robust clear_layout function
+            widget_to_remove = []
+            # clearing the layout of old results
+            self.clear_layout(self.searchPane) # Use the robust clear_layout function
 
-        self.old_widget.clear()
-        self.displayed_verse.clear()
-        print('current contents', self.searchPane.count())
-        
-        # adding the new results to the layout
-        self.searchPane.update() # May not be necessary, but harmless
-        for result in new_results:
-            reference = getReference.getReference(result['title'])
-            if not reference:
-                continue
+            self.old_widget.clear()
+            self.displayed_verse.clear()  # Start with a fresh list
+            print('current contents', self.searchPane.count())
             
-            # This check is now redundant because we clear the layout first,
-            # but it's safe to leave as a double-check.
-            if reference in self.displayed_verse:
-                index = self.displayed_verse.index(reference)
-                remove_widget = self.searchPane.takeAt(index)
-                if remove_widget.widget():
-                    remove_widget.widget().deleteLater()
-                    remove_widget.widget().setParent(None)
-            else:
-                self.displayed_verse.append(reference)
-            self.add_verse_widget(query, result, reference)
+            # adding the new results to the layout
+            self.searchPane.update() # May not be necessary, but harmless
+            for result in new_results:
+                reference = getReference.getReference(result['title'])
+                if not reference:
+                    continue
+                
+                # This check now prevents duplicates *within the new API results*
+                if reference in self.displayed_verse:
+                    print(f"Skipping duplicate in new batch: {reference}")
+                    continue 
+                else:
+                    self.displayed_verse.append(reference)
+                    self.add_verse_widget(query, result, reference)
 
 
     def add_auto_search_results(self, results, query, confidence = None):
-        print('here is the score', confidence)
-        for result in results[::-1]: # reversing again here
-            reference = getReference.getReference(result['title'])
-            if not reference:
-                continue
-            if reference in self.displayed_verse:
-                index = self.displayed_verse.index(reference)
-                remove_widget = self.searchPane.takeAt(index)
-                if remove_widget.widget():
-                    remove_widget.widget().deleteLater()
-                    remove_widget.widget().setParent(None)
-            else:
-                self.displayed_verse.append(reference)
-                print('appended to verse', self.displayed_verse[-1])
-            self.add_verse_widget(query, result, reference, confidence=confidence)
+            print('here is the score', confidence)
+            for result in results[::-1]: # reversing again here
+                reference = getReference.getReference(result['title'])
+                if not reference:
+                    continue
+                
+                # Check if this verse is already in our displayed list
+                if reference in self.displayed_verse:
+                    print(f"Skipping duplicate auto-search: {reference}")
+                    continue # Skip this duplicate result
+                else:
+                    self.displayed_verse.append(reference)
+                    print('appended to verse', self.displayed_verse[-1])
+                    # Only add the widget if it's not a duplicate
+                    self.add_verse_widget(query, result, reference, confidence=confidence)
 
 
     def callback(self, results, query, confidence = None):
@@ -454,7 +448,7 @@ class SearchWidget(QDialog):
 
         book, chapter, verse = getReference.parseReference(reference)
 
-        body = self.bible_data.get(book, {}).get(str(chapter), {}).get(str(verse), "Verse not found in this translation.")
+        body = getReference.boldedText(self.bible_data.get(book, {}).get(str(chapter), {}).get(str(verse), "Verse not found in this translation."), query)
         single_result.body.setText(body)
         single_result.title.setText(reference)
         if confidence:
