@@ -247,11 +247,17 @@ class MainWindow(QMainWindow):
 
         if self.curr_page == 'create':
             #retrieving the latest data
-            self.toggleMenu()
-            self.stackedWidget.setCurrentIndex(0)
+            # self.toggleMenu()
             # for 
             page = self.stackedWidget.layout().itemAt(0).widget()
-            self.modepage = MainPage(page)
+            if not hasattr(self, 'homepage') or self.homepage is None:
+                print('creating the homepage')
+                self.homepage = MainPage(page)
+            else:
+                print('updating the homepage')
+                self.homepage.refresh_automata_list()
+            self.stackedWidget.setCurrentIndex(0)
+
             
         else:
             self.toggleMenu()
@@ -280,11 +286,10 @@ class MainWindow(QMainWindow):
                 del widget_to_delete
 
     def MainPage(self):
-        self.stackedWidget.setCurrentIndex(0)
-        from widgets.MainPage import MainPage
         page = self.stackedWidget.layout().itemAt(0).widget()
-        self.modepage = MainPage(page)
-        pass
+        if not hasattr(self, 'modepage') or self.modepage is None:
+            self.modepage = MainPage(page)
+        self.stackedWidget.setCurrentIndex(0)
 
     
     def setUpDefaultSettings(self):

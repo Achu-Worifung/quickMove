@@ -20,11 +20,11 @@ class MainPage(QWidget):
         
     def setupUi(self, data=None):
         # Ensure we don't crash if the page/widget is missing
-        created_widget = self.page.findChild(QtWidgets.QWidget, 'created_autos')
-        if created_widget:
+        self.created_widget = self.page.findChild(QtWidgets.QWidget, 'created_autos')
+        if self.created_widget:
             # Clear any existing items safely
-            if created_widget.layout() is not None:
-                clearLayout(created_widget.layout())
+            if self.created_widget.layout() is not None:
+                clearLayout(self.created_widget.layout())
         else:
             # Nothing to populate
             return
@@ -36,10 +36,10 @@ class MainPage(QWidget):
             self.data = walk.get_data() or {}
 
         # Ensure we have a layout to add to; create one if necessary
-        datapane = created_widget.layout()
+        datapane = self.created_widget.layout()
         if datapane is None:
             datapane = QVBoxLayout()
-            created_widget.setLayout(datapane)
+            self.created_widget.setLayout(datapane)
 
         automata_list = self.data.get('Automata', [])
         if not automata_list:
@@ -66,7 +66,10 @@ class MainPage(QWidget):
                 single_automata.delete_2.clicked.connect(partial(self.delete, button_name=automaton.get('name')))
 
             datapane.addWidget(single_automata)
-        
+    
+    def refresh_automata_list(self):
+       
+        self.setupUi() 
 
     def delete(self, button_name=None):
         
