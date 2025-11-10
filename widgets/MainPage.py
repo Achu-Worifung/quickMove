@@ -105,7 +105,7 @@ class MainPage(QWidget):
         self.page.parent().setCurrentIndex(4)
 
     def getStarted(self, automaton):
-        from widgets.SearchWidget import SearchWidget
+        # from widgets.SearchWidget import SearchWidget
         search_page = self.page.parent().layout().itemAt(2).widget()
         search_page = SearchWidget(search_page=search_page, data = automaton, index = 2)
         self.page.parent().setCurrentIndex(2)

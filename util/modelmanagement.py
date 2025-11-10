@@ -1,4 +1,5 @@
 import os
+from util.util import resource_path
 WHISPER_MODEL_INFO = {
     'tiny': {'size': '74.6 MB', 'description': 'Fastest, least accurate'},
     'base': {'size': '142.0 MB', 'description': 'Good balance of speed and accuracy'},
