@@ -105,7 +105,14 @@ class MainPage(QWidget):
         self.page.parent().setCurrentIndex(4)
 
     def getStarted(self, automaton):
-        # from widgets.SearchWidget import SearchWidget
         search_page = self.page.parent().layout().itemAt(2).widget()
-        search_page = SearchWidget(search_page=search_page, data = automaton, index = 2)
+        
+        # Only create SearchWidget once and store it
+        if not hasattr(self, 'search_widget') or self.search_widget is None:
+            self.search_widget = SearchWidget(search_page=search_page, data=automaton, index=2)
+        else:
+            # Update data if needed when returning to this page
+            self.search_widget.data = automaton
+            self.search_widget.name = automaton.get('name', 'unknown')
+        
         self.page.parent().setCurrentIndex(2)

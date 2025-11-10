@@ -17,6 +17,8 @@ from util.clearLayout import clearLayout
 from widgets.SearchWidget import SearchWidget
 from functools import partial
 import torch
+from widgets.MainPage import MainPage
+
 from PyQt5 import QtCore, QtWidgets, QtGui
 QtCore.QCoreApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True)
 QtCore.QCoreApplication.setAttribute(QtCore.Qt.AA_UseHighDpiPixmaps, True)
@@ -248,7 +250,6 @@ class MainWindow(QMainWindow):
             self.toggleMenu()
             self.stackedWidget.setCurrentIndex(0)
             # for 
-            from widgets.MainPage import MainPage
             page = self.stackedWidget.layout().itemAt(0).widget()
             self.modepage = MainPage(page)
             
