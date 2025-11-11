@@ -79,7 +79,7 @@ class SuggestionModel(QtGui.QStandardItemModel):
         self._manager = QtNetwork.QNetworkAccessManager(self)
         self._reply = None
         self.suggestions = set()
-        self.max_suggestions = QtCore.QSettings().value('suggestion_length', 3, type=int)
+        self.max_suggestions = QtCore.QSettings("MyApp", "AutomataSimulator").value('suggestion_length', 3, type=int)
 
     @QtCore.pyqtSlot(str)
     def search(self, text):
