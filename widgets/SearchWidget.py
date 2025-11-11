@@ -7,7 +7,7 @@ from PyQt5.QtWidgets import QDialog, QApplication, QLabel
 from collections import OrderedDict
 import util.getReference as getReference
 from widgets.SearchBar import AutocompleteWidget
-from PyQt5.QtCore import QThread, pyqtSignal, QMimeData, QTimer
+from PyQt5.QtCore import QThread, pyqtSignal, QMimeData, QTimer, pyqtSlot
 import asyncio
 from functools import partial
 from typing import Dict, Optional
@@ -21,7 +21,7 @@ import string
 from PyQt5.QtGui import QIcon
 from PyQt5.QtWidgets import *
 import util.pyaudioandWhisper as transcriber
-from util import soundwave
+# from util import soundwave  # --- DISABLED TO PREVENT CRASH ---
 from PyQt5.QtWidgets import QSizePolicy
 import json
 from util.findVerseBox import findPrevDisplayedVerse
@@ -203,13 +203,22 @@ class SearchWidget(QDialog):
             self._creating_listening_window = False
 
 
-    def add_auto_search_results(self, results, query):
-        print("add_auto_search_results called on main thread.") # Debug print
-        for result in results:
-                reference = getReference.getReference(result['title'])
-                if not reference:
-                    continue
-                self.add_verse_widget(query, result, reference)
+    def add_auto_search_results(self, results, query, confidence = None):
+        print('here is the score', confidence)
+        for result in results[::-1]: # reversing again here
+            reference = getReference.getReference(result['title'])
+            if not reference:
+                continue
+            
+            # Check if this verse is already in our displayed list
+            if reference in self.displayed_verse:
+                print(f"Skipping duplicate auto-search: {reference}")
+                continue # Skip this duplicate result
+            else:
+                self.displayed_verse.append(reference)
+                print('appended to verse', self.displayed_verse[-1])
+                # Only add the widget if it's not a duplicate
+                self.add_verse_widget(query, result, reference, confidence=confidence)
 
 
     def change_translation(self):
@@ -412,14 +421,28 @@ class SearchWidget(QDialog):
             self.displayed_verse.clear()  # Start with a fresh list
             print('current contents', self.searchPane.count())
             
-            # adding the new results to the layout
-            self.searchPane.update() # May not be necessary, but harmless
-            for result in new_results:
+            # --- START: Frequency Sort Logic ---
+            ref_counts = {}
+            for item in new_results:
+                reference = getReference.getReference(item['title'])
+                if not reference:
+                    continue
+                ref_counts[reference] = ref_counts.get(reference, 0) + 1
+
+            def get_sort_key(result_item):
+                ref = getReference.getReference(result_item['title'])
+                return ref_counts.get(ref, 0)
+
+            sorted_results = sorted(new_results, key=get_sort_key, reverse=True)
+            print('Sorted results:', [r['title'] for r in sorted_results])
+            # --- END: Frequency Sort Logic ---
+            
+            self.searchPane.update() 
+            for result in sorted_results: # Use sorted list
                 reference = getReference.getReference(result['title'])
                 if not reference:
                     continue
                 
-                # This check now prevents duplicates *within the new API results*
                 if reference in self.displayed_verse:
                     print(f"Skipping duplicate in new batch: {reference}")
                     continue 
@@ -428,22 +451,41 @@ class SearchWidget(QDialog):
                     self.add_verse_widget(query, result, reference)
 
 
-    def add_auto_search_results(self, results, query, confidence = None):
+    def add_auto_search_results(self, results, query, confidence = None, max_results = 10):
             print('here is the score', confidence)
-            for result in results[::-1]: # reversing again here
+            
+            # --- START: Frequency Sort Logic ---
+            ref_counts = {}
+            for item in results:
+                reference = getReference.getReference(item['title'])
+                if not reference:
+                    continue
+                ref_counts[reference] = ref_counts.get(reference, 0) + 1
+
+            def get_sort_key(result_item):
+                ref = getReference.getReference(result_item['title'])
+                return ref_counts.get(ref, 0)
+            
+            sorted_results = sorted(results, key=get_sort_key, reverse=True)
+            # --- END: Frequency Sort Logic ---
+
+            count = 0
+            for result in sorted_results: # Use sorted list
+                if count >= max_results:
+                    break
+                
                 reference = getReference.getReference(result['title'])
                 if not reference:
                     continue
-                
-                # Check if this verse is already in our displayed list
+
                 if reference in self.displayed_verse:
                     print(f"Skipping duplicate auto-search: {reference}")
-                    continue # Skip this duplicate result
-                else:
-                    self.displayed_verse.append(reference)
-                    print('appended to verse', self.displayed_verse[-1])
-                    # Only add the widget if it's not a duplicate
-                    self.add_verse_widget(query, result, reference, confidence=confidence)
+                    continue 
+                
+                self.displayed_verse.append(reference)
+                print('appended to verse', self.displayed_verse[-1])
+                self.add_verse_widget(query, result, reference, confidence=confidence)
+                count += 1
 
 
     def callback(self, results, query, confidence = None):
@@ -451,18 +493,29 @@ class SearchWidget(QDialog):
 
 
     def normalize_book(self, book: str) -> str:
-        """Return a normalized book name suitable for bible_data keys.
-        Keeps numeric prefixes (e.g. '1', '2', '3') and title-cases other words.
         """
+        Normalizes a book name to match the bible_data keys.
+        This uses the canonical map from getReference.
+        """
+        # --- THIS IS THE NEW, ROBUST NORMALIZATION ---
+        # It relies on your getReference.py file having the normalization functions
         if not book:
             return book
-        # collapse extra whitespace
-        parts = ' '.join(book.strip().split()).split(' ')
-        normalized = []
-        for p in parts:
-            # keep numbers as-is, otherwise capitalize first letter
-            normalized.append(p if p.isdigit() else p.capitalize())
-        return ' '.join(normalized)
+        
+        # Use parseReference to get the *normalized* book name.
+        # We pass a dummy chapter:verse to match the regex.
+        normalized_book, _, _ = getReference.parseReference(f"{book} 1:1")
+        
+        # If normalization fails, fall back to simple capitalize
+        if not normalized_book:
+            print(f"Warning: Normalization failed for '{book}'. Falling back to capitalize.")
+            parts = ' '.join(book.strip().split()).split(' ')
+            normalized = []
+            for p in parts:
+                normalized.append(p if p.isdigit() else p.capitalize())
+            return ' '.join(normalized)
+            
+        return normalized_book
 
 
     def add_verse_widget(self,query, result, reference, confidence = None):
@@ -470,15 +523,26 @@ class SearchWidget(QDialog):
         link = os.path.join(os.path.dirname(__file__), '../ui/result.ui')
         single_result = loadUi(link)
 
-        book, chapter, verse = getReference.parseReference(reference)
-        # normalize book name to match keys in bible_data (handles "1 corinthians", etc.)
-        normalized_book = self.normalize_book(book)
-        body = getReference.boldedText(
-            self.bible_data.get(normalized_book, {}).get(str(chapter), {}).get(str(verse), "Verse not found in this translation."),
-            query
-        )
-        single_result.body.setText(body)
+        # --- THIS IS THE CORRECTED LOGIC ---
+        # 1. 'reference' is the clean, canonical string (e.g., "Mark 12:30")
         single_result.title.setText(reference)
+
+        # 2. Parse it to get the parts
+        book, chapter, verse = getReference.parseReference(reference)
+
+        if book:
+            # 3. 'book' is now the canonical name (e.g., "Mark")
+            # We no longer need self.normalize_book() here
+            body = getReference.boldedText(
+                self.bible_data.get(book, {}).get(str(chapter), {}).get(str(verse), "Verse not found in this translation."),
+                query
+            )
+            single_result.body.setText(body)
+        else:
+            # Fallback if parsing fails (shouldn't happen if getReference worked)
+            single_result.body.setText("Error parsing reference.")
+        
+        # --- (Rest of your function) ---
         if confidence:
             single_result.confidence.setText(f'{confidence:.2f}')
         else:
@@ -509,7 +573,6 @@ class SearchWidget(QDialog):
 
             self.old_widget.clear()
             self.verse_tracker = OrderedDict()
-            # self.saved_widgets = [] # <-- Do not clear saved_widgets here
             
             # Stop any running search
             if self.search_thread and self.search_thread.isRunning():
@@ -527,18 +590,11 @@ class SearchWidget(QDialog):
             return
 
         if self.search_thread and self.search_thread.isRunning():
-            # --- MODIFIED: Use graceful stop ---
             self.search_thread.stop()
             self.search_thread.wait()
 
         self.search_thread = SearchThread(self.api_key, self.engine_id, query)
-        
-        # --- MODIFIED: Direct signal-slot connection ---
-        # This is cleaner and avoids potential lambda reference issues.
-        # The thread signal pyqtSignal(list, str) matches the
-        # slot arguments handle_search_results(self, results, query).
         self.search_thread.finished.connect(self.handle_search_results)
-        
         self.search_thread.start()
 
     def handle_search_results(self, results, query):
@@ -557,9 +613,6 @@ class SearchWidget(QDialog):
                 item.widget().deleteLater()
                 self.delete_saved_verse(saved.title.text())
             
-            # --- ADDED: Remove from Python list ---
-            # This ensures the Python reference is dropped,
-            # allowing the widget to be fully garbage collected.
             if saved in self.saved_widgets:
                 self.saved_widgets.remove(saved)
         pass
@@ -586,17 +639,15 @@ class SearchWidget(QDialog):
     #
     def _refresh_saved_bodies(self):
         """Update displayed body texts of saved widgets to match current bible_data."""
-        # Iterate over a copy of the list in case a widget is somehow invalid
         for saved_widget in list(self.saved_widgets):
             try:
                 title = saved_widget.title.text()
+                # parseReference *should* return the canonical book name
                 book, chapter, verse_num = getReference.parseReference(title)
-                normalized_book = self.normalize_book(book)
-                body = self.bible_data.get(normalized_book, {}).get(str(chapter), {}).get(str(verse_num), saved_widget.body.text())
-                saved_widget.body.setText(body)
+                if book:
+                    body = self.bible_data.get(book, {}).get(str(chapter), {}).get(str(verse_num), saved_widget.body.text())
+                    saved_widget.body.setText(body)
             except Exception:
-                # This could happen if a widget was deleted but still in the list
-                # (though our 'delete' fix should prevent this)
                 continue
 
     def _refresh_searchpane_bodies(self):
@@ -610,17 +661,20 @@ class SearchWidget(QDialog):
                 continue
             try:
                 reference = w.title.text()
+                # parseReference *should* return the canonical book name
                 book, chapter, verse_num = getReference.parseReference(reference)
-                normalized_book = self.normalize_book(book)
-                body = self.bible_data.get(normalized_book, {}).get(str(chapter), {}).get(str(verse_num), None)
-                if body:
-                    w.body.setText(body)
+                if book:
+                    body = self.bible_data.get(book, {}).get(str(chapter), {}).get(str(verse_num), None)
+                    if body:
+                        # Re-apply bolding based on the *current* query
+                        current_query = self.autoComplete_widget.lineedit.text()
+                        w.body.setText(getReference.boldedText(body, current_query))
             except Exception:
                 pass
 
 
 #
-# Listening UI + worker classes (kept mostly as-is, small cleanups)
+# Listening UI + worker classes
 #
 class WhisperWindow(QFrame):
     def __init__(self, parent=None, search_widget=None):
@@ -638,64 +692,92 @@ class WhisperWindow(QFrame):
         self.search_page = parent
         self.search_widget = search_widget
 
-        # Start transcription in a separate thread
-        self.transcription_thread = TranscriptionWorker(self, search_page=parent)
+        # --- THIS IS THE CRITICAL CRASH-FIX ---
+        # 1. Create the worker, passing the lineEdit
+        self.transcription_thread = TranscriptionWorker(
+            self, 
+            search_page=parent, 
+            lineEdit=self.lineEdit # Pass the widget
+        )
+        
+        # 2. Connect the auto-search signal
         self.transcription_thread.autoSearchResults.connect(self.search_widget.add_auto_search_results)
+        
+        # 3. Connect the thread-safe text signal to the GUI slot
+        self.transcription_thread.guiTextReady.connect(self.update_transcription_text)
+
+        # 4. Start the thread
         self.transcription_thread.start()
+        # --- END CRASH-FIX BLOCK ---
 
-        self.soundwave_label = soundwave.SoundWaveLabel(self)
+        # --- SOUNDWAVE VISUALIZER DISABLED TO PREVENT CRASH ---
+        # self.soundwave_label = soundwave.SoundWaveLabel(self)
+        # original_label = self.findChild(QLabel, 'sound')
+        # if original_label:
+        #     geometry = original_label.geometry()
+        #     parent_widget = original_label.parent()
+        #     original_label.setParent(None)
+        #     self.soundwave_label.setParent(parent_widget)
+        #     self.soundwave_label.setGeometry(geometry)
+        #     self.soundwave_label.setText("Not listening")
+        #     self.soundwave_label.setStyleSheet('margin: 30px auto; color: white;')
+        #     self.label = self.soundwave_label
+        #     print("Soundwave label created and replaced original label")
+        # else:
+        #     print("Original 'sound' label not found!")
 
-        original_label = self.findChild(QLabel, 'sound')
-        if original_label:
-            geometry = original_label.geometry()
-            parent_widget = original_label.parent()
-            original_label.setParent(None)
-            self.soundwave_label.setParent(parent_widget)
-            self.soundwave_label.setGeometry(geometry)
-            self.soundwave_label.setText("Not listening")
-            self.soundwave_label.setStyleSheet('margin: 30px auto; color: white;')
-            self.label = self.soundwave_label
-            print("Soundwave label created and replaced original label")
-        else:
-            print("Original 'sound' label not found!")
+        # if self.checkBox.isChecked():
+        #     print("Checkbox is checked, starting visualization automatically")
+        #     self.soundwave_label.start_recording_visualization()
+        # --- END SOUNDWAVE BLOCK ---
 
-        if self.checkBox.isChecked():
-            print("Checkbox is checked, starting visualization automatically")
-            self.soundwave_label.start_recording_visualization()
+    @pyqtSlot(str) 
+    def update_transcription_text(self, text):
+        """
+        This function is *guaranteed* to run on the main GUI thread.
+        It is the ONLY safe place to call self.lineEdit.setText().
+        """
+        current_ui_text = self.lineEdit.text()
+        self.lineEdit.setText((current_ui_text + " " + text).strip())
 
     def start_recording(self):
         print(f"Start recording called, checkbox checked: {self.record_btn.isChecked()}")
         if self.record_btn.isChecked():
             if not self.transcription_thread.isRunning():
                 # Create new thread if old one finished
-                self.transcription_thread = TranscriptionWorker(self, search_page=self.search_page)
+                self.transcription_thread = TranscriptionWorker(self, search_page=self.search_page, lineEdit=self.lineEdit)
                 self.transcription_thread.autoSearchResults.connect(self.search_widget.add_auto_search_results)
+                self.transcription_thread.guiTextReady.connect(self.update_transcription_text)
                 self.transcription_thread.start()
-            print("Starting soundwave visualization")
-            self.soundwave_label.start_recording_visualization()
+            
+            # --- SOUNDWAVE DISABLED ---
+            # print("Starting soundwave visualization")
+            # self.soundwave_label.start_recording_visualization()
         else:
             print("Stopping soundwave visualization")
             # Use graceful stop instead of terminate
             if self.transcription_thread.isRunning():
                 self.transcription_thread.stop_transcription()
-                # Wait for graceful shutdown (with timeout)
-                if not self.transcription_thread.wait(5000):  # 5 second timeout
+                if not self.transcription_thread.wait(5000):
                     print("Transcription didn't stop gracefully, forcing termination")
                     self.transcription_thread.terminate()
                     self.transcription_thread.wait()
-            self.soundwave_label.stop_recording_visualization()
+            
+            # --- SOUNDWAVE DISABLED ---
+            # self.soundwave_label.stop_recording_visualization()
 
     def close(self):
         print("WhisperWindow closing")
-        if hasattr(self, 'soundwave_label'):
-            self.soundwave_label.stop_recording_visualization()
+        
+        # --- SOUNDWAVE DISABLED ---
+        # if hasattr(self, 'soundwave_label'):
+        #     self.soundwave_label.stop_recording_visualization()
         
         # Graceful shutdown of transcription thread
-        if self.transcription_thread.isRunning():
+        if hasattr(self, 'transcription_thread') and self.transcription_thread.isRunning():
             print("Requesting graceful transcription shutdown...")
             self.transcription_thread.stop_transcription()
             
-            # Wait up to 5 seconds for graceful shutdown
             if not self.transcription_thread.wait(5000):
                 print("Timeout waiting for graceful shutdown, forcing termination")
                 self.transcription_thread.terminate()
@@ -705,7 +787,6 @@ class WhisperWindow(QFrame):
         
         if self.search_widget:
             self.search_widget.listening_window = None
-            # self.record_btn.setChecked(False) # This line might cause an error if widget is being destroyed
             print('Cleared listening_window reference in SearchWidget')
         
         super().close()
@@ -731,26 +812,25 @@ class WhisperWindow(QFrame):
 class TranscriptionWorker(QThread):
     finished = pyqtSignal()
     autoSearchResults = pyqtSignal(list, str, float)  # Emit results, query, and confidence
+    guiTextReady = pyqtSignal(str) # The safe signal for the GUI
 
-    def __init__(self, parent=None, search_page=None):
-        super().__init__(parent)
-        self.record_page = parent
-        self.search_page = search_page
-        self.lineEdit = self.record_page.lineEdit
-        # Create controller for graceful shutdown
-        self.controller = transcriber.TranscriptionController()
+    def __init__(self, parent=None, search_page=None, lineEdit=None):
+            super().__init__(parent)
+            self.record_page = parent
+            self.search_page = search_page
+            self.lineEdit = lineEdit # Pass lineEdit to run_transcription
+            self.controller = transcriber.TranscriptionController()
 
     def run(self):
         transcriber.run_transcription(
             recording_page=self.record_page,
             search_Page=self.search_page,
-            lineEdit=self.lineEdit,
-            worker_thread=self,
-            controller=self.controller  # Pass controller here
+            lineEdit=self.lineEdit, # Pass it (though it's no longer used for .setText)
+            worker_thread=self,     # Pass self (this QThread)
+            controller=self.controller
         )
         self.finished.emit()
     
     def stop_transcription(self):
-        """Request transcription to stop gracefully"""
         print("Stopping transcription gracefully...")
         self.controller.stop()

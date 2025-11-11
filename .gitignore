@@ -14,3 +14,4 @@ QuickMoveInstaller.exe
 *.jar
 *.txt
 Outputs/
+install_build/

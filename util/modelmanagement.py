@@ -2,11 +2,20 @@ import os
 from util.util import resource_path
 WHISPER_MODEL_INFO = {
     'tiny': {'size': '74.6 MB', 'description': 'Fastest, least accurate'},
+    'tiny.en': {'size': '74.6 MB', 'description': 'Fastest, least accurate, english only'},
     'base': {'size': '142.0 MB', 'description': 'Good balance of speed and accuracy'},
+    'base': {'size': '142.0 MB', 'description': 'Good balance of speed and accuracy, english only'},
     'small': {'size': '463.7 MB', 'description': 'Better accuracy, slower'},
+    'small.en': {'size': '463.7 MB', 'description': 'Better accuracy, slower, english only'},
+    'distil-small': {'size': '305.7 MB', 'description': 'Better accuracy, slower'},
     'medium': {'size': '769 MB', 'description': 'High accuracy, moderate speed'},
+    'distil-medium.en': {'size': '769 MB', 'description': 'High accuracy, moderate speed, english only'},
     'large-v2': {'size': '1550 MB', 'description': 'Highest accuracy, slowest'},
-    'large-v3': {'size': '1550 MB', 'description': 'Latest version, highest accuracy'}
+    'large-v1': {'size': '1550 MB', 'description': 'Highest accuracy, slowest'},
+    'distil-large-v2': {'size': '1550 MB', 'description': 'Highest accuracy, slowest'},
+    'large-v3': {'size': '1550 MB', 'description': 'Latest version, highest accuracy'},
+    'distil-large-v3': {'size': '1550 MB', 'description': 'Latest version, highest accuracy'},
+    
 }
 
 def get_model_info(model_name):

@@ -545,7 +545,7 @@ background-color: rgb(139, 139, 139);
           <item>
            <widget class="QStackedWidget" name="stackedWidget">
             <property name="currentIndex">
-             <number>2</number>
+             <number>6</number>
             </property>
             <widget class="QWidget" name="select_autos">
              <layout class="QVBoxLayout" name="verticalLayout_12">
@@ -566,8 +566,8 @@ background-color:rgb(255, 255, 255);</string>
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>576</width>
-                   <height>746</height>
+                   <width>226</width>
+                   <height>147</height>
                   </rect>
                  </property>
                  <layout class="QVBoxLayout" name="verticalLayout_9">
@@ -694,8 +694,8 @@ QScrollBar::sub-page:vertical {
                         <rect>
                          <x>0</x>
                          <y>0</y>
-                         <width>556</width>
-                         <height>673</height>
+                         <width>100</width>
+                         <height>30</height>
                         </rect>
                        </property>
                        <layout class="QVBoxLayout" name="verticalLayout_4"/>
@@ -1220,8 +1220,8 @@ QScrollBar::sub-page:vertical {
                        <rect>
                         <x>0</x>
                         <y>0</y>
-                        <width>554</width>
-                        <height>508</height>
+                        <width>158</width>
+                        <height>58</height>
                        </rect>
                       </property>
                       <property name="focusPolicy">
@@ -1299,8 +1299,8 @@ border:none</string>
                      <rect>
                       <x>0</x>
                       <y>0</y>
-                      <width>563</width>
-                      <height>728</height>
+                      <width>412</width>
+                      <height>290</height>
                      </rect>
                     </property>
                     <property name="styleSheet">
@@ -1467,8 +1467,8 @@ border:none</string>
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>576</width>
-                   <height>746</height>
+                   <width>571</width>
+                   <height>588</height>
                   </rect>
                  </property>
                  <property name="styleSheet">
@@ -2769,12 +2769,42 @@ QScrollBar::sub-page:vertical {
                        </item>
                        <item>
                         <property name="text">
+                         <string>Tiny.en</string>
+                        </property>
+                       </item>
+                       <item>
+                        <property name="text">
                          <string>Base</string>
                         </property>
                        </item>
                        <item>
                         <property name="text">
+                         <string>Base.en</string>
+                        </property>
+                       </item>
+                       <item>
+                        <property name="text">
                          <string>Small</string>
+                        </property>
+                       </item>
+                       <item>
+                        <property name="text">
+                         <string>Small.en</string>
+                        </property>
+                       </item>
+                       <item>
+                        <property name="text">
+                         <string>distil-small.en</string>
+                        </property>
+                       </item>
+                       <item>
+                        <property name="text">
+                         <string>Medium.en</string>
+                        </property>
+                       </item>
+                       <item>
+                        <property name="text">
+                         <string>distil-medium.en</string>
                         </property>
                        </item>
                        <item>
@@ -2785,6 +2815,21 @@ QScrollBar::sub-page:vertical {
                        <item>
                         <property name="text">
                          <string>Large-v2</string>
+                        </property>
+                       </item>
+                       <item>
+                        <property name="text">
+                         <string>distil-large-v3</string>
+                        </property>
+                       </item>
+                       <item>
+                        <property name="text">
+                         <string>distil-large-v2</string>
+                        </property>
+                       </item>
+                       <item>
+                        <property name="text">
+                         <string>large-v1</string>
                         </property>
                        </item>
                        <item>
@@ -3730,7 +3775,7 @@ background-color: rgb(139, 139, 139);
                         <string>this is a tooltip</string>
                        </property>
                        <property name="minimum">
-                        <double>0.100000000000000</double>
+                        <double>0.000000000000000</double>
                        </property>
                        <property name="maximum">
                         <double>0.900000000000000</double>
@@ -3740,10 +3785,13 @@ background-color: rgb(139, 139, 139);
                      <item row="1" column="1">
                       <widget class="QDoubleSpinBox" name="minlen">
                        <property name="minimum">
-                        <double>1.000000000000000</double>
+                        <double>0.010000000000000</double>
                        </property>
                        <property name="maximum">
                         <double>5.000000000000000</double>
+                       </property>
+                       <property name="singleStep">
+                        <double>0.010000000000000</double>
                        </property>
                       </widget>
                      </item>
