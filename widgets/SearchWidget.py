@@ -675,6 +675,7 @@ class WhisperWindow(QFrame):
         self.setWindowFlags(Qt.FramelessWindowHint)
         self.close_button.clicked.connect(self.close)
         self.lineEdit = self.findChild(QLineEdit, 'lineEdit')
+        self.label = self.findChild(QLabel, 'sound')
         self.record_btn = self.checkBox
         self.checkBox.setChecked(True)
         self.checkBox.clicked.connect(self.start_recording)
@@ -732,18 +733,20 @@ class WhisperWindow(QFrame):
     def start_recording(self):
         print(f"Start recording called, checkbox checked: {self.record_btn.isChecked()}")
         if self.record_btn.isChecked():
+            self.label.setText("Listening...")
             if not self.transcription_thread.isRunning():
                 # Create new thread if old one finished
                 self.transcription_thread = TranscriptionWorker(self, search_page=self.search_page, lineEdit=self.lineEdit)
                 self.transcription_thread.autoSearchResults.connect(self.search_widget.add_auto_search_results)
                 self.transcription_thread.guiTextReady.connect(self.update_transcription_text)
                 self.transcription_thread.start()
-            
+        
             # --- SOUNDWAVE DISABLED ---
             # print("Starting soundwave visualization")
             # self.soundwave_label.start_recording_visualization()
         else:
             print("Stopping soundwave visualization")
+            self.label.setText("Not listening")
             # Use graceful stop instead of terminate
             if self.transcription_thread.isRunning():
                 self.transcription_thread.stop_transcription()
