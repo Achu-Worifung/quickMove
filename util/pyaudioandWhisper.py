@@ -185,7 +185,10 @@ class ProcessorThread(QThread):
     def run(self):
         """Main processing loop for the consumer thread."""
         print("Processor: Thread started.")
+        context_text = ""
         prev_segment_text = ""
+        prev_context = ""
+        CONFIDENCE_THRESHOLD = -0.5  # Adjust as needed
         counter = 1
         silence_frames_threshold = int(self.silence_length * self.RATE / self.CHUNK)
         
@@ -246,21 +249,24 @@ class ProcessorThread(QThread):
                                     language=self.language,
                                     vad_filter=True,
                                     word_timestamps=False,
-                                    prev_segment_text=prev_segment_text
+                                    prev_segment_text=context_text
                                 )
+                                full_trans = ""
+                                for segment in segments:
+                                    print(f'Processor: {segment.text.strip()} (avg_logprob: {segment.avg_logprob})')
+                                    if segment.avg_logprob > CONFIDENCE_THRESHOLD:
+                                        context_text += " " + segment.text.strip()
+                                    full_trans += segment.text.strip() + " "
+                                current_text_lower = full_trans.lower()
 
-                                full_trans = [s.text.strip() for s in segments]
-                                full_text = " ".join(full_trans)
-                                current_text_lower = full_text.lower()
-
-                                if full_text:
+                                if full_trans.strip():
                                     # --- BUG FIX #2: Emit signal, DO NOT TOUCH GUI ---
-                                    self.textReady.emit(full_text)
+                                    self.textReady.emit(full_trans)
 
                                     if self.bible_classifier_model:
-                                        context_text = (prev_segment_text + " " + current_text_lower).strip()
-                                        print(f"Processor: Classifying text: '{context_text}'")
-                                        result = self.bible_classifier_model(context_text)
+                                        bible_context_text = (prev_context + " " + context_text).strip()
+                                        print(f"Processor: Classifying text: '{bible_context_text}'")
+                                        result = self.bible_classifier_model(bible_context_text)
                                         label = result[0]['label']
                                         score = result[0]['score']
                                         print(f"Processor: Classified as: {label} ({score:.2f})")
@@ -274,6 +280,7 @@ class ProcessorThread(QThread):
                                             )
                                     
                                     prev_segment_text = current_text_lower
+                                    prev_context = context_text[-5000:]  # Keep last 5000 chars for context
                                     counter += 1
 
                                 del segments
