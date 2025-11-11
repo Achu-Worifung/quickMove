@@ -25,6 +25,8 @@ from util import soundwave
 from PyQt5.QtWidgets import QSizePolicy
 import json
 from util.findVerseBox import findPrevDisplayedVerse
+import util.Message as msg
+from util.util import resource_path
 
 
 class Tracker():
@@ -185,7 +187,12 @@ class SearchWidget(QDialog):
 
         if self._creating_listening_window:
             return
-
+        model_size = (QSettings("MyApp", "AutomataSimulator").value('model') or 'tiny').lower()
+        model_path = resource_path(os.path.join(f'./models/{model_size}'))
+        if not os.path.exists(model_path) or not os.listdir(model_path):
+            msg.warningBox(self, "Model Missing", f"The Whisper model '{model_size}' is not found locally. Please ensure it is downloaded properly.")
+            return
+        print("Model found locally, proceeding...")
         self._creating_listening_window = True
         try:
             parent = self.search_page
@@ -618,6 +625,8 @@ class SearchWidget(QDialog):
 class WhisperWindow(QFrame):
     def __init__(self, parent=None, search_widget=None):
         super().__init__(parent)
+        
+
         link = os.path.join(os.path.dirname(__file__), '../ui/listening_window.ui')
         self.listening_window = loadUi(link, self)
         self.setWindowFlags(Qt.FramelessWindowHint)

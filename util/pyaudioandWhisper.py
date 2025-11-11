@@ -159,6 +159,7 @@ def run_transcription(recording_page, search_Page=None, lineEdit=None, worker_th
     auto_search_size = int(settings.value('auto_length') or 1)
 
     print(f"Starting transcription: {processing} | Model: {model_size} | Type: {computation_type}")
+    #check if the model has been downloaded before 
 
     # --- Resources ---
     model = None
