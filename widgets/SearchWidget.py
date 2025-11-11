@@ -331,7 +331,7 @@ class SearchWidget(QDialog):
                 pass
 
             if book and chapter and verse_num:
-                body = self.bible_data.get(book, {}).get(str(chapter), {}).get(str(verse_num), stored_body or "Verse not found.")
+                body = self.bible_data.get(book.capitalize(), {}).get(str(chapter), {}).get(str(verse_num), stored_body or "Verse not found.")
             else:
                 body = stored_body or "Verse not found."
 
@@ -449,7 +449,7 @@ class SearchWidget(QDialog):
 
         book, chapter, verse = getReference.parseReference(reference)
 
-        body = getReference.boldedText(self.bible_data.get(book, {}).get(str(chapter), {}).get(str(verse), "Verse not found in this translation."), query)
+        body = getReference.boldedText(self.bible_data.get(book.capitalize(), {}).get(str(chapter), {}).get(str(verse), "Verse not found in this translation."), query)
         single_result.body.setText(body)
         single_result.title.setText(reference)
         if confidence:
@@ -564,7 +564,7 @@ class SearchWidget(QDialog):
             try:
                 title = saved_widget.title.text()
                 book, chapter, verse_num = getReference.parseReference(title)
-                body = self.bible_data.get(book, {}).get(str(chapter), {}).get(str(verse_num), saved_widget.body.text())
+                body = self.bible_data.get(book.capitalize(), {}).get(str(chapter), {}).get(str(verse_num), saved_widget.body.text())
                 saved_widget.body.setText(body)
             except Exception:
                 # This could happen if a widget was deleted but still in the list
@@ -583,7 +583,7 @@ class SearchWidget(QDialog):
             try:
                 reference = w.title.text()
                 book, chapter, verse_num = getReference.parseReference(reference)
-                body = self.bible_data.get(book, {}).get(str(chapter), {}).get(str(verse_num), None)
+                body = self.bible_data.get(book.capitalize(), {}).get(str(chapter), {}).get(str(verse_num), None)
                 if body:
                     w.body.setText(body)
             except Exception:
