@@ -203,22 +203,6 @@ class SearchWidget(QDialog):
             self._creating_listening_window = False
 
 
-    def add_auto_search_results(self, results, query, confidence = None):
-        print('here is the score', confidence)
-        for result in results[::-1]: # reversing again here
-            reference = getReference.getReference(result['title'])
-            if not reference:
-                continue
-            
-            # Check if this verse is already in our displayed list
-            if reference in self.displayed_verse:
-                print(f"Skipping duplicate auto-search: {reference}")
-                continue # Skip this duplicate result
-            else:
-                self.displayed_verse.append(reference)
-                print('appended to verse', self.displayed_verse[-1])
-                # Only add the widget if it's not a duplicate
-                self.add_verse_widget(query, result, reference, confidence=confidence)
 
 
     def change_translation(self):
@@ -533,10 +517,14 @@ class SearchWidget(QDialog):
         if book:
             # 3. 'book' is now the canonical name (e.g., "Mark")
             # We no longer need self.normalize_book() here
+            normalized_book = self.normalize_book(book)
+            parts = normalized_book.split(' ')
+            if len(parts) > 1:
+                normalized_book = parts[0] + ' ' + parts[1].capitalize()
             body = getReference.boldedText(
-                self.bible_data.get(book, {}).get(str(chapter), {}).get(str(verse), "Verse not found in this translation."),
-                query
-            )
+            self.bible_data.get(normalized_book, {}).get(str(chapter), {}).get(str(verse), "Verse not found in this translation."),
+            query
+        )
             single_result.body.setText(body)
         else:
             # Fallback if parsing fails (shouldn't happen if getReference worked)
@@ -645,8 +633,9 @@ class SearchWidget(QDialog):
                 # parseReference *should* return the canonical book name
                 book, chapter, verse_num = getReference.parseReference(title)
                 if book:
-                    body = self.bible_data.get(book, {}).get(str(chapter), {}).get(str(verse_num), saved_widget.body.text())
-                    saved_widget.body.setText(body)
+                    normalized_book = self.normalize_book(book)
+                    body = self.bible_data.get(normalized_book, {}).get(str(chapter), {}).get(str(verse_num), saved_widget.body.text())
+                saved_widget.body.setText(body)
             except Exception:
                 continue
 
