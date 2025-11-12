@@ -526,6 +526,14 @@ class SearchWidget(QDialog):
             query
         )
             single_result.body.setText(body)
+            single_result.body.setStyleSheet("""
+                                             text-align: left;
+                                             font-size: 14px;
+                                             text-wrap: normal;
+                                             text-overflow: ellipsis;
+                                             line-height: 1.2em; 
+                                             max-height: 3.6em;  
+                                             """)
         else:
             # Fallback if parsing fails (shouldn't happen if getReference worked)
             single_result.body.setText("Error parsing reference.")
