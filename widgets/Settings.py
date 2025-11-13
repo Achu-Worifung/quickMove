@@ -30,13 +30,25 @@ class Settings:
         
     def processing(self):
         print("Processing clicked")
+    def populate_models(self):
+        print("Populating models")
+        #setting the the modesl 
+        self.models_dropdw = self.page_widget.findChild(QComboBox, "model")
+        dw_models = list_downloaded_models()
+        model_list = [model['name'] for model in dw_models]
+        self.models_dropdw.clear()
+        if model_list:
+            self.models_dropdw.addItems(model_list)
+        else:
+            self.models_dropdw.addItem("No models downloaded")
     def setup_values(self):
         self.mange_models = self.page_widget.findChild(QPushButton, "manage_model")
         self.mange_models.clicked.connect(self.open_model_manager)
         comboBox = [self.processing, self.model, self.channel, self.chunks, self.rate]
         spinBox = [self.beam, self.core, self.best,self.silence, self.suggest_len, self.auto_searchlen]
         doubleSpinBox = [self.temp, self.energy, self.minlen, self.maxlen]
-
+        self.populate_models()
+        
         # Load values from QSettings into widgets WITHOUT emitting change signals
         for box in comboBox:
             saved_value = self.settings.value(box.objectName())
@@ -123,8 +135,7 @@ class Settings:
 
 
     def open_model_manager(self):
-        # Pass the page_widget (which is a QWidget) as the parent instead of self
-        dialog = ModelManagerDialog(self.page_widget)
+        dialog = ModelManagerDialog(self.page_widget, self)  # Pass page_widget as parent and self as settings
         dialog.exec_()
 
     def setting_changed(self, obj = None):
@@ -218,13 +229,18 @@ class Settings:
 
 
 class ModelManagerDialog(QDialog):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, settings=None):
         super().__init__(parent)
+        self.settings = settings  # Store the Settings instance
         self.setWindowTitle("Whisper Model Manager")
         self.setMinimumSize(600, 500)
         self.setup_ui()
         self.refresh_models()
-    
+        self.parent = parent
+    def closeEvent(self, event):
+        if self.settings and hasattr(self.settings, 'populate_models'):
+            self.settings.populate_models()
+        event.accept()
     def setup_ui(self):
         layout = QVBoxLayout(self)
 
