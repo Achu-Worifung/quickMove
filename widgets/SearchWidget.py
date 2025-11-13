@@ -395,7 +395,20 @@ class SearchWidget(QDialog):
 
 
 
+    def normalize_results(self, results):
+        # --- START: Frequency Sort Logic ---
+        ref_counts = {}
+        for item in results:
+            reference = getReference.getReference(item['title'].lower())
+            if not reference:
+                continue
+            ref_counts[reference] = ref_counts.get(reference, 0) + 1
 
+        #sort ref_count by frequency
+        sorted_ref_count = sorted(ref_counts.items(), key=lambda x: x[1])
+
+        # print('Sorted results:', sorted_ref_count)
+        return sorted_ref_count
     def update_verse_tracker(self, new_results, query):
             widget_to_remove = []
             # clearing the layout of old results
@@ -405,69 +418,39 @@ class SearchWidget(QDialog):
             self.displayed_verse.clear()  # Start with a fresh list
             print('current contents', self.searchPane.count())
             
-            # --- START: Frequency Sort Logic ---
-            ref_counts = {}
-            for item in new_results:
-                reference = getReference.getReference(item['title'])
-                if not reference:
-                    continue
-                ref_counts[reference] = ref_counts.get(reference, 0) + 1
-
-            def get_sort_key(result_item):
-                ref = getReference.getReference(result_item['title'])
-                return ref_counts.get(ref, 0)
-
-            sorted_results = sorted(new_results, key=get_sort_key, reverse=True)
-            print('Sorted results:', [r['title'] for r in sorted_results])
-            # --- END: Frequency Sort Logic ---
+            sorted_results = self.normalize_results(new_results)
             
             self.searchPane.update() 
-            for result in sorted_results: # Use sorted list
-                reference = getReference.getReference(result['title'])
-                if not reference:
-                    continue
-                
-                if reference in self.displayed_verse:
-                    print(f"Skipping duplicate in new batch: {reference}")
-                    continue 
-                else:
-                    self.displayed_verse.append(reference)
-                    self.add_verse_widget(query, result, reference)
+            for reference in sorted_results: # Use sorted list
+                print('here is the result in update', reference)
+                self.displayed_verse.append(reference)
+                self.add_verse_widget(query=query,  reference=reference[0], result=None)
 
 
     def add_auto_search_results(self, results, query, confidence = None, max_results = 10):
             print('here is the score', confidence)
             
-            # --- START: Frequency Sort Logic ---
-            ref_counts = {}
-            for item in results:
-                reference = getReference.getReference(item['title'])
-                if not reference:
-                    continue
-                ref_counts[reference] = ref_counts.get(reference, 0) + 1
-
-            def get_sort_key(result_item):
-                ref = getReference.getReference(result_item['title'])
-                return ref_counts.get(ref, 0)
-            
-            sorted_results = sorted(results, key=get_sort_key, reverse=True)
-            # --- END: Frequency Sort Logic ---
+            sorted_results = self.normalize_results(results)
 
             count = 0
             for result in sorted_results: # Use sorted list
                 if count >= max_results:
                     break
-                
-                reference = getReference.getReference(result['title'])
-                if not reference:
-                    continue
+
+                reference = result[0]
 
                 if reference in self.displayed_verse:
-                    print(f"Skipping duplicate auto-search: {reference}")
-                    continue 
+                    #remove it and add it to the top
+                    widget_to_remove = self.old_widget[self.displayed_verse.index(reference)]
+                    if widget_to_remove:
+                        self.searchPane.removeWidget(widget_to_remove)
+                        widget_to_remove.setParent(None)
+                        widget_to_remove.deleteLater()
+                    self.displayed_verse.remove(reference)
+                    self.old_widget.remove(widget_to_remove)
+
                 
                 self.displayed_verse.append(reference)
-                print('appended to verse', self.displayed_verse[-1])
                 self.add_verse_widget(query, result, reference, confidence=confidence)
                 count += 1
 
@@ -502,14 +485,17 @@ class SearchWidget(QDialog):
         return normalized_book
 
 
-    def add_verse_widget(self,query, result, reference, confidence = None):
+    def add_verse_widget(self,query, reference, result = None, confidence = None):
         translation = self.version.currentText()
         link = os.path.join(os.path.dirname(__file__), '../ui/result.ui')
         single_result = loadUi(link)
 
         # --- THIS IS THE CORRECTED LOGIC ---
         # 1. 'reference' is the clean, canonical string (e.g., "Mark 12:30")
+        print('adding verse widget for reference:', reference)
+        
         single_result.title.setText(reference)
+        # print('here is the reference', reference
 
         # 2. Parse it to get the parts
         book, chapter, verse = getReference.parseReference(reference)
@@ -529,11 +515,13 @@ class SearchWidget(QDialog):
             single_result.body.setStyleSheet("""
                                              text-align: left;
                                              font-size: 14px;
-                                             text-wrap: normal;
-                                             text-overflow: ellipsis;
                                              line-height: 1.2em; 
                                              max-height: 3.6em;  
                                              """)
+                                                        #  text-overflow: ellipsis;
+                                                        #  text-wrap: normal;
+# 
+
         else:
             # Fallback if parsing fails (shouldn't happen if getReference worked)
             single_result.body.setText("Error parsing reference.")
