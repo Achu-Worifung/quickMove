@@ -1,21 +1,28 @@
 import os
 from util.util import resource_path
 WHISPER_MODEL_INFO = {
-    'tiny': {'size': '74.6 MB', 'description': 'Fastest, least accurate'},
-    'tiny.en': {'size': '74.6 MB', 'description': 'Fastest, least accurate, english only'},
-    'base': {'size': '142.0 MB', 'description': 'Good balance of speed and accuracy'},
-    'base': {'size': '142.0 MB', 'description': 'Good balance of speed and accuracy, english only'},
-    'small': {'size': '463.7 MB', 'description': 'Better accuracy, slower'},
-    'small.en': {'size': '463.7 MB', 'description': 'Better accuracy, slower, english only'},
-    'distil-small': {'size': '305.7 MB', 'description': 'Better accuracy, slower'},
-    'medium': {'size': '769 MB', 'description': 'High accuracy, moderate speed'},
-    'distil-medium.en': {'size': '769 MB', 'description': 'High accuracy, moderate speed, english only'},
-    'large-v2': {'size': '1550 MB', 'description': 'Highest accuracy, slowest'},
-    'large-v1': {'size': '1550 MB', 'description': 'Highest accuracy, slowest'},
-    'distil-large-v2': {'size': '1550 MB', 'description': 'Highest accuracy, slowest'},
-    'large-v3': {'size': '1550 MB', 'description': 'Latest version, highest accuracy'},
-    'distil-large-v3': {'size': '1550 MB', 'description': 'Latest version, highest accuracy'},
+    # Original OpenAI Models
+    'tiny.en': {'size': '75 MB', 'description': 'Fastest, least accurate, english only'},
+    'tiny': {'size': '75 MB', 'description': 'Fastest, least accurate, multilingual'},
+    'base.en': {'size': '142 MB', 'description': 'Good balance of speed and accuracy, english only'},
+    'base': {'size': '142 MB', 'description': 'Good balance of speed and accuracy, multilingual'},
+    'small.en': {'size': '466 MB', 'description': 'Better accuracy, slower, english only'},
+    'small': {'size': '466 MB', 'description': 'Better accuracy, slower, multilingual'},
+    'medium.en': {'size': '1.5 GB', 'description': 'High accuracy, moderate speed, english only'},
+    'medium': {'size': '1.5 GB', 'description': 'High accuracy, moderate speed, multilingual'},
+    'large-v1': {'size': '3.1 GB', 'description': 'Original large model, highest accuracy, slowest'},
+    'large-v2': {'size': '3.1 GB', 'description': 'Improved large model, highest accuracy, slowest'},
+    'large-v3': {'size': '3.1 GB', 'description': 'Latest large model, best accuracy especially for non-English'},
+    'large': {'size': '3.1 GB', 'description': 'Alias for the latest large model (large-v3)'},
     
+    # Distilled Models (Smaller & Faster)
+    'distil-large-v2': {'size': '756 MB', 'description': '50% smaller and 60% faster than Large-v2 with minimal accuracy loss'},
+    'distil-medium.en': {'size': '402 MB', 'description': '4x smaller and 5x faster than Medium.en, english only'},
+    'distil-small.en': {'size': '166 MB', 'description': '2.5x smaller and 2x faster than Small.en, english only'},
+    'distil-large-v3': {'size': '756 MB', 'description': 'Distilled version of Large-v3, great speed/size/accuracy trade-off'},
+    
+    # Turbo Model (New Architecture)
+    'turbo': {'size': '783 MB', 'description': 'New efficient architecture. Very fast and highly accurate.'},
 }
 
 def get_model_info(model_name):
@@ -76,11 +83,17 @@ def get_total_models_size():
 
 def download_model(model_name):
     """Download a model using faster-whisper's download function"""
-    from faster_whisper import download_model as fw_download_model
+    from faster_whisper.utils import download_model as fw_download_model
     try:
-        cache_dir = resource_path(f"models/{model_name}")
+        cache_dir = resource_path("models")
         os.makedirs(cache_dir, exist_ok=True)
-        fw_download_model(model_name, cache_dir=cache_dir)
-        return True, f"Model '{model_name}' downloaded successfully"
+        
+        model_path = fw_download_model(
+            model_name, 
+            cache_dir=cache_dir,
+            local_files_only=False  # Allow online downloads
+        )
+        
+        return True, f"Model '{model_name}' downloaded successfully to {model_path}"
     except Exception as e:
-        return False, f"Error downloading model: {e}"
+        return False, f"Error downloading model: {str(e)}"
