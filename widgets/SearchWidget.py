@@ -428,9 +428,10 @@ class SearchWidget(QDialog):
 
 
     def add_auto_search_results(self, results, query, confidence = None, max_results = 10):
-            print('here is the score', confidence)
+            print('here is the max_results', max)
             
             sorted_results = self.normalize_results(results)
+            print('sorted results in auto', sorted_results)
 
             count = 0
             for result in sorted_results: # Use sorted list
@@ -451,7 +452,7 @@ class SearchWidget(QDialog):
 
                 
                 self.displayed_verse.append(reference)
-                self.add_verse_widget(query, result, reference, confidence=confidence)
+                self.add_verse_widget(query, reference=reference, result=None, confidence=confidence)
                 count += 1
 
 
@@ -799,7 +800,7 @@ class WhisperWindow(QFrame):
 
 class TranscriptionWorker(QThread):
     finished = pyqtSignal()
-    autoSearchResults = pyqtSignal(list, str, float)  # Emit results, query, and confidence
+    autoSearchResults = pyqtSignal(list, str, float, int)  # Emit results, query, confidence, and max_len
     guiTextReady = pyqtSignal(str) # The safe signal for the GUI
 
     def __init__(self, parent=None, search_page=None, lineEdit=None):

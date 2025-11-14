@@ -66,7 +66,7 @@ def cleanup_model_resources(model_instance, classifier_instance):
         torch.cuda.empty_cache()
         print("Models deleted, CUDA cache cleared.")
 
-def perform_auto_search(query, worker_thread, score=None, max_len=1):
+def perform_auto_search(query, worker_thread, score=None, max_len=10):
     """Executes a Google Custom Search and emits results to the main thread."""
     if not query or not worker_thread:
         return
@@ -76,7 +76,7 @@ def perform_auto_search(query, worker_thread, score=None, max_len=1):
     params = {
         "key": os.getenv('API_KEY'),
         "cx": os.getenv('SEARCH_ENGINE_ID'),
-        "q": quote_plus(query_full),
+        "q": query_full + ' KJV Bible verse',
         "safe": "active", 'hl': 'en', 'num': 10,
     }
     
@@ -85,10 +85,11 @@ def perform_auto_search(query, worker_thread, score=None, max_len=1):
         response.raise_for_status()
         results = response.json()
         items = results.get("items", [])
+        print(f"Auto-search found {len(items)} items for query: '{query_full}'")
         
         if items and worker_thread:
              # This signal is defined in TranscriptionWorker in your other file
-             worker_thread.autoSearchResults.emit(items[:max_len], query_full, score)
+             worker_thread.autoSearchResults.emit(items, query_full, score, max_len)
     except httpx.TimeoutException:
          print("Auto-search timed out.")
     except Exception as e:
@@ -188,7 +189,7 @@ class ProcessorThread(QThread):
         context_text = ""
         prev_segment_text = ""
         prev_context = ""
-        CONFIDENCE_THRESHOLD = -0.5  # Adjust as needed
+        CONFIDENCE_THRESHOLD = -0.4
         counter = 1
         silence_frames_threshold = int(self.silence_length * self.RATE / self.CHUNK)
         
@@ -240,6 +241,9 @@ class ProcessorThread(QThread):
                                     wf.setframerate(self.RATE)
                                     wf.writeframes(b''.join(frames))
                                 # Transcribe from file
+                                # Replace the entire segment processing section (around lines 195-235)
+
+                                # After writing the WAV file and before transcription:
                                 segments = transcrip(
                                     model=self.model,
                                     filename=temp_filename,
@@ -249,39 +253,61 @@ class ProcessorThread(QThread):
                                     language=self.language,
                                     vad_filter=True,
                                     word_timestamps=False,
-                                    prev_segment_text=context_text
+                                    prev_segment_text=prev_context  # Use prev_context, not context_text
                                 )
+
                                 full_trans = ""
+                                current_segment_text = ""  # NEW: Build context from current segment
+
                                 for segment in segments:
                                     print(f'Processor: {segment.text.strip()} (avg_logprob: {segment.avg_logprob})')
-                                    if segment.avg_logprob > CONFIDENCE_THRESHOLD:
-                                        context_text += " " + segment.text.strip()
                                     full_trans += segment.text.strip() + " "
+                                    
+                                    # FIXED: Build context regardless of confidence
+                                    # Only use confidence threshold for Whisper's initial_prompt
+                                    current_segment_text += " " + segment.text
+
                                 current_text_lower = full_trans.lower()
+                                print(f"Processor: Full transcription: '{current_text_lower.strip()}'")
 
                                 if full_trans.strip():
-                                    # --- BUG FIX #2: Emit signal, DO NOT TOUCH GUI ---
+                                    # Emit signal for GUI
                                     self.textReady.emit(full_trans)
 
                                     if self.bible_classifier_model:
-                                        bible_context_text = (prev_context + " " + context_text).strip()
-                                        print(f"Processor: Classifying text: '{bible_context_text}'")
-                                        result = self.bible_classifier_model(bible_context_text)
+                                        # Classify ONLY the current segment (no contamination)
+                                        print(f"Processor: prev_context='{prev_context}'")
+                                        print(f"Processor: current_segment_text='{current_segment_text.strip()}'")
+                                        print(f"Processor: Classifying CURRENT segment only: '{current_segment_text.strip()}'")
+                                        
+                                        result = self.bible_classifier_model(current_segment_text.strip())
                                         label = result[0]['label']
                                         score = result[0]['score']
                                         print(f"Processor: Classified as: {label} ({score:.2f})")
                                         
                                         if label == 'bible' and self.worker_thread:
+                                            # Search with FULL context (prev + current) for continuity
+                                            search_text = (prev_context + " " + current_segment_text).strip()
+                                            
+                                            #Limit search length to avoid bloat
+                                            words = search_text.split()
+                                            if len(words) > 20:
+                                                search_text = " ".join(words[-20:])  # Last 20 words
+                                            
+                                            print(f"Processor: Searching with combined context: '{search_text}'")
                                             perform_auto_search(
-                                                query=context_text,
+                                                query=search_text,
                                                 worker_thread=self.worker_thread,
                                                 score=score,
                                                 max_len=self.auto_search_size
                                             )
+                                            
+                                            prev_context = current_segment_text.strip()
+                                        else:
+                                            print(f"Processor: Not Bible, resetting context")
+                                            prev_context = ""
                                     
                                     prev_segment_text = current_text_lower
-                                    prev_context = context_text[-5000:]  # Keep last 5000 chars for context
-                                    counter += 1
 
                                 del segments
                                 del full_trans
