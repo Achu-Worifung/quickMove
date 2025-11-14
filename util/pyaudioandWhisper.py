@@ -14,6 +14,7 @@ from transformers import pipeline
 import transformers
 import gc
 import time
+import math
 from queue import Queue, Empty
 
 # Suppress mostly irrelevant transformer warnings
@@ -25,6 +26,23 @@ basedir = os.path.dirname(__file__)
 settings = QSettings("MyApp", "AutomataSimulator")
 
 # --- Helper Functions ---
+
+import math
+
+def percent_to_log_prob(percent):
+    """
+    Convert percentage (0-100) to log probability
+    """
+    if percent is None:
+        return -0.40
+    if percent <= 0:
+        return float('-inf')
+    if percent >= 100:
+        return 0.0
+    
+    probability = percent / 100.0
+    log_prob = math.log(probability)
+    return log_prob
 
 def get_energy_threshold(audio_data, threshold_value=0.05):
     """Calculates if audio chunk energy exceeds threshold."""
@@ -152,6 +170,9 @@ class ProcessorThread(QThread):
         self.max_record_len = int(settings.value('maxlen') or 5)
         computation_type = "float16" if processing == "GPU" else "int8"
         self.auto_search_size = int(settings.value('auto_length') or 1)
+        self.confidence_threshold = float(percent_to_log_prob(settings.value('confidence_threshold')) or -0.4)
+        self.use_prev_context = int(settings.value('prev_context') or 0)
+        
 
         # --- Load all models ---
         self.model = None
@@ -186,10 +207,7 @@ class ProcessorThread(QThread):
     def run(self):
         """Main processing loop for the consumer thread."""
         print("Processor: Thread started.")
-        context_text = ""
-        prev_segment_text = ""
         prev_context = ""
-        CONFIDENCE_THRESHOLD = -0.4
         counter = 1
         silence_frames_threshold = int(self.silence_length * self.RATE / self.CHUNK)
         
@@ -253,7 +271,8 @@ class ProcessorThread(QThread):
                                     language=self.language,
                                     vad_filter=True,
                                     word_timestamps=False,
-                                    prev_segment_text=prev_context  # Use prev_context, not context_text
+                                    prev_segment_text=prev_context if self.use_prev_context else "",
+                                    log_prob_threshold=self.confidence_threshold
                                 )
 
                                 full_trans = ""
@@ -307,7 +326,6 @@ class ProcessorThread(QThread):
                                             print(f"Processor: Not Bible, resetting context")
                                             prev_context = ""
                                     
-                                    prev_segment_text = current_text_lower
 
                                 del segments
                                 del full_trans

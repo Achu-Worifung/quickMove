@@ -2414,7 +2414,7 @@ QScrollBar::sub-page:vertical {
                  <property name="geometry">
                   <rect>
                    <x>0</x>
-                   <y>-293</y>
+                   <y>0</y>
                    <width>566</width>
                    <height>1293</height>
                   </rect>
@@ -3131,7 +3131,7 @@ QScrollBar::sub-page:vertical {
                            <cursorShape>WhatsThisCursor</cursorShape>
                           </property>
                           <property name="toolTip">
-                           <string>model's confidence in the transcribed audio segment.</string>
+                           <string>model's confidence in the transcribed audio segment. Avoid hallucinations</string>
                           </property>
                           <property name="text">
                            <string/>
@@ -3211,7 +3211,7 @@ QScrollBar::sub-page:vertical {
                            <cursorShape>WhatsThisCursor</cursorShape>
                           </property>
                           <property name="toolTip">
-                           <string>include prev transcribed segment for better context.</string>
+                           <string>include prev transcribed segment for better context. Can cause hallucinations.</string>
                           </property>
                           <property name="text">
                            <string/>
