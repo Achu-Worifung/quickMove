@@ -4,17 +4,23 @@ import math
 from PyQt5.QtCore import QTimer, Qt, QRectF
 from PyQt5.QtGui import QPainter, QColor, QLinearGradient, QPainterPath, QPen
 from PyQt5.QtWidgets import QLabel
-import pyaudio
 import numpy as np
 import threading
+
+# Make pyaudio optional to prevent crashes if it's not available
+try:
+    import pyaudio
+    PYAUDIO_AVAILABLE = True
+except ImportError:
+    PYAUDIO_AVAILABLE = False
+    print("PyAudio not available - soundwave will use simulated audio")
 
 class SoundWaveLabel(QLabel):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.num_bars = 40  # More bars for smoother look
+        self.num_bars = 40
         self.wave_heights = [0.0] * self.num_bars
         self.target_heights = [0.0] * self.num_bars
-        self.velocities = [0.0] * self.num_bars
         
         self.max_height = 70
         self.bar_width = 4
@@ -38,38 +44,54 @@ class SoundWaveLabel(QLabel):
         
         self.setMinimumSize(200, 100)
         
-        #retry logic
+        # Retry logic
         self.retry_count = 0
-        self.max_retries = 20
+        self.max_retries = 3
+        
+        # Thread safety flag
+        self._stop_monitoring = False
         
     def start_recording_visualization(self):
         """Start the audio level visualization"""
         print("Starting recording visualization")
         self.is_recording = True
         self.setText("")
-        self.start_audio_monitoring()
-        self.update_timer.start(33)  # ~30 FPS for smooth animation
+        self._stop_monitoring = False
+        
+        if PYAUDIO_AVAILABLE:
+            self.start_audio_monitoring()
+        else:
+            print("PyAudio not available, using simulated audio")
+            self.use_simulated_audio()
+            
+        self.update_timer.start(33)  # ~30 FPS
         
     def stop_recording_visualization(self):
         """Stop the audio level visualization"""
         print("Stopping recording visualization")
         self.is_recording = False
+        self._stop_monitoring = True
+        
+        # Stop audio first
         self.stop_audio_monitoring()
+        
+        # Then stop timer
         self.update_timer.stop()
-        # Animate bars down to zero
+        
+        # Animate bars down smoothly
         self.smoothed_level = 0.0
         self.current_level = 0.0
         
-        # We can create a small timer to animate the bars down smoothly
         def clear_bars():
             still_animating = False
             for i in range(self.num_bars):
-                self.wave_heights[i] *= 0.8
-                if self.wave_heights[i] < 1:
-                    self.wave_heights[i] = 0
-                else:
+                self.wave_heights[i] *= 0.85
+                if self.wave_heights[i] > 1:
                     still_animating = True
+                else:
+                    self.wave_heights[i] = 0
             self.update()
+            
             if not still_animating:
                 self.clear_timer.stop()
                 self.setText("Not listening")
@@ -77,36 +99,59 @@ class SoundWaveLabel(QLabel):
         self.clear_timer = QTimer()
         self.clear_timer.timeout.connect(clear_bars)
         self.clear_timer.start(33)
-
         
     def start_audio_monitoring(self):
-        """Initialize audio monitoring"""
+        """Initialize audio monitoring with better error handling"""
+        if not PYAUDIO_AVAILABLE:
+            print("PyAudio not available, cannot start real audio monitoring")
+            self.use_simulated_audio()
+            return
+            
         try:
             print("Starting audio monitoring")
             self.audio = pyaudio.PyAudio()
+            
+            # Find a working input device
+            device_index = None
+            for i in range(self.audio.get_device_count()):
+                try:
+                    device_info = self.audio.get_device_info_by_index(i)
+                    if device_info['maxInputChannels'] > 0:
+                        device_index = i
+                        print(f"Using audio device: {device_info['name']}")
+                        break
+                except Exception as e:
+                    continue
+            
+            if device_index is None:
+                raise Exception("No input device found")
+            
             self.stream = self.audio.open(
                 format=pyaudio.paInt16,
                 channels=1,
                 rate=44100,
                 input=True,
-                frames_per_buffer=1024
+                input_device_index=device_index,
+                frames_per_buffer=1024,
+                stream_callback=None  # Use blocking read instead of callback
             )
             
-            self.audio_thread = threading.Thread(target=self.monitor_audio_levels)
-            self.audio_thread.daemon = True
-            self.try_count = 0
+            self.audio_thread = threading.Thread(target=self.monitor_audio_levels, daemon=True)
             self.audio_thread.start()
             
         except Exception as e:
             print(f"Error starting audio monitoring: {e}")
             # Fallback to simulated audio
-            # self.use_simulated_audio()
-            pass
+            self.use_simulated_audio()
             
     def monitor_audio_levels(self):
-        """Monitor audio levels in separate thread"""
-        while self.is_recording and self.stream:
+        """Monitor audio levels in separate thread with improved error handling"""
+        consecutive_errors = 0
+        max_consecutive_errors = 5
+        
+        while self.is_recording and not self._stop_monitoring and self.stream:
             try:
+                # Non-blocking read with timeout
                 data = self.stream.read(512, exception_on_overflow=False)
                 audio_data = np.frombuffer(data, dtype=np.int16)
                 
@@ -116,55 +161,55 @@ class SoundWaveLabel(QLabel):
                 # Calculate RMS
                 rms = np.sqrt(np.mean(audio_data.astype(float)**2))
                 
-                # Normalize (adjust sensitivity here - reduced for less sensitivity)
-                level = min(rms / 1500.0, 1.0)  # Increased divisor = less sensitive
+                # Normalize (reduced sensitivity)
+                level = min(rms / 1500.0, 1.0)
                 
-                # Add bass boost effect (emphasize louder sounds)
-                level = level ** 0.8  # Increased exponent = even less sensitive
+                # Apply curve for less sensitivity
+                level = level ** 0.8
                 
-                # Noise gate - if below threshold, set to zero
+                # Noise gate
                 if level < 0.12:
                     level = 0.0
                 
                 self.current_level = level
+                consecutive_errors = 0  # Reset error count on success
                 
             except Exception as e:
-                print(f"Error reading audio: {e}")
-                self.current_level = 0.0 # Ensure level goes to 0 on error
-                if self.retry_count < self.max_retries:
-                    self.retry_count += 1
-                    print(f"Retrying audio monitoring ({self.retry_count}/{self.max_retries})")
-                    time.sleep(1)
-                    self.start_recording_visualization() # Restart monitoring on error
-                else :
-                    self.setText("Not listening")
-                    self.is_recording = False
-                    self.stream = None
-                    self.audio = None
-                break
+                consecutive_errors += 1
+                print(f"Error reading audio: {e} (consecutive errors: {consecutive_errors})")
+                self.current_level = 0.0
+                
+                if consecutive_errors >= max_consecutive_errors:
+                    print("Too many consecutive errors, stopping audio monitoring")
+                    break
+                    
+                time.sleep(0.1)  # Brief pause before retry
     
     def use_simulated_audio(self):
         """Use simulated audio for testing"""
         print("Using simulated audio")
         def simulate():
             base_time = time.time()
-            while self.is_recording:
-                t = time.time() - base_time
-                # Create interesting patterns with periods of silence
-                level = 0.3 + 0.3 * abs(math.sin(t * 0.5))
-                level += 0.2 * abs(math.sin(t * 1.3))
-                level += 0.15 * abs(math.sin(t * 2.7))
-                level = min(level, 1.0)
-                
-                # Add periods of silence (noise gate simulation)
-                if abs(math.sin(t * 0.25)) > 0.8:
-                     level = 0.0
-                
-                self.current_level = level
-                time.sleep(0.05)
+            while self.is_recording and not self._stop_monitoring:
+                try:
+                    t = time.time() - base_time
+                    # Create interesting patterns
+                    level = 0.3 + 0.3 * abs(math.sin(t * 0.5))
+                    level += 0.2 * abs(math.sin(t * 1.3))
+                    level += 0.15 * abs(math.sin(t * 2.7))
+                    level = min(level, 1.0)
+                    
+                    # Add periods of silence
+                    if abs(math.sin(t * 0.25)) > 0.8:
+                        level = 0.0
+                    
+                    self.current_level = level
+                    time.sleep(0.05)
+                except Exception as e:
+                    print(f"Error in simulated audio: {e}")
+                    break
         
-        sim_thread = threading.Thread(target=simulate)
-        sim_thread.daemon = True
+        sim_thread = threading.Thread(target=simulate, daemon=True)
         sim_thread.start()
                 
     def update_wave(self):
@@ -175,77 +220,77 @@ class SoundWaveLabel(QLabel):
         # Smooth the audio level
         self.smoothed_level = self.smoothed_level * 0.7 + self.current_level * 0.3
         
-        # If audio is below a tiny threshold, force it to zero to prevent residual noise
+        # Force to zero if below threshold
         if self.smoothed_level < 0.01:
-             self.smoothed_level = 0.0
+            self.smoothed_level = 0.0
         
         current_time = time.time()
         
         for i in range(self.num_bars):
-            # Create wave pattern with multiple frequencies
             position = i / self.num_bars
             
-            # Main wave (travels across bars)
+            # Create wave pattern with multiple frequencies
             wave1 = abs(math.sin(current_time * 2.0 + position * 8.0))
-            
-            # Secondary wave (different frequency)
             wave2 = abs(math.sin(current_time * 1.3 + position * 5.0 + self.phase_offsets[i]))
-            
-            # Tertiary subtle wave
             wave3 = abs(math.sin(current_time * self.frequency_offsets[i] + position * 3.0))
             
-            # Combine waves to create the shape
+            # Combine waves
             combined_wave_shape = (wave1 * 0.5 + wave2 * 0.3 + wave3 * 0.2)
             
-            # Boost center bars for a classic look
+            # Boost center bars
             center_boost = 1.0 - abs(position - 0.5) * 0.5
             
-            # *** FIX: The target height is now directly scaled by the smoothed audio level.
-            # If smoothed_level is 0, the target is 0, making the visualization flat.
+            # Scale by audio level
             target = combined_wave_shape * self.max_height * self.smoothed_level * center_boost
+            self.target_heights[i] = max(0, target)
             
-            self.target_heights[i] = max(0, target) # Ensure target is not negative
-            
-            # Physics-based spring animation (quick attack, slower decay)
+            # Physics-based animation
             if self.target_heights[i] > self.wave_heights[i]:
-                # Fast rise (attack)
+                # Fast rise
                 self.wave_heights[i] += (self.target_heights[i] - self.wave_heights[i]) * 0.4
             else:
-                # Slower fall (decay)
+                # Slower fall
                 self.wave_heights[i] += (self.target_heights[i] - self.wave_heights[i]) * 0.15
     
         self.update()
             
     def stop_audio_monitoring(self):
-        """Stop audio monitoring"""
+        """Stop audio monitoring safely"""
+        self._stop_monitoring = True
+        
+        # Wait briefly for thread to notice the flag
+        time.sleep(0.1)
+        
         if self.stream:
             try:
-                self.stream.stop_stream()
+                if self.stream.is_active():
+                    self.stream.stop_stream()
                 self.stream.close()
             except Exception as e:
                 print(f"Error closing stream: {e}")
+            finally:
+                self.stream = None
+                
         if self.audio:
-            self.audio.terminate()
-        self.stream = None
-        self.audio = None
+            try:
+                self.audio.terminate()
+            except Exception as e:
+                print(f"Error terminating audio: {e}")
+            finally:
+                self.audio = None
 
     def _get_bar_color(self, height_ratio):
-        """
-        Calculates bar color based on its height, creating a vibrant gradient.
-        """
-        # Define our color stops: Blue -> Purple -> Magenta
-        color_low = QColor(0, 100, 255)   # Deep Blue
-        color_mid = QColor(150, 50, 255)  # Purple
-        color_high = QColor(255, 80, 150) # Bright Magenta
+        """Calculate bar color based on height"""
+        color_low = QColor(0, 100, 255)      # Deep Blue
+        color_mid = QColor(150, 50, 255)     # Purple
+        color_high = QColor(255, 80, 150)    # Bright Magenta
 
         if height_ratio < 0.5:
-            # Interpolate between low and mid
             ratio = height_ratio * 2
             r = int(color_low.red() + ratio * (color_mid.red() - color_low.red()))
             g = int(color_low.green() + ratio * (color_mid.green() - color_low.green()))
             b = int(color_low.blue() + ratio * (color_mid.blue() - color_low.blue()))
         else:
-            # Interpolate between mid and high
             ratio = (height_ratio - 0.5) * 2
             r = int(color_mid.red() + ratio * (color_high.red() - color_mid.red()))
             g = int(color_mid.green() + ratio * (color_high.green() - color_mid.green()))
@@ -262,9 +307,6 @@ class SoundWaveLabel(QLabel):
         painter = QPainter(self)
         painter.setRenderHint(QPainter.Antialiasing)
 
-        # *** COLOR IMPROVEMENT: Dark background for colors to pop
-        # painter.fillRect(self.rect(), QColor(20, 20, 35))
-
         # Calculate positioning
         total_width = self.num_bars * (self.bar_width + self.bar_spacing) - self.bar_spacing
         start_x = (self.width() - total_width) // 2
@@ -277,13 +319,11 @@ class SoundWaveLabel(QLabel):
             x = start_x + i * (self.bar_width + self.bar_spacing)
             bar_height = int(height)
             
-            # Normalize height for color calculation (clamp to 1.0)
+            # Normalize height for color
             height_ratio = min(height / self.max_height, 1.0)
-            
-            # *** COLOR IMPROVEMENT: Get color from the new gradient method
             color = self._get_bar_color(height_ratio)
             
-            # Draw glow effect (more effective on a dark background)
+            # Draw glow effect
             glow_color = QColor(color.red(), color.green(), color.blue(), 70)
             painter.setPen(Qt.NoPen)
             painter.setBrush(glow_color)
@@ -302,3 +342,10 @@ class SoundWaveLabel(QLabel):
             )
 
         painter.end()
+        
+    def __del__(self):
+        """Cleanup when object is destroyed"""
+        try:
+            self.stop_audio_monitoring()
+        except:
+            pass

@@ -27,6 +27,7 @@ import json
 from util.findVerseBox import findPrevDisplayedVerse
 import util.Message as msg
 from util.util import resource_path
+from util import soundwave
 
 
 class Tracker():
@@ -695,27 +696,32 @@ class WhisperWindow(QFrame):
 
         # 4. Start the thread
         self.transcription_thread.start()
-        # --- END CRASH-FIX BLOCK ---
 
-        # --- SOUNDWAVE VISUALIZER DISABLED TO PREVENT CRASH ---
-        # self.soundwave_label = soundwave.SoundWaveLabel(self)
-        # original_label = self.findChild(QLabel, 'sound')
-        # if original_label:
-        #     geometry = original_label.geometry()
-        #     parent_widget = original_label.parent()
-        #     original_label.setParent(None)
-        #     self.soundwave_label.setParent(parent_widget)
-        #     self.soundwave_label.setGeometry(geometry)
-        #     self.soundwave_label.setText("Not listening")
-        #     self.soundwave_label.setStyleSheet('margin: 30px auto; color: white;')
-        #     self.label = self.soundwave_label
-        #     print("Soundwave label created and replaced original label")
-        # else:
-        #     print("Original 'sound' label not found!")
 
-        # if self.checkBox.isChecked():
-        #     print("Checkbox is checked, starting visualization automatically")
-        #     self.soundwave_label.start_recording_visualization()
+        # --- SOUNDWAVE VISUALIZER RE-ENABLED WITH FIXES ---
+        
+        self.soundwave_label = soundwave.SoundWaveLabel(self)
+        original_label = self.findChild(QLabel, 'sound')
+        
+        if original_label:
+            geometry = original_label.geometry()
+            parent_widget = original_label.parent()
+            original_label.setParent(None)
+            original_label.deleteLater()  # Properly delete the old label
+            
+            self.soundwave_label.setParent(parent_widget)
+            self.soundwave_label.setGeometry(geometry)
+            self.soundwave_label.setText("Not listening")
+            self.soundwave_label.setStyleSheet('margin: 30px auto; color: white;')
+            self.label = self.soundwave_label
+            print("Soundwave label created and replaced original label")
+        else:
+            print("Original 'sound' label not found!")
+
+        # Start visualization if checkbox is checked
+        if self.checkBox.isChecked():
+            print("Checkbox is checked, starting visualization automatically")
+            QTimer.singleShot(100, self.soundwave_label.start_recording_visualization)
         # --- END SOUNDWAVE BLOCK ---
 
     @pyqtSlot(str) 
@@ -730,21 +736,22 @@ class WhisperWindow(QFrame):
     def start_recording(self):
         print(f"Start recording called, checkbox checked: {self.record_btn.isChecked()}")
         if self.record_btn.isChecked():
-            self.label.setText("Listening...")
+            self.label.setText("")  # Clear text when starting
             if not self.transcription_thread.isRunning():
-                # Create new thread if old one finished
                 self.transcription_thread = TranscriptionWorker(self, search_page=self.search_page, lineEdit=self.lineEdit)
                 self.transcription_thread.autoSearchResults.connect(self.search_widget.add_auto_search_results)
                 self.transcription_thread.guiTextReady.connect(self.update_transcription_text)
                 self.transcription_thread.start()
         
-            # --- SOUNDWAVE DISABLED ---
-            # print("Starting soundwave visualization")
-            # self.soundwave_label.start_recording_visualization()
+            # Start soundwave visualization
+            if hasattr(self, 'soundwave_label'):
+                print("Starting soundwave visualization")
+                self.soundwave_label.start_recording_visualization()
         else:
             print("Stopping soundwave visualization")
             self.label.setText("Not listening")
-            # Use graceful stop instead of terminate
+            
+            # Stop transcription gracefully
             if self.transcription_thread.isRunning():
                 self.transcription_thread.stop_transcription()
                 if not self.transcription_thread.wait(5000):
@@ -752,8 +759,9 @@ class WhisperWindow(QFrame):
                     self.transcription_thread.terminate()
                     self.transcription_thread.wait()
             
-            # --- SOUNDWAVE DISABLED ---
-            # self.soundwave_label.stop_recording_visualization()
+            # Stop soundwave
+            if hasattr(self, 'soundwave_label'):
+                self.soundwave_label.stop_recording_visualization()
 
     def close(self):
         print("WhisperWindow closing")
