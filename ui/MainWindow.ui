@@ -566,8 +566,8 @@ background-color:rgb(255, 255, 255);</string>
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>217</width>
-                   <height>147</height>
+                   <width>576</width>
+                   <height>746</height>
                   </rect>
                  </property>
                  <layout class="QVBoxLayout" name="verticalLayout_9">
@@ -694,8 +694,8 @@ QScrollBar::sub-page:vertical {
                         <rect>
                          <x>0</x>
                          <y>0</y>
-                         <width>100</width>
-                         <height>30</height>
+                         <width>556</width>
+                         <height>673</height>
                         </rect>
                        </property>
                        <layout class="QVBoxLayout" name="verticalLayout_4"/>
@@ -1220,8 +1220,8 @@ QScrollBar::sub-page:vertical {
                        <rect>
                         <x>0</x>
                         <y>0</y>
-                        <width>157</width>
-                        <height>59</height>
+                        <width>554</width>
+                        <height>508</height>
                        </rect>
                       </property>
                       <property name="focusPolicy">
@@ -1299,8 +1299,8 @@ border:none</string>
                      <rect>
                       <x>0</x>
                       <y>0</y>
-                      <width>412</width>
-                      <height>290</height>
+                      <width>563</width>
+                      <height>728</height>
                      </rect>
                     </property>
                     <property name="styleSheet">
@@ -1374,10 +1374,10 @@ font:20px</string>
                            <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:7.875pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
 &lt;p align=&quot;center&quot; style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:18pt; font-weight:600;&quot;&gt;This app was designed by&lt;/span&gt;&lt;/p&gt;
 &lt;p align=&quot;center&quot; style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:18pt; font-weight:600;&quot;&gt;ACHU WORIFUNG&lt;/span&gt;&lt;/p&gt;
-&lt;p align=&quot;center&quot; style=&quot;-qt-paragraph-type:empty; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-size:8.25pt;&quot;&gt;&lt;br /&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+&lt;p align=&quot;center&quot; style=&quot;-qt-paragraph-type:empty; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;br /&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                           </property>
                          </widget>
                         </item>
@@ -1467,8 +1467,8 @@ border:none</string>
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>571</width>
-                   <height>589</height>
+                   <width>576</width>
+                   <height>746</height>
                   </rect>
                  </property>
                  <property name="styleSheet">
@@ -1901,7 +1901,7 @@ font:20px
 </string>
                          </property>
                          <property name="text">
-                          <string>SET BAR LOCATION</string>
+                          <string>Set Bar Location</string>
                          </property>
                         </widget>
                        </item>
@@ -2019,7 +2019,7 @@ font:20px
                            <string notr="true">color:rgb(45, 62, 80)</string>
                           </property>
                           <property name="text">
-                           <string>•Set the bar location. if not set one will be choosen which may result in unexpected actions.  </string>
+                           <string>• Set the bar location. If not set, one will be chosen automatically, which may cause unexpected behavior.</string>
                           </property>
                           <property name="wordWrap">
                            <bool>true</bool>
@@ -2156,7 +2156,7 @@ QScrollBar::sub-page:vertical {
                  <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:7.875pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
 &lt;p align=&quot;center&quot; style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:18pt; font-weight:600;&quot;&gt;Configure the Search Area&lt;/span&gt;&lt;/p&gt;
 &lt;p style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:16pt;&quot;&gt;The &lt;/span&gt;&lt;span style=&quot; font-size:16pt; font-weight:600;&quot;&gt;search area&lt;/span&gt;&lt;span style=&quot; font-size:16pt;&quot;&gt; is a section of the screen that you define, from which the app will extract the currently displayed verse.&lt;/span&gt;&lt;/p&gt;
 &lt;ol style=&quot;margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 1;&quot;&gt;&lt;li style=&quot; font-size:16pt;&quot; style=&quot; margin-top:12px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Click &lt;span style=&quot; font-weight:600;&quot;&gt;OK&lt;/span&gt; to begin.&lt;/li&gt;
@@ -2414,9 +2414,9 @@ QScrollBar::sub-page:vertical {
                  <property name="geometry">
                   <rect>
                    <x>0</x>
-                   <y>0</y>
+                   <y>-293</y>
                    <width>566</width>
-                   <height>1093</height>
+                   <height>1293</height>
                   </rect>
                  </property>
                  <layout class="QVBoxLayout" name="verticalLayout_8">
@@ -2651,7 +2651,7 @@ QScrollBar::sub-page:vertical {
                     <property name="minimumSize">
                      <size>
                       <width>0</width>
-                      <height>400</height>
+                      <height>600</height>
                      </size>
                     </property>
                     <property name="styleSheet">
@@ -2663,163 +2663,8 @@ QScrollBar::sub-page:vertical {
                     <property name="frameShadow">
                      <enum>QFrame::Raised</enum>
                     </property>
-                    <layout class="QGridLayout" name="gridLayout_3">
-                     <item row="3" column="1">
-                      <widget class="QDoubleSpinBox" name="temperature">
-                       <property name="maximum">
-                        <double>1.000000000000000</double>
-                       </property>
-                      </widget>
-                     </item>
-                     <item row="5" column="1">
-                      <widget class="QSpinBox" name="best">
-                       <property name="minimumSize">
-                        <size>
-                         <width>200</width>
-                         <height>0</height>
-                        </size>
-                       </property>
-                       <property name="minimum">
-                        <number>1</number>
-                       </property>
-                       <property name="maximum">
-                        <number>3</number>
-                       </property>
-                      </widget>
-                     </item>
-                     <item row="4" column="1">
-                      <widget class="QSpinBox" name="cores">
-                       <property name="minimum">
-                        <number>1</number>
-                       </property>
-                      </widget>
-                     </item>
-                     <item row="0" column="1">
-                      <widget class="QComboBox" name="processing">
-                       <property name="minimumSize">
-                        <size>
-                         <width>0</width>
-                         <height>31</height>
-                        </size>
-                       </property>
-                       <property name="font">
-                        <font>
-                         <pointsize>-1</pointsize>
-                        </font>
-                       </property>
-                       <property name="styleSheet">
-                        <string notr="true"/>
-                       </property>
-                       <property name="insertPolicy">
-                        <enum>QComboBox::InsertAtTop</enum>
-                       </property>
-                       <property name="iconSize">
-                        <size>
-                         <width>50</width>
-                         <height>50</height>
-                        </size>
-                       </property>
-                       <property name="duplicatesEnabled">
-                        <bool>false</bool>
-                       </property>
-                       <property name="arrow" stdset="0">
-                        <iconset>
-                         <normaloff>../Icons/48792_player_record_icon.ico</normaloff>../Icons/48792_player_record_icon.ico</iconset>
-                       </property>
-                       <item>
-                        <property name="text">
-                         <string>CPU</string>
-                        </property>
-                       </item>
-                       <item>
-                        <property name="text">
-                         <string>GPU</string>
-                        </property>
-                       </item>
-                      </widget>
-                     </item>
-                     <item row="2" column="1">
-                      <widget class="QSpinBox" name="beam">
-                       <property name="correctionMode">
-                        <enum>QAbstractSpinBox::CorrectToPreviousValue</enum>
-                       </property>
-                       <property name="minimum">
-                        <number>1</number>
-                       </property>
-                       <property name="maximum">
-                        <number>10</number>
-                       </property>
-                       <property name="value">
-                        <number>5</number>
-                       </property>
-                      </widget>
-                     </item>
-                     <item row="1" column="1">
-                      <widget class="QComboBox" name="model">
-                       <property name="minimumSize">
-                        <size>
-                         <width>0</width>
-                         <height>31</height>
-                        </size>
-                       </property>
-                      </widget>
-                     </item>
-                     <item row="3" column="0">
-                      <widget class="QWidget" name="widget_27" native="true">
-                       <layout class="QHBoxLayout" name="horizontalLayout_25">
-                        <item>
-                         <widget class="QLabel" name="label_9">
-                          <property name="font">
-                           <font>
-                            <family>MS Shell Dig 2</family>
-                            <pointsize>-1</pointsize>
-                           </font>
-                          </property>
-                          <property name="text">
-                           <string>temperature</string>
-                          </property>
-                         </widget>
-                        </item>
-                        <item>
-                         <widget class="QPushButton" name="pushButton_16">
-                          <property name="cursor">
-                           <cursorShape>WhatsThisCursor</cursorShape>
-                          </property>
-                          <property name="toolTip">
-                           <string>Controls randomness in predictions. Lower values give more reliable transcriptions, while higher values allow more varied outputs (mainly for translation)</string>
-                          </property>
-                          <property name="text">
-                           <string/>
-                          </property>
-                          <property name="icon">
-                           <iconset>
-                            <normaloff>../Icons/4470663_description_about_app_web_info_icon.ico</normaloff>../Icons/4470663_description_about_app_web_info_icon.ico</iconset>
-                          </property>
-                          <property name="iconSize">
-                           <size>
-                            <width>25</width>
-                            <height>25</height>
-                           </size>
-                          </property>
-                         </widget>
-                        </item>
-                        <item>
-                         <spacer name="horizontalSpacer_10">
-                          <property name="orientation">
-                           <enum>Qt::Horizontal</enum>
-                          </property>
-                          <property name="sizeHint" stdset="0">
-                           <size>
-                            <width>214</width>
-                            <height>20</height>
-                           </size>
-                          </property>
-                         </spacer>
-                        </item>
-                       </layout>
-                      </widget>
-                     </item>
-                     <item row="0" column="0">
+                    <layout class="QVBoxLayout" name="verticalLayout_11">
+                     <item>
                       <widget class="QWidget" name="widget_10" native="true">
                        <layout class="QHBoxLayout" name="horizontalLayout_12">
                         <item>
@@ -2871,117 +2716,54 @@ QScrollBar::sub-page:vertical {
                           </property>
                          </spacer>
                         </item>
-                       </layout>
-                      </widget>
-                     </item>
-                     <item row="5" column="0">
-                      <widget class="QWidget" name="widget_29" native="true">
-                       <layout class="QHBoxLayout" name="horizontalLayout_27">
                         <item>
-                         <widget class="QLabel" name="label_23">
+                         <widget class="QComboBox" name="processing">
+                          <property name="minimumSize">
+                           <size>
+                            <width>200</width>
+                            <height>31</height>
+                           </size>
+                          </property>
                           <property name="font">
                            <font>
-                            <family>MS Shell Dig 2</family>
                             <pointsize>-1</pointsize>
                            </font>
                           </property>
-                          <property name="text">
-                           <string>Best of</string>
+                          <property name="styleSheet">
+                           <string notr="true"/>
                           </property>
-                         </widget>
-                        </item>
-                        <item>
-                         <widget class="QPushButton" name="pushButton_18">
-                          <property name="cursor">
-                           <cursorShape>WhatsThisCursor</cursorShape>
-                          </property>
-                          <property name="toolTip">
-                           <string>Number of sampled candidates to consider when decoding. The best transcription is chosen among them. Only applies when not using beam search.</string>
-                          </property>
-                          <property name="text">
-                           <string/>
-                          </property>
-                          <property name="icon">
-                           <iconset>
-                            <normaloff>../Icons/4470663_description_about_app_web_info_icon.ico</normaloff>../Icons/4470663_description_about_app_web_info_icon.ico</iconset>
+                          <property name="insertPolicy">
+                           <enum>QComboBox::InsertAtTop</enum>
                           </property>
                           <property name="iconSize">
                            <size>
-                            <width>25</width>
-                            <height>25</height>
+                            <width>50</width>
+                            <height>50</height>
                            </size>
                           </property>
+                          <property name="duplicatesEnabled">
+                           <bool>false</bool>
+                          </property>
+                          <property name="arrow" stdset="0">
+                           <iconset>
+                            <normaloff>../Icons/48792_player_record_icon.ico</normaloff>../Icons/48792_player_record_icon.ico</iconset>
+                          </property>
+                          <item>
+                           <property name="text">
+                            <string>CPU</string>
+                           </property>
+                          </item>
+                          <item>
+                           <property name="text">
+                            <string>GPU</string>
+                           </property>
+                          </item>
                          </widget>
-                        </item>
-                        <item>
-                         <spacer name="horizontalSpacer_12">
-                          <property name="orientation">
-                           <enum>Qt::Horizontal</enum>
-                          </property>
-                          <property name="sizeHint" stdset="0">
-                           <size>
-                            <width>248</width>
-                            <height>20</height>
-                           </size>
-                          </property>
-                         </spacer>
                         </item>
                        </layout>
                       </widget>
                      </item>
-                     <item row="4" column="0">
-                      <widget class="QWidget" name="widget_28" native="true">
-                       <layout class="QHBoxLayout" name="horizontalLayout_26">
-                        <item>
-                         <widget class="QLabel" name="label_10">
-                          <property name="font">
-                           <font>
-                            <family>MS Shell Dig 2</family>
-                            <pointsize>-1</pointsize>
-                           </font>
-                          </property>
-                          <property name="text">
-                           <string>working cores</string>
-                          </property>
-                         </widget>
-                        </item>
-                        <item>
-                         <widget class="QPushButton" name="pushButton_17">
-                          <property name="cursor">
-                           <cursorShape>WhatsThisCursor</cursorShape>
-                          </property>
-                          <property name="text">
-                           <string/>
-                          </property>
-                          <property name="icon">
-                           <iconset>
-                            <normaloff>../Icons/4470663_description_about_app_web_info_icon.ico</normaloff>../Icons/4470663_description_about_app_web_info_icon.ico</iconset>
-                          </property>
-                          <property name="iconSize">
-                           <size>
-                            <width>25</width>
-                            <height>25</height>
-                           </size>
-                          </property>
-                         </widget>
-                        </item>
-                        <item>
-                         <spacer name="horizontalSpacer_11">
-                          <property name="orientation">
-                           <enum>Qt::Horizontal</enum>
-                          </property>
-                          <property name="sizeHint" stdset="0">
-                           <size>
-                            <width>207</width>
-                            <height>20</height>
-                           </size>
-                          </property>
-                         </spacer>
-                        </item>
-                       </layout>
-                      </widget>
-                     </item>
-                     <item row="1" column="0">
+                     <item>
                       <widget class="QWidget" name="widget_11" native="true">
                        <layout class="QHBoxLayout" name="horizontalLayout_23">
                         <item>
@@ -3033,10 +2815,20 @@ QScrollBar::sub-page:vertical {
                           </property>
                          </spacer>
                         </item>
+                        <item>
+                         <widget class="QComboBox" name="model">
+                          <property name="minimumSize">
+                           <size>
+                            <width>200</width>
+                            <height>31</height>
+                           </size>
+                          </property>
+                         </widget>
+                        </item>
                        </layout>
                       </widget>
                      </item>
-                     <item row="2" column="0">
+                     <item>
                       <widget class="QWidget" name="widget_13" native="true">
                        <layout class="QHBoxLayout" name="horizontalLayout_24">
                         <item>
@@ -3088,10 +2880,387 @@ QScrollBar::sub-page:vertical {
                           </property>
                          </spacer>
                         </item>
+                        <item>
+                         <widget class="QSpinBox" name="beam">
+                          <property name="minimumSize">
+                           <size>
+                            <width>200</width>
+                            <height>0</height>
+                           </size>
+                          </property>
+                          <property name="correctionMode">
+                           <enum>QAbstractSpinBox::CorrectToPreviousValue</enum>
+                          </property>
+                          <property name="minimum">
+                           <number>1</number>
+                          </property>
+                          <property name="maximum">
+                           <number>10</number>
+                          </property>
+                          <property name="value">
+                           <number>5</number>
+                          </property>
+                         </widget>
+                        </item>
                        </layout>
                       </widget>
                      </item>
-                     <item row="6" column="1">
+                     <item>
+                      <widget class="QWidget" name="widget_27" native="true">
+                       <layout class="QHBoxLayout" name="horizontalLayout_25">
+                        <item>
+                         <widget class="QLabel" name="label_9">
+                          <property name="font">
+                           <font>
+                            <family>MS Shell Dig 2</family>
+                            <pointsize>-1</pointsize>
+                           </font>
+                          </property>
+                          <property name="text">
+                           <string>temperature</string>
+                          </property>
+                         </widget>
+                        </item>
+                        <item>
+                         <widget class="QPushButton" name="pushButton_16">
+                          <property name="cursor">
+                           <cursorShape>WhatsThisCursor</cursorShape>
+                          </property>
+                          <property name="toolTip">
+                           <string>Controls randomness in predictions. Lower values give more reliable transcriptions, while higher values allow more varied outputs (mainly for translation)</string>
+                          </property>
+                          <property name="text">
+                           <string/>
+                          </property>
+                          <property name="icon">
+                           <iconset>
+                            <normaloff>../Icons/4470663_description_about_app_web_info_icon.ico</normaloff>../Icons/4470663_description_about_app_web_info_icon.ico</iconset>
+                          </property>
+                          <property name="iconSize">
+                           <size>
+                            <width>25</width>
+                            <height>25</height>
+                           </size>
+                          </property>
+                         </widget>
+                        </item>
+                        <item>
+                         <spacer name="horizontalSpacer_10">
+                          <property name="orientation">
+                           <enum>Qt::Horizontal</enum>
+                          </property>
+                          <property name="sizeHint" stdset="0">
+                           <size>
+                            <width>214</width>
+                            <height>20</height>
+                           </size>
+                          </property>
+                         </spacer>
+                        </item>
+                        <item>
+                         <widget class="QDoubleSpinBox" name="temperature">
+                          <property name="minimumSize">
+                           <size>
+                            <width>200</width>
+                            <height>0</height>
+                           </size>
+                          </property>
+                          <property name="maximum">
+                           <double>1.000000000000000</double>
+                          </property>
+                         </widget>
+                        </item>
+                       </layout>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QWidget" name="widget_28" native="true">
+                       <layout class="QHBoxLayout" name="horizontalLayout_26">
+                        <item>
+                         <widget class="QLabel" name="label_10">
+                          <property name="font">
+                           <font>
+                            <family>MS Shell Dig 2</family>
+                            <pointsize>-1</pointsize>
+                           </font>
+                          </property>
+                          <property name="text">
+                           <string>working cores</string>
+                          </property>
+                         </widget>
+                        </item>
+                        <item>
+                         <widget class="QPushButton" name="pushButton_17">
+                          <property name="cursor">
+                           <cursorShape>WhatsThisCursor</cursorShape>
+                          </property>
+                          <property name="text">
+                           <string/>
+                          </property>
+                          <property name="icon">
+                           <iconset>
+                            <normaloff>../Icons/4470663_description_about_app_web_info_icon.ico</normaloff>../Icons/4470663_description_about_app_web_info_icon.ico</iconset>
+                          </property>
+                          <property name="iconSize">
+                           <size>
+                            <width>25</width>
+                            <height>25</height>
+                           </size>
+                          </property>
+                         </widget>
+                        </item>
+                        <item>
+                         <spacer name="horizontalSpacer_11">
+                          <property name="orientation">
+                           <enum>Qt::Horizontal</enum>
+                          </property>
+                          <property name="sizeHint" stdset="0">
+                           <size>
+                            <width>207</width>
+                            <height>20</height>
+                           </size>
+                          </property>
+                         </spacer>
+                        </item>
+                        <item>
+                         <widget class="QSpinBox" name="cores">
+                          <property name="minimumSize">
+                           <size>
+                            <width>200</width>
+                            <height>0</height>
+                           </size>
+                          </property>
+                          <property name="minimum">
+                           <number>1</number>
+                          </property>
+                         </widget>
+                        </item>
+                       </layout>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QWidget" name="widget_29" native="true">
+                       <layout class="QHBoxLayout" name="horizontalLayout_27">
+                        <item>
+                         <widget class="QLabel" name="label_23">
+                          <property name="font">
+                           <font>
+                            <family>MS Shell Dig 2</family>
+                            <pointsize>-1</pointsize>
+                           </font>
+                          </property>
+                          <property name="text">
+                           <string>Best of</string>
+                          </property>
+                         </widget>
+                        </item>
+                        <item>
+                         <widget class="QPushButton" name="pushButton_18">
+                          <property name="cursor">
+                           <cursorShape>WhatsThisCursor</cursorShape>
+                          </property>
+                          <property name="toolTip">
+                           <string>Number of sampled candidates to consider when decoding. The best transcription is chosen among them. Only applies when not using beam search.</string>
+                          </property>
+                          <property name="text">
+                           <string/>
+                          </property>
+                          <property name="icon">
+                           <iconset>
+                            <normaloff>../Icons/4470663_description_about_app_web_info_icon.ico</normaloff>../Icons/4470663_description_about_app_web_info_icon.ico</iconset>
+                          </property>
+                          <property name="iconSize">
+                           <size>
+                            <width>25</width>
+                            <height>25</height>
+                           </size>
+                          </property>
+                         </widget>
+                        </item>
+                        <item>
+                         <spacer name="horizontalSpacer_12">
+                          <property name="orientation">
+                           <enum>Qt::Horizontal</enum>
+                          </property>
+                          <property name="sizeHint" stdset="0">
+                           <size>
+                            <width>248</width>
+                            <height>20</height>
+                           </size>
+                          </property>
+                         </spacer>
+                        </item>
+                        <item>
+                         <widget class="QSpinBox" name="best">
+                          <property name="minimumSize">
+                           <size>
+                            <width>200</width>
+                            <height>0</height>
+                           </size>
+                          </property>
+                          <property name="minimum">
+                           <number>1</number>
+                          </property>
+                          <property name="maximum">
+                           <number>3</number>
+                          </property>
+                         </widget>
+                        </item>
+                       </layout>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QWidget" name="widget_31" native="true">
+                       <layout class="QHBoxLayout" name="horizontalLayout_29">
+                        <item>
+                         <widget class="QLabel" name="label_26">
+                          <property name="font">
+                           <font>
+                            <family>MS Shell Dig 2</family>
+                            <pointsize>-1</pointsize>
+                           </font>
+                          </property>
+                          <property name="text">
+                           <string>Confidence threshold</string>
+                          </property>
+                         </widget>
+                        </item>
+                        <item>
+                         <widget class="QPushButton" name="pushButton_20">
+                          <property name="cursor">
+                           <cursorShape>WhatsThisCursor</cursorShape>
+                          </property>
+                          <property name="toolTip">
+                           <string>model's confidence in the transcribed audio segment.</string>
+                          </property>
+                          <property name="text">
+                           <string/>
+                          </property>
+                          <property name="icon">
+                           <iconset>
+                            <normaloff>../Icons/4470663_description_about_app_web_info_icon.ico</normaloff>../Icons/4470663_description_about_app_web_info_icon.ico</iconset>
+                          </property>
+                          <property name="iconSize">
+                           <size>
+                            <width>25</width>
+                            <height>25</height>
+                           </size>
+                          </property>
+                         </widget>
+                        </item>
+                        <item>
+                         <spacer name="horizontalSpacer_15">
+                          <property name="orientation">
+                           <enum>Qt::Horizontal</enum>
+                          </property>
+                          <property name="sizeHint" stdset="0">
+                           <size>
+                            <width>227</width>
+                            <height>20</height>
+                           </size>
+                          </property>
+                         </spacer>
+                        </item>
+                        <item>
+                         <widget class="QSpinBox" name="confidence_threshold">
+                          <property name="minimumSize">
+                           <size>
+                            <width>200</width>
+                            <height>0</height>
+                           </size>
+                          </property>
+                          <property name="minimum">
+                           <number>0</number>
+                          </property>
+                          <property name="maximum">
+                           <number>100</number>
+                          </property>
+                          <property name="singleStep">
+                           <number>1</number>
+                          </property>
+                          <property name="value">
+                           <number>50</number>
+                          </property>
+                          <property name="displayIntegerBase">
+                           <number>10</number>
+                          </property>
+                         </widget>
+                        </item>
+                       </layout>
+                      </widget>
+                     </item>
+                     <item>
+                      <widget class="QWidget" name="widget_32" native="true">
+                       <layout class="QHBoxLayout" name="horizontalLayout_30">
+                        <item>
+                         <widget class="QLabel" name="label_27">
+                          <property name="font">
+                           <font>
+                            <family>MS Shell Dig 2</family>
+                            <pointsize>-1</pointsize>
+                           </font>
+                          </property>
+                          <property name="text">
+                           <string>Include prev Context</string>
+                          </property>
+                         </widget>
+                        </item>
+                        <item>
+                         <widget class="QPushButton" name="pushButton_22">
+                          <property name="cursor">
+                           <cursorShape>WhatsThisCursor</cursorShape>
+                          </property>
+                          <property name="toolTip">
+                           <string>include prev transcribed segment for better context.</string>
+                          </property>
+                          <property name="text">
+                           <string/>
+                          </property>
+                          <property name="icon">
+                           <iconset>
+                            <normaloff>../Icons/4470663_description_about_app_web_info_icon.ico</normaloff>../Icons/4470663_description_about_app_web_info_icon.ico</iconset>
+                          </property>
+                          <property name="iconSize">
+                           <size>
+                            <width>25</width>
+                            <height>25</height>
+                           </size>
+                          </property>
+                         </widget>
+                        </item>
+                        <item>
+                         <spacer name="horizontalSpacer_16">
+                          <property name="orientation">
+                           <enum>Qt::Horizontal</enum>
+                          </property>
+                          <property name="sizeHint" stdset="0">
+                           <size>
+                            <width>227</width>
+                            <height>20</height>
+                           </size>
+                          </property>
+                         </spacer>
+                        </item>
+                        <item>
+                         <widget class="QSpinBox" name="prev_context">
+                          <property name="minimumSize">
+                           <size>
+                            <width>200</width>
+                            <height>0</height>
+                           </size>
+                          </property>
+                          <property name="minimum">
+                           <number>0</number>
+                          </property>
+                          <property name="maximum">
+                           <number>1</number>
+                          </property>
+                         </widget>
+                        </item>
+                       </layout>
+                      </widget>
+                     </item>
+                     <item>
                       <widget class="QFrame" name="frame_5">
                        <property name="minimumSize">
                         <size>
@@ -3130,7 +3299,7 @@ background-color: rgb(139, 139, 139);
                        <property name="frameShadow">
                         <enum>QFrame::Raised</enum>
                        </property>
-                       <layout class="QGridLayout" name="gridLayout_9">
+                       <layout class="QGridLayout" name="gridLayout_3">
                         <item row="0" column="0">
                          <widget class="QPushButton" name="manage_model">
                           <property name="minimumSize">
