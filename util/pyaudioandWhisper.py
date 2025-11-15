@@ -364,19 +364,21 @@ class ProcessorThread(QThread):
 # ===================================================================
 # PRODUCER FUNCTION (run_transcription)
 # ===================================================================
-def transcrip(model, filename, beam_size, best_of, temperature, language, vad_filter, word_timestamps, prev_segment_text = ""):
-     print('here is the prev segment text:', prev_segment_text)
-     segments, _ = model.transcribe(
+def transcrip(model, filename, beam_size, best_of, temperature, language, vad_filter, word_timestamps, prev_segment_text = "", log_prob_threshold=-0.4):
+    context = prev_segment_text[-400:] if prev_segment_text else ""
+    print('here is the prev segment text:', prev_segment_text)
+    segments, _ = model.transcribe(
                                     filename,
                                     beam_size=beam_size,
                                     best_of=best_of,
                                     temperature=temperature,
                                     language=language,
-                                    initial_prompt=prev_segment_text[:], #the last 500 chars
+                                    initial_prompt=context, #the last 400 chars
                                     vad_filter=vad_filter, 
-                                    word_timestamps=word_timestamps
+                                    word_timestamps=word_timestamps,
+                                    log_prob_threshold=log_prob_threshold
                                 )
-     return segments
+    return segments
 
 def run_transcription(recording_page, search_Page=None, lineEdit=None, worker_thread=None, controller=None):
     """

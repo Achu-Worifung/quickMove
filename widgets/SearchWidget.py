@@ -429,7 +429,7 @@ class SearchWidget(QDialog):
 
 
     def add_auto_search_results(self, results, query, confidence = None, max_results = 10):
-            print('here is the max_results', max)
+            print('here is the max_results', max_results)
             
             sorted_results = self.normalize_results(results)
             print('sorted results in auto', sorted_results)
