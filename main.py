@@ -6,8 +6,8 @@ os.environ['QT_ENABLE_HIGHDPI_SCALING'] = '1'
 os.environ['QT_SCALE_FACTOR'] = '1'
 os.environ['QT_SCREEN_SCALE_FACTORS'] = '1'
 import sys
-from PyQt5.QtWidgets import QDialog
-from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QLabel, QPushButton, QTableWidgetItem, QMainWindow,QSizeGrip
+from PyQt5.QtWidgets import QDialog, QMessageBox
+from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QLabel, QPushButton, QTableWidgetItem, QMainWindow, QSizeGrip
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import Qt, QSettings, QThread, pyqtSignal
 from PyQt5.uic import loadUi
@@ -125,7 +125,10 @@ class MainWindow(QMainWindow):
 
     def closeEvent(self, event):
         if self.curr_page == "settings":
-            self.moveFromSettings()
+            result = self.moveFromSettings(event)
+            if result:
+                return result
+            return False
 
             
         self.settings.setValue("geometry", self.saveGeometry())
@@ -169,7 +172,9 @@ class MainWindow(QMainWindow):
             newWidth = 0
         self.functions.setFixedWidth(newWidth)
     def moveToCreate(self):
-        self.saveSettings()
+        result = self.saveSettings()
+        if result:
+            return
 
         # self.toggleMenu()
         self.stackedWidget.setCurrentIndex(1)
@@ -181,7 +186,9 @@ class MainWindow(QMainWindow):
         self.stackedWidget.setCurrentIndex(1)
         pass
     def moveToAbout(self):
-        self.saveSettings()
+        result = self.saveSettings()
+        if result:
+            return
 
         #hiding the nav bar
         # self.toggleMenu()
@@ -193,11 +200,16 @@ class MainWindow(QMainWindow):
     #     self.curr_page = "history"
     #     pass
     def saveSettings(self):
-        if self.curr_page == "settings":
-            self.moveFromSettings()
+         if self.curr_page == "settings":
+            result = self.moveFromSettings()
+            if result:
+                return result
+            return False
        
     def moveTOSearchArea(self):
-        self.saveSettings()
+        result = self.saveSettings()
+        if result:
+            return
         self.curr_page = "searchArea"
         # self.toggleMenu()
         self.stackedWidget.setCurrentIndex(5)
@@ -208,7 +220,10 @@ class MainWindow(QMainWindow):
         self.stackedWidget.setCurrentIndex(5)
         
     def moveToSettings(self):
-        self.saveSettings()
+        result = self.saveSettings()
+        if result:
+            return
+
 
         self.curr_page = "settings"
         # self.toggleMenu()
@@ -220,33 +235,31 @@ class MainWindow(QMainWindow):
             page = self.stackedWidget.layout().itemAt(6).widget()
             self.settings_page = Settings(page)
         self.stackedWidget.setCurrentIndex(6)
-    def moveFromSettings(self):
+    def moveFromSettings(self, event = None):
         # print('were changes made', self.settings.value("changesmade"))
         changes = len(self.settings_page.made_changes) > 0 
         print('this is changes', changes)
-        if  changes:
-            print('were changes made', self.settings.value("changesmade"))
-            link = os.path.join(os.path.dirname(__file__), './ui/settingwarning.ui')
-            from widgets.Warning import Warnings
-            warning_dialog = Warnings(link)
-            
-            result = warning_dialog.exec_()  # Modal — blocks until user acts
-
-            if result == QDialog.Accepted:
-                if warning_dialog.clicked_button == "discard":
-                    self.settings_page.discard_changes()
-
-                    return
-                elif warning_dialog.clicked_button == "save":
-                   print('here is the settings page', self.settings_page)
-                   self.settings_page.save_settings()
-            self.settings.sync()
+        if changes:
+            reply = QMessageBox.question(self, 'Unsaved Changes', 'You have unsaved changes. Do you want to save them before leaving?', QMessageBox.Save | QMessageBox.Discard | QMessageBox.Cancel, QMessageBox.Save)
+            if reply == QMessageBox.Save:
+                self.settings_page.save_settings()
+            elif reply == QMessageBox.Discard:
+                self.settings_page.discard_changes()
+            elif reply == QMessageBox.Cancel:
+                if event is not None:
+                    event.ignore()
+                return True
+        self.settings.sync() 
+        return False
+      
 
  
     def moveHome(self):
         # if self.curr_page == "home":
         #    self.toggleMenu()
-        self.saveSettings()
+        result = self.saveSettings()
+        if result:
+            return
 
         if self.curr_page == 'create':
             #retrieving the latest data
