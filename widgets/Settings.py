@@ -6,7 +6,7 @@ from PyQt5.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButt
 from PyQt5.QtCore import QThread, pyqtSignal, Qt
 from PyQt5.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel, QListWidget, QListWidgetItem,
-    QPushButton, QMessageBox, QGroupBox, QFrame, QSizePolicy, QWidget
+    QPushButton, QMessageBox, QGroupBox, QFrame, QSizePolicy, QWidget, QScrollArea
 )
 from widgets.progressDialog import ModelDownloadWorker
 from PyQt5.QtCore import Qt
@@ -248,6 +248,61 @@ class ModelManagerDialog(QDialog):
         available_group = QGroupBox("Available Models")
         available_layout = QVBoxLayout()
 
+        # Create a container widget for the scrollable content
+        scroll_content = QWidget()
+        scroll_content.setLayout(available_layout)
+
+        # Create scroll area
+        scroll_area = QScrollArea()
+        scroll_area.setWidgetResizable(True)
+        scroll_area.setWidget(scroll_content)
+        scroll_area.setMaximumHeight(500)
+        scroll_area.setStyleSheet("""
+        QScrollArea {
+            border: none;
+            background-color: transparent;
+        }
+        QScrollBar:vertical {
+            width: 10px;
+            background: #f1f1f1;         /* light gray track instead of black */
+            border-radius: 5px;
+            margin: 0px;
+        }
+        /* Scroll handle (the part you drag) */
+        QScrollBar::handle:vertical {
+            background: #c1c1c1;         /* medium gray for good contrast */
+            border-radius: 5px;
+            min-height: 30px;
+            transition: background 0.3s ease;
+        }
+        /* Hover effect for handle */
+        QScrollBar::handle:vertical:hover {
+            background: #a0a0a0;         /* darker when hovered */
+        }
+        /* Pressed state */
+        QScrollBar::handle:vertical:pressed {
+            background: #808080;
+        }
+        /* Remove arrow buttons */
+        QScrollBar::sub-line:vertical,
+        QScrollBar::add-line:vertical {
+            height: 0;
+            width: 0;
+            background: none;
+            border: none;
+        }
+        /* Remove arrow icons */
+        QScrollBar::up-arrow:vertical,
+        QScrollBar::down-arrow:vertical {
+            background: none;
+        }
+        /* Optional: space at top/bottom (no buttons, just gap) */
+        QScrollBar::add-page:vertical,
+        QScrollBar::sub-page:vertical {
+            background: none;
+        }
+    """)
+
         for model_name, info in WHISPER_MODEL_INFO.items():
             row = QWidget()
             row_layout = QHBoxLayout(row)
@@ -264,11 +319,22 @@ class ModelManagerDialog(QDialog):
             btn = QPushButton("⬇ Download")
             btn.clicked.connect(lambda _, m=model_name: self.download_model(m))
             row_layout.addWidget(btn)
+            btn.setStyleSheet(
+                """
+                QPushButton {
+                    padding: 4px 12px;
+                    border: 1px solid #888;
+                    border-radius: 4px;
+                    background-color: #f1f1f1;
+                }
+                QPushButton:hover {
+                    background-color: #e1e1e1;
+                }"""
+            )
 
             available_layout.addWidget(row)
 
-        available_group.setLayout(available_layout)
-        layout.addWidget(available_group)
+        layout.addWidget(scroll_area)
 
         # Separator line
         line = QFrame()
@@ -287,6 +353,7 @@ class ModelManagerDialog(QDialog):
 
         self.total_size_label = QLabel("Total models size: 0 MB")
         downloaded_layout.addWidget(self.total_size_label)
+        downloaded_group.setMinimumHeight(200)
 
         downloaded_group.setLayout(downloaded_layout)
         layout.addWidget(downloaded_group)
@@ -326,6 +393,43 @@ class ModelManagerDialog(QDialog):
                 padding: 6px 18px;
                 border: 1px solid #888;
                 border-radius: 4px;
+                background-color: #f0f0f0;
+            }
+            QPushButton:hover {
+                background-color: #e0e0e0;
+            }
+            QPushButton:pressed {
+                background-color: #d0d0d0;
+            }
+            /* Scrollbar styling */
+            QScrollArea {
+                border: none;
+                background-color: transparent;
+            }
+            QScrollBar:vertical {
+                border: none;
+                background-color: #f0f0f0;
+                width: 12px;
+                margin: 0px;
+                border-radius: 6px;
+            }
+            QScrollBar::handle:vertical {
+                background-color: #c0c0c0;
+                border-radius: 6px;
+                min-height: 20px;
+            }
+            QScrollBar::handle:vertical:hover {
+                background-color: #a0a0a0;
+            }
+            QScrollBar::handle:vertical:pressed {
+                background-color: #808080;
+            }
+            QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+                border: none;
+                background: none;
+            }
+            QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
+                background: none;
             }
         """)
 
