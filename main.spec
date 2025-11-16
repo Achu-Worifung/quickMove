@@ -158,8 +158,8 @@ import sys
 import os
 
 # Prefer offline behavior for transformers in the frozen app
-os.environ['TRANSFORMERS_OFFLINE'] = '1'
-os.environ['HF_HUB_OFFLINE'] = '1'
+os.environ['TRANSFORMERS_OFFLINE'] = '0'
+#os.environ['HF_HUB_OFFLINE'] = '0'
 
 # When frozen, force transformers to avoid dynamic disk access that expects packages in normal layout.
 if hasattr(sys, 'frozen'):
@@ -173,6 +173,7 @@ if hasattr(sys, 'frozen'):
 """
 
 hook_path = 'pyinstaller_transformers_hook.py'
+online_hook = 'hf_enable_online_runtime_hook.py'
 with open(hook_path, 'w', encoding='utf-8') as f:
     f.write(runtime_hook_content)
 
@@ -187,7 +188,7 @@ a = Analysis(
     hiddenimports=hidden_imports,
     hookspath=[],
     hooksconfig={},
-    runtime_hooks=[hook_path],
+    runtime_hooks=[hook_path, online_hook],
     excludes=[],
     noarchive=True,        # <- critical: prevents packing modules into the PYZ archive
     optimize=0,
@@ -208,7 +209,7 @@ exe = EXE(
     bootloader_ignore_signals=False,
     strip=False,
     upx=False,             # disable UPX for debugging; set to True for release if desired
-    console=False,          # enable console during debug so you can see tracebacks
+    console=True,        
     disable_windowed_traceback=False,
     argv_emulation=False,
     icon='logo.ico',

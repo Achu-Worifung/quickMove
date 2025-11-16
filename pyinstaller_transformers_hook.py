@@ -3,8 +3,8 @@ import sys
 import os
 
 # Prefer offline behavior for transformers in the frozen app
-os.environ['TRANSFORMERS_OFFLINE'] = '1'
-os.environ['HF_HUB_OFFLINE'] = '1'
+os.environ['TRANSFORMERS_OFFLINE'] = '0'
+#os.environ['HF_HUB_OFFLINE'] = '0'
 
 # When frozen, force transformers to avoid dynamic disk access that expects packages in normal layout.
 if hasattr(sys, 'frozen'):
