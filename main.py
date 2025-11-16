@@ -128,8 +128,6 @@ class MainWindow(QMainWindow):
             result = self.moveFromSettings(event)
             if result:
                 return result
-            return False
-
             
         self.settings.setValue("geometry", self.saveGeometry())
         self.settings.setValue("prev_verse", "")
