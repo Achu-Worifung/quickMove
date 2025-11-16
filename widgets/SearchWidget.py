@@ -368,6 +368,12 @@ class SearchWidget(QDialog):
         saved = loadUi(link)
         saved.title.setText(title)
         saved.body.setText(body)
+        saved.body.setStyleSheet("""
+                                    text-align: left;
+                                    font-size: 14px;
+                                    line-height: 1.2em; 
+                                    max-height: 3.6em;  
+                                    """)
         saved.delete_2.clicked.connect(lambda checked=False: self.delete(saved))
 
         def mouse_click(event, verse_key):

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>823</width>
-    <height>250</height>
+    <height>172</height>
    </rect>
   </property>
   <property name="maximumSize">
@@ -31,9 +31,18 @@
      <property name="styleSheet">
       <string notr="true">background-color: rgb(220, 220, 220);
 border-color: rgb(192, 192, 192);
-border-radius: 30px;</string>
+border-radius: 10px;</string>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_3">
+      <property name="spacing">
+       <number>6</number>
+      </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
       <item>
        <layout class="QVBoxLayout" name="result">
         <property name="spacing">
@@ -60,6 +69,12 @@ border-radius: 30px;</string>
            <string notr="true"/>
           </property>
           <layout class="QGridLayout" name="gridLayout_2">
+           <property name="leftMargin">
+            <number>0</number>
+           </property>
+           <property name="topMargin">
+            <number>0</number>
+           </property>
            <item row="1" column="0">
             <widget class="QLabel" name="body">
              <property name="sizePolicy">
@@ -152,6 +167,21 @@ border-radius: 30px;</string>
            </size>
           </property>
           <layout class="QVBoxLayout" name="verticalLayout_2">
+           <property name="spacing">
+            <number>0</number>
+           </property>
+           <property name="leftMargin">
+            <number>0</number>
+           </property>
+           <property name="topMargin">
+            <number>0</number>
+           </property>
+           <property name="rightMargin">
+            <number>0</number>
+           </property>
+           <property name="bottomMargin">
+            <number>0</number>
+           </property>
            <item>
             <widget class="QPushButton" name="delete_2">
              <property name="sizePolicy">

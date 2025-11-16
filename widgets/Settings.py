@@ -8,6 +8,7 @@ from PyQt5.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel, QListWidget, QListWidgetItem,
     QPushButton, QMessageBox, QGroupBox, QFrame, QSizePolicy, QWidget, QScrollArea
 )
+import torch
 from widgets.progressDialog import ModelDownloadWorker
 from PyQt5.QtCore import Qt
 from util.modelmanagement import WHISPER_MODEL_INFO, Toast, list_downloaded_models, delete_model, get_total_models_size, download_model
@@ -48,6 +49,8 @@ class Settings:
         spinBox = [self.beam, self.core, self.best,self.silence, self.suggest_len, self.auto_searchlen]
         doubleSpinBox = [self.temp, self.energy, self.minlen, self.maxlen]
         self.populate_models()
+        
+        self.processing.addItem("GPU") if torch.cuda.is_available() else None
         
         # Load values from QSettings into widgets WITHOUT emitting change signals
         for box in comboBox:

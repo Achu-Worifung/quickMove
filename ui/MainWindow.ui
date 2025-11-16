@@ -2414,7 +2414,7 @@ QScrollBar::sub-page:vertical {
                  <property name="geometry">
                   <rect>
                    <x>0</x>
-                   <y>0</y>
+                   <y>-547</y>
                    <width>566</width>
                    <height>1293</height>
                   </rect>
@@ -2751,11 +2751,6 @@ QScrollBar::sub-page:vertical {
                           <item>
                            <property name="text">
                             <string>CPU</string>
-                           </property>
-                          </item>
-                          <item>
-                           <property name="text">
-                            <string>GPU</string>
                            </property>
                           </item>
                          </widget>
@@ -3300,11 +3295,11 @@ background-color: rgb(139, 139, 139);
                         <enum>QFrame::Raised</enum>
                        </property>
                        <layout class="QGridLayout" name="gridLayout_3">
-                        <item row="0" column="0">
+                        <item row="0" column="0" alignment="Qt::AlignRight">
                          <widget class="QPushButton" name="manage_model">
                           <property name="minimumSize">
                            <size>
-                            <width>0</width>
+                            <width>200</width>
                             <height>25</height>
                            </size>
                           </property>
