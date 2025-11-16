@@ -674,11 +674,18 @@ class WhisperWindow(QFrame):
         self.close_button.clicked.connect(self.close)
         self.lineEdit = self.findChild(QLineEdit, 'lineEdit')
         self.label = self.findChild(QLabel, 'sound')
-        self.record_btn = self.checkBox
-        self.checkBox.setChecked(True)
-        self.checkBox.clicked.connect(self.start_recording)
+        self.record_btn = self.findChild(QCheckBox, 'checkBox')
+        self.record_btn.setChecked(True)
+        self.record_btn.clicked.connect(self.start_recording)
         self.search_page = parent
         self.search_widget = search_widget
+        self.minimize_btn = self.findChild(QPushButton, 'min')
+        self.vbox = self.findChild(QVBoxLayout, 'verticalLayout')
+        self.minimize_btn.clicked.connect(self.toggle_minimize)
+        self.title = self.findChild(QLabel, 'title')
+        self.title.setText('')
+        
+        self.is_minimized = False
 
         # --- THIS IS THE CRITICAL CRASH-FIX ---
         # 1. Create the worker, passing the lineEdit
@@ -709,10 +716,7 @@ class WhisperWindow(QFrame):
             original_label.setParent(None)
             original_label.deleteLater()  # Properly delete the old label
             
-            self.soundwave_label.setParent(parent_widget)
-            self.soundwave_label.setGeometry(geometry)
-            self.soundwave_label.setText("Not listening")
-            self.soundwave_label.setStyleSheet('margin: 30px auto; color: white;')
+            self.vbox.insertWidget(2, self.soundwave_label)
             self.label = self.soundwave_label
             print("Soundwave label created and replaced original label")
         else:
@@ -723,7 +727,51 @@ class WhisperWindow(QFrame):
             print("Checkbox is checked, starting visualization automatically")
             QTimer.singleShot(100, self.soundwave_label.start_recording_visualization)
         # --- END SOUNDWAVE BLOCK ---
-
+    def toggle_minimize(self):
+        print('here is the size of container', self)
+        if self.is_minimized:
+            self.title.setText('')
+            self.is_minimized = False
+            self.record_btn.show()
+            self.record_btn.setVisible(True)
+            self.soundwave_label.show()
+            self.soundwave_label.setVisible(True)
+            self.soundwave_label.start_recording_visualization() if self.record_btn.isChecked() else None
+            self.lineEdit.show()
+            self.lineEdit.setVisible(True)
+            self.vbox.invalidate()
+            self.vbox.activate()
+            
+            # Use setFixedSize or setMinimumSize/setMaximumSize
+            self.setFixedSize(679, 311)
+            
+            # Alternative: use adjustSize() to let Qt calculate
+            # self.adjustSize()
+            
+            print('Restored listening window')
+            print('vbox size:', self.vbox.geometry())
+        else:
+            self.title.setText('Listening (minimized)') if self.record_btn.isChecked() else self.title.setText('Not listening (minimized)')
+            self.is_minimized = True
+            self.record_btn.hide()
+            self.record_btn.setVisible(False)
+            self.soundwave_label.stop_recording_visualization()
+            self.soundwave_label.hide()
+            self.soundwave_label.setVisible(False)
+            self.lineEdit.hide()
+            self.lineEdit.setVisible(False)
+            self.vbox.invalidate()
+            self.vbox.activate()
+            
+            # Use setFixedSize
+            self.setFixedSize(550, 80)
+            
+            print('Minimized listening window')
+            print('vbox size:', self.vbox.geometry())
+        self.updateGeometry()
+    
+        # Process any pending events to ensure the resize happens
+        QApplication.processEvents()
     @pyqtSlot(str) 
     def update_transcription_text(self, text):
         """
