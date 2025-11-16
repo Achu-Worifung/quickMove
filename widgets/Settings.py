@@ -10,7 +10,7 @@ from PyQt5.QtWidgets import (
 )
 from widgets.progressDialog import ModelDownloadWorker
 from PyQt5.QtCore import Qt
-from util.modelmanagement import WHISPER_MODEL_INFO, list_downloaded_models, delete_model, get_total_models_size, download_model
+from util.modelmanagement import WHISPER_MODEL_INFO, Toast, list_downloaded_models, delete_model, get_total_models_size, download_model
 class Settings:
     def __init__(self, page_widget):
         super().__init__()
@@ -456,6 +456,8 @@ class ModelManagerDialog(QDialog):
         self.total_size_label.setText(f"Total models size: {total_size:.1f} MB")
 
     def download_model(self, model_name):
+        from pyqttoast import Toast, ToastPreset
+
         reply = QMessageBox.question(
             self,
             "Download Model",
@@ -464,6 +466,12 @@ class ModelManagerDialog(QDialog):
             QMessageBox.Yes
         )
         if reply == QMessageBox.Yes:
+            toast = Toast()
+            toast.setDuration(5000)
+            toast.setTitle('Downloading Model')
+            toast.setText(f"Downloading model '{model_name}'...")
+            toast.applyPreset(ToastPreset.SUCCESS)
+            toast.show()
             success, message = download_model(model_name)  # <-- your function
             if success:
                 QMessageBox.information(self, "Success", message)

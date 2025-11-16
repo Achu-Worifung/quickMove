@@ -2,8 +2,6 @@ import os
 from PyQt5 import QtWidgets
 from pyqttoast import Toast, ToastPreset
 from util.util import resource_path
-import threading
-import os
 import time
 from faster_whisper.utils import download_model as fw_download_model
 WHISPER_MODEL_INFO = {
@@ -89,18 +87,8 @@ def get_total_models_size():
 
 def download_model(model_name):
     """Download a model using faster-whisper's download function"""
-    
-    toast = Toast()
-    toast.setDuration(5000)
-    toast.setTitle('Downloading Model')
-    toast.setText(f"Downloading model '{model_name}'...")
-    toast.applyPreset(ToastPreset.INFORMATION)
-    toast.show()
-    
-    # Force UI update
-    from PySide6.QtWidgets import QApplication
-    QApplication.processEvents()
-    
+
+
     try:
         cache_dir = resource_path(f"models/{model_name}")
         os.makedirs(cache_dir, exist_ok=True)
@@ -110,18 +98,16 @@ def download_model(model_name):
             cache_dir=cache_dir,
             local_files_only=False  
         )
-        
         toast = Toast()
-        toast.setTitle('Download Complete')
+        toast.setTitle('Downloading Model')
         toast.setText(f"Model '{model_name}' downloaded successfully to model/{model_name}.")
         toast.setDuration(5000)
         toast.applyPreset(ToastPreset.SUCCESS)
         toast.show()
         return True, f"Model '{model_name}' downloaded successfully to model/{model_name}."
-        
     except Exception as e:
         toast = Toast()
-        toast.setTitle('Download Failed')
+        toast.setTitle('Downloading Model')
         toast.setText(f"Error downloading model '{model_name}': {str(e)}")
         toast.setDuration(5000)
         toast.applyPreset(ToastPreset.ERROR)
