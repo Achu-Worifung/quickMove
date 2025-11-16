@@ -166,7 +166,9 @@ class Settings:
     def reset_settings(self):
         defaults = self.settings.value("default_settings")
         print("Defaults", defaults)
-        settings = [self.processing, self.model, self.beam, self.temp, self.core, self.best, self.energy, self.minlen, self.maxlen, self.channel, self.chunks, self.rate, self.silence, self.suggest_len, self.auto_searchlen]
+        settings = [self.processing, self.model, self.beam, self.temp, self.core, self.best, self.energy, self.minlen, self.maxlen, self.channel, self.chunks, self.rate, self.silence, 
+                    # not in defaults list:
+                    self.suggest_len, self.auto_searchlen, self.con_threshold, self.prev_context]
         index = 0
         for box in settings:
             if isinstance(box, QComboBox):
@@ -206,6 +208,13 @@ class Settings:
         
         self.savebtn.clicked.connect(self.save_settings)
         self.resetbtn.clicked.connect(self.reset_settings)
+        
+        self.resetbtn.setDisabled(True) #disabling reset button for now
+        
+        self.auto_len = self.page_widget.findChild(QSpinBox, "auto_length")
+        self.suggestion = self.page_widget.findChild(QSpinBox, "suggestion_length")
+        self.con_threshold = self.page_widget.findChild(QDoubleSpinBox, "confidence_threshold")
+        self.prev_context = self.page_widget.findChild(QSpinBox, "previous_context")
         
         self.processing.currentIndexChanged.connect(self.processing_clicked)
     #    self.processing.currentIndexChanged.connect(self.processing_clicked)

@@ -85,13 +85,13 @@ def download_model(model_name):
     """Download a model using faster-whisper's download function"""
     from faster_whisper.utils import download_model as fw_download_model
     try:
-        cache_dir = resource_path("models")
+        cache_dir = resource_path(f"models/{model_name}")
         os.makedirs(cache_dir, exist_ok=True)
         
         model_path = fw_download_model(
             model_name, 
             cache_dir=cache_dir,
-            local_files_only=False  # Allow online downloads
+            local_files_only=False  
         )
         
         return True, f"Model '{model_name}' downloaded successfully to {model_path}"

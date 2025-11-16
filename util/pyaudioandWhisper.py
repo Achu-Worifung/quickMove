@@ -166,8 +166,8 @@ class ProcessorThread(QThread):
         self.SAMPLE_WIDTH = pyaudio.PyAudio().get_sample_size(self.FORMAT)
         
         self.silence_length = float(settings.value('silence') or 0.5)
-        self.min_record_len = int(settings.value('minlen') or 1)
-        self.max_record_len = int(settings.value('maxlen') or 5)
+        self.min_record_len = float(settings.value('minlen') or 1.0)
+        self.max_record_len = float(settings.value('maxlen') or 5.0)
         computation_type = "float16" if processing == "GPU" else "int8"
         self.auto_search_size = int(settings.value('auto_length') or 1)
         self.confidence_threshold = float(percent_to_log_prob(settings.value('confidence_threshold')) or -0.4)
