@@ -4,9 +4,7 @@ from PyQt5 import QtCore
 from PyQt5 import QtWidgets
 import util.walk as walk
 from util.clearLayout import clearLayout
-from widgets.SearchWidget import SearchWidget
 from functools import partial
-from util import event_tracker, Simulate, Message as msg, dataMod
 import os
 from PyQt5.uic import loadUi
 class MainPage(QWidget):
@@ -75,7 +73,8 @@ class MainPage(QWidget):
         
         if not self.data:
             self.data = walk.get_data()
-       
+        from util import  Message as msg
+
         response = msg.questionBox(self, "Delete Automata", f"Are you sure you want to delete '{button_name}'?")
         
         if response:
@@ -112,6 +111,7 @@ class MainPage(QWidget):
         
         # Only create SearchWidget once and store it
         if not hasattr(self, 'search_widget') or self.search_widget is None:
+            from widgets.SearchWidget import SearchWidget
             self.search_widget = SearchWidget(search_page=search_page, data=automaton, index=2)
         else:
             # Update data if needed when returning to this page

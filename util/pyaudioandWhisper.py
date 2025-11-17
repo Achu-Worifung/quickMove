@@ -1,8 +1,7 @@
 import threading
 import pyaudio
 import numpy as np
-from faster_whisper import WhisperModel
-import torch
+
 import wave
 import os
 from PyQt5.QtCore import QSettings, QThread, pyqtSignal, pyqtSlot
@@ -10,15 +9,13 @@ import tempfile
 import httpx
 from dotenv import load_dotenv
 from urllib.parse import quote_plus
-from transformers import pipeline
-import transformers
+
 import gc
 import time
 import math
 from queue import Queue, Empty
 
-# Suppress mostly irrelevant transformer warnings
-transformers.utils.logging.set_verbosity_error()
+
 
 from util.util import resource_path
 
@@ -27,8 +24,41 @@ settings = QSettings("MyApp", "AutomataSimulator")
 
 # --- Helper Functions ---
 
+#lazy imports for torch, transformers, WhisperModel, pipeline (improve startup time)
+_torch = None
+_transformers = None
+_WhisperModel = None 
+_pipeline = None
+
 import math
 
+
+def get_torch():
+    global _torch
+    if _torch is None:
+        import torch
+        _torch = torch
+    return _torch
+def get_transformers():
+    global _transformers
+    if _transformers is None:
+        import transformers
+        _transformers = transformers
+        # Suppress mostly irrelevant transformer warnings
+        transformers.utils.logging.set_verbosity_error()
+    return _transformers
+def get_WhisperModel():
+    global _WhisperModel
+    if _WhisperModel is None:
+        from faster_whisper import WhisperModel
+        _WhisperModel = WhisperModel
+    return _WhisperModel
+def get_pipeline():
+    global _pipeline
+    if _pipeline is None:
+        from transformers import pipeline
+        _pipeline = pipeline
+    return _pipeline
 def percent_to_log_prob(percent):
     """
     Convert percentage (0-100) to log probability
@@ -72,6 +102,7 @@ def cleanup_audio_resources(audio_instance, stream_instance):
 
 def cleanup_model_resources(model_instance, classifier_instance):
     """Safely deletes models and clears GPU cache."""
+    torch = get_torch()
     if model_instance is not None:
         try: del model_instance
         except Exception as e: print(f"Error deleting whisper model: {e}")
@@ -143,6 +174,9 @@ class ProcessorThread(QThread):
 
     def __init__(self, audio_queue, controller, worker_thread):
         super().__init__()
+        torch = get_torch()
+        pipeline = get_pipeline()
+        WhisperModel = get_WhisperModel()
         self.audio_queue = audio_queue
         self.controller = controller
         self.worker_thread = worker_thread # To emit autoSearchResults
@@ -214,6 +248,7 @@ class ProcessorThread(QThread):
         frames = []
         silent_frames = 0
         is_recording_speech = False
+        torch = get_torch()
         
         try:
             while not self.controller.is_stopped():

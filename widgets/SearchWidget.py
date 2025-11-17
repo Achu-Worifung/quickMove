@@ -27,7 +27,6 @@ import json
 from util.findVerseBox import findPrevDisplayedVerse
 import util.Message as msg
 from util.util import resource_path
-from util import soundwave
 
 
 class Tracker():
@@ -498,7 +497,6 @@ class SearchWidget(QDialog):
         link = os.path.join(os.path.dirname(__file__), '../ui/result.ui')
         single_result = loadUi(link)
 
-        # --- THIS IS THE CORRECTED LOGIC ---
         # 1. 'reference' is the clean, canonical string (e.g., "Mark 12:30")
         print('adding verse widget for reference:', reference)
         
@@ -712,6 +710,8 @@ class WhisperWindow(QFrame):
 
 
         # --- SOUNDWAVE VISUALIZER RE-ENABLED WITH FIXES ---
+        from util import soundwave
+
         
         self.soundwave_label = soundwave.SoundWaveLabel(self)
         original_label = self.findChild(QLabel, 'sound')

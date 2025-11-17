@@ -2,9 +2,9 @@ import os
 from PyQt5 import QtWidgets
 from pyqttoast import Toast, ToastPreset
 from util.util import resource_path
+from faster_whisper.utils import download_model as fw_download_model
 import time
-from faster_whisper import WhisperModel
-import os, sys, socket, requests, pprint, certifi
+
 WHISPER_MODEL_INFO = {
     # Original OpenAI Models
     'tiny.en': {'size': '75 MB', 'description': 'Fastest, least accurate, english only'},
@@ -87,48 +87,21 @@ def get_total_models_size():
     return total_size / (1024 * 1024)  # Return size in MB
 import os, sys, socket, requests, pprint, certifi
 
-def debug_env():
-    print("=== DEBUG START ===")
-    print("frozen:", getattr(sys, "frozen", False))
-    print("cwd:", os.getcwd())
-    print("exe:", sys.executable)
-    print("user:", os.getlogin() if hasattr(os, "getlogin") else None)
-    print("cache_dir exists:", os.path.exists("D:/my_app_cache"))
-    try:
-        print("can write to cache_dir:", os.access("D:/my_app_cache", os.W_OK))
-    except Exception as e:
-        print("access check error:", e)
-    print("env HF_HUB_OFFLINE:", os.environ.get("HF_HUB_OFFLINE"))
-    print("env TRANSFORMERS_OFFLINE:", os.environ.get("TRANSFORMERS_OFFLINE"))
-    print("env HF_HOME:", os.environ.get("HF_HOME"))
-    print("certifi.where():", certifi.where())
-    # test simple network
-    try:
-        r = requests.get("https://huggingface.co", timeout=5)
-        print("huggingface.co status:", r.status_code)
-    except Exception as e:
-        print("network test failed:", repr(e))
-    pprint.pprint(dict(os.environ))
-    print("=== DEBUG END ===")
 
 
 
 def download_model(model_name):
     """Download a model using faster-whisper's download function"""
 
-    debug_env() #debuging the model download issues
     try:
         cache_dir = resource_path(f"models/{model_name}")
         os.makedirs(cache_dir, exist_ok=True)
         
-        model = WhisperModel(
-            model_name,
-            device='cpu',
-            compute_type='int8',
-            download_root=cache_dir
-       )
-        if model is not None:
-            del model  # Free up memory
+        model_path = fw_download_model(
+            model_name, 
+            cache_dir=cache_dir,
+            local_files_only=False  
+        )
         toast = Toast()
         toast.setTitle('Downloading Model')
         toast.setText(f"Model '{model_name}' downloaded successfully to model/{model_name}.")

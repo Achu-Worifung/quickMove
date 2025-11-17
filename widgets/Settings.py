@@ -1,16 +1,6 @@
-from PyQt5.QtCore import QSettings
-from PyQt5.QtCore import QResource  # Use QResource from QtCore, not QtGui
-from PyQt5.QtWidgets import QComboBox, QDoubleSpinBox, QSpinBox, QPushButton
 import os
-from PyQt5.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QListWidget, QListWidgetItem, QMessageBox, QProgressBar
-from PyQt5.QtCore import QThread, pyqtSignal, Qt
-from PyQt5.QtWidgets import (
-    QDialog, QVBoxLayout, QHBoxLayout, QLabel, QListWidget, QListWidgetItem,
-    QPushButton, QMessageBox, QGroupBox, QFrame, QSizePolicy, QWidget, QScrollArea
-)
-import torch
-from widgets.progressDialog import ModelDownloadWorker
-from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QListWidget, QListWidgetItem, QMessageBox, QProgressBar,QDoubleSpinBox, QComboBox,QScrollArea,QWidget,QSizePolicy,QFrame, QGroupBox, QMessageBox, QSpinBox
+from PyQt5.QtCore import QThread, pyqtSignal, Qt, QSettings
 from util.modelmanagement import WHISPER_MODEL_INFO, Toast, list_downloaded_models, delete_model, get_total_models_size, download_model
 class Settings:
     def __init__(self, page_widget):
@@ -43,6 +33,7 @@ class Settings:
         else:
             self.models_dropdw.addItem("No models downloaded")
     def setup_values(self):
+        import torch
         self.mange_models = self.page_widget.findChild(QPushButton, "manage_model")
         self.mange_models.clicked.connect(self.open_model_manager)
         comboBox = [self.processing, self.model, self.channel, self.chunks, self.rate]

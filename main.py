@@ -1,5 +1,6 @@
 
 import os
+import threading
 
 from util.util import resource_path
 os.environ['QT_ENABLE_HIGHDPI_SCALING'] = '1'
@@ -12,12 +13,8 @@ from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import Qt, QSettings, QThread, pyqtSignal
 from PyQt5.uic import loadUi
 from util import event_tracker, Simulate, Message as msg, dataMod
-import util.walk as walk
-from util.clearLayout import clearLayout
 from widgets.SearchWidget import SearchWidget
 from functools import partial
-import torch
-from widgets.MainPage import MainPage
 
 from PyQt5 import QtCore, QtWidgets, QtGui
 QtCore.QCoreApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True)
@@ -36,6 +33,16 @@ if sys.platform == "win32":
 basedir = os.path.dirname(__file__)
 
 #for custom size grip
+
+_Settings = None 
+
+def get_settings():
+    global _Settings
+    if _Settings is None:
+        from widgets.Settings import Settings 
+        _Settings = Settings
+    return _Settings
+
 resize = False
 class CustomSizeGrip(QSizeGrip):
     def __init__(self, parent=None):
@@ -84,7 +91,8 @@ class MainWindow(QMainWindow):
         if os.path.exists(icon_path):
             self.setWindowIcon(QtGui.QIcon(icon_path))
         self.setWindowFlags(Qt.FramelessWindowHint)
-        
+        t = threading.Thread(target=get_settings, daemon=True)
+        t.start()
 
          # Replace the regular QSizeGrip with CustomSizeGrip
         sizegrip = CustomSizeGrip(self)
@@ -218,18 +226,18 @@ class MainWindow(QMainWindow):
         self.stackedWidget.setCurrentIndex(5)
         
     def moveToSettings(self):
-        result = self.saveSettings()
-        if result:
-            return
 
+        if self.curr_page == "settings":
+            return
 
         self.curr_page = "settings"
         # self.toggleMenu()
         self.stackedWidget.setCurrentIndex(6)
-        self.curr_page = "settings"
         
         if not hasattr(self, 'settings_page') or self.settings_page is None:
-            from widgets.Settings import Settings 
+            print('before importing settings')
+            Settings = get_settings() 
+            print('after importing settings')
             page = self.stackedWidget.layout().itemAt(6).widget()
             self.settings_page = Settings(page)
         self.stackedWidget.setCurrentIndex(6)
@@ -266,6 +274,7 @@ class MainWindow(QMainWindow):
             page = self.stackedWidget.layout().itemAt(0).widget()
             if not hasattr(self, 'homepage') or self.homepage is None:
                 print('creating the homepage')
+                from widgets.MainPage import MainPage
                 self.homepage = MainPage(page)
             else:
                 print('updating the homepage')
@@ -277,12 +286,6 @@ class MainWindow(QMainWindow):
             self.stackedWidget.setCurrentIndex(0)
             
         self.curr_page = "home"
-    def clearLayout(self, layout):
-        while layout.count():  # Loop through all items
-            child = layout.takeAt(0)  # Remove item at index 0
-            if child.widget():
-                child.widget().deleteLater()  # Delete the widget
-                child.widget().setParent(None)
 
     def clearWidgets(self, layout):
          # Deleting the widget at index 1 in the layout
@@ -301,11 +304,13 @@ class MainWindow(QMainWindow):
     def MainPage(self):
         page = self.stackedWidget.layout().itemAt(0).widget()
         if not hasattr(self, 'homepage') or self.homepage is None:
+            from widgets.MainPage import MainPage
             self.homepage = MainPage(page)
         self.stackedWidget.setCurrentIndex(0)
 
     
     def setUpDefaultSettings(self):
+        import torch
         deafult_processing = "GPU" if torch.cuda.is_available() else "CPU"
         default_cores = max(1, torch.get_num_threads())
         if torch.cuda.is_available():
@@ -316,6 +321,7 @@ class MainWindow(QMainWindow):
         self.setupInitialSettings()
     
     def setupInitialSettings(self):
+        import torch
         self.settings.setValue('prcessing', "CPU")
         self.settings.setValue('cores', max(1, torch.get_num_threads()))
         self.settings.setValue('model', "Tiny")

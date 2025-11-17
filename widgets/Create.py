@@ -2,9 +2,7 @@ from PyQt5.QtWidgets import *
 from PyQt5 import QtWidgets
 from functools import partial
 from PyQt5.QtCore import QThread
-from util import  Simulate, Message as msg, dataMod, walk
 from util.event_tracker import EventTracker
-from widgets.Edit import Edit
 class Create(QWidget):
     def __init__(self, page_widget):
         super().__init__()
@@ -32,6 +30,7 @@ class Create(QWidget):
     def start_tracking(self):
         if self.tracking:
             return
+        from util import   Message as msg
         ok = msg.questionBox(self, "StartTracking", 'Press YES to start tracking and ESC to stop\n tip: for hotkeys like crtl+a press a followed by crtl')
         
         if ok:
