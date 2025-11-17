@@ -1,24 +1,25 @@
-
 import os
-import threading
-
-from util.util import resource_path
 os.environ['QT_ENABLE_HIGHDPI_SCALING'] = '1'
 os.environ['QT_SCALE_FACTOR'] = '1'
 os.environ['QT_SCREEN_SCALE_FACTORS'] = '1'
+from PyQt5 import QtCore
+QtCore.QCoreApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True)
+QtCore.QCoreApplication.setAttribute(QtCore.Qt.AA_UseHighDpiPixmaps, True)
+import threading
+
+from util.util import resource_path
 import sys
 from PyQt5.QtWidgets import QDialog, QMessageBox
 from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QLabel, QPushButton, QTableWidgetItem, QMainWindow, QSizeGrip
 from PyQt5.QtGui import QIcon
 from PyQt5.QtCore import Qt, QSettings, QThread, pyqtSignal
 from PyQt5.uic import loadUi
-from util import event_tracker, Simulate, Message as msg, dataMod
+from util import  Message as msg
 from widgets.SearchWidget import SearchWidget
 from functools import partial
 
-from PyQt5 import QtCore, QtWidgets, QtGui
-QtCore.QCoreApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True)
-QtCore.QCoreApplication.setAttribute(QtCore.Qt.AA_UseHighDpiPixmaps, True)
+from PyQt5 import QtCore, QtGui
+
 # Setting Application ID (for Windows taskbar icon)
 if sys.platform == "win32":
     try:

@@ -208,8 +208,8 @@ exe = EXE(
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
-    upx=False,             # disable UPX for debugging; set to True for release if desired
-    console=True,        
+    upx=False,            
+    console=False,        
     disable_windowed_traceback=False,
     argv_emulation=False,
     icon='logo.ico',
@@ -220,7 +220,7 @@ coll = COLLECT(
     a.binaries,
     a.datas,
     strip=False,
-    upx=False,             # disable UPX at collection stage too
+    upx=False,            
     upx_exclude=[],
     name='main',
 )
