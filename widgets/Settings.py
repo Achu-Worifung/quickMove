@@ -9,7 +9,7 @@ class Settings:
     def __init__(self, page_widget):
         super().__init__()
         self.page_widget = page_widget
-        
+        self.model_option = None
         self.settings = QSettings("MyApp", "AutomataSimulator")
         
         self.basedir = self.settings.value("basedir")
@@ -24,15 +24,23 @@ class Settings:
         
     def processing(self):
         print("Processing clicked")
-    def populate_models(self):
+    def populate_models(self, from_manager=False):
         print("Populating models")
         #setting the the modesl 
         self.models_dropdw = self.page_widget.findChild(QComboBox, "model")
+            
         dw_models = list_downloaded_models()
+        if self.model_option:
+            if self.model_option == dw_models:
+                print("Model list unchanged, skipping update.")
+                return
+        self.model_option = dw_models
         model_list = [model['name'] for model in dw_models]
         self.models_dropdw.clear()
         if model_list:
             self.models_dropdw.addItems(model_list)
+            if from_manager:
+                self.models_dropdw.setCurrentIndex(len(model_list)-1)  
         else:
             self.models_dropdw.addItem("No models downloaded")
     def setup_values(self):
@@ -290,7 +298,7 @@ class ModelManagerDialog(QDialog):
         self.parent = parent
     def closeEvent(self, event):
         if self.settings and hasattr(self.settings, 'populate_models'):
-            self.settings.populate_models()
+            self.settings.populate_models(from_manager=True)
         event.accept()
     def setup_ui(self):
         layout = QVBoxLayout(self)
