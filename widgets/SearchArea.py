@@ -57,22 +57,19 @@ class SearchArea(QWidget):
             overlay.show()
 
     def configureSearch(self):
-        from util.event_tracker import EventTracker
-        msg.informationBox(self, 'Search Area', "Click Ok to get started. Click on the top-left corner, then the bottom-right corner to set the area. Press 'ESC' to stop.")
+        from util.configureSearchArea import SearchArea as ConfigureSearchArea
+        msg.informationBox(self, 'Search Area', "Click Ok to get started. Click on the top-left corner, then the bottom-right corner to set the area.")
 
         def setup_search_area(event):
-            if len(event) >= 2:
-                left, top = event[0]['location']
-                right, bottom = event[1]['location']
+          
+            if event:
+                left, top, right, bottom = event
                 self.settings.setValue("search_area", (left, top, right, bottom))
                 self.updateLable()
-                msg.informationBox(self, 'Search Area', "Search area configured successfully")
-            else:
-                msg.warningBox(self, 'Error', 'Please select the search area')
-
-        self.event_tracker_thread = EventTracker()
+                msg.informationBox(self, 'Search Area', "Search area configured successfully to: " + str((left, top, right, bottom)))
+        self.event_tracker_thread = ConfigureSearchArea()
         self.event_tracker_thread.tracking_finished.connect(setup_search_area)
-        self.event_tracker_thread.create_new_automaton()
+        self.event_tracker_thread.configure_search_area()
         
 class ScreenOverlay(QWidget):
     def __init__(self, screen, overlays):
