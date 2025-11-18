@@ -3,6 +3,7 @@ from PyQt5 import QtWidgets
 from pyqttoast import Toast, ToastPreset
 from util.util import resource_path
 from faster_whisper.utils import download_model as fw_download_model
+import threading
 import time
 
 WHISPER_MODEL_INFO = {
@@ -88,32 +89,43 @@ def get_total_models_size():
 import os, sys, socket, requests, pprint, certifi
 
 
+def displayToast(title, message, preset=ToastPreset.INFORMATION, duration=3000):
+    """Display a toast notification"""
+    toast = Toast()
+    toast.setTitle(title)
+    toast.setText(message)
+    toast.setDuration(duration)
+    toast.applyPreset(preset)
+    toast.show()
 
+from PyQt5.QtCore import QTimer
+
+def displayToast(title, message, preset=ToastPreset.INFORMATION, duration=3000):
+    """Display a toast notification - thread-safe version"""
+    # Use QTimer to ensure this runs in the main thread
+    QTimer.singleShot(0, lambda: _show_toast(title, message, preset, duration))
+
+def _show_toast(title, message, preset, duration):
+    """Actual toast creation - always called in main thread"""
+    toast = Toast()
+    toast.setTitle(title)
+    toast.setText(message)
+    toast.setDuration(duration)
+    toast.applyPreset(preset)
+    toast.show()
 
 def download_model(model_name):
-    """Download a model using faster-whisper's download function"""
-
+    """Run model download in a background thread"""
     try:
         cache_dir = resource_path(f"models/{model_name}")
         os.makedirs(cache_dir, exist_ok=True)
-        
         model_path = fw_download_model(
-            model_name, 
+            model_name,
             cache_dir=cache_dir,
-            local_files_only=False  
+            local_files_only=False
         )
-        toast = Toast()
-        toast.setTitle('Downloading Model')
-        toast.setText(f"Model '{model_name}' downloaded successfully to model/{model_name}.")
-        toast.setDuration(5000)
-        toast.applyPreset(ToastPreset.SUCCESS)
-        toast.show()
-        return True, f"Model '{model_name}' downloaded successfully to model/{model_name}."
     except Exception as e:
-        toast = Toast()
-        toast.setTitle('Downloading Model')
-        toast.setText(f"Error downloading model '{model_name}': {str(e)}")
-        toast.setDuration(5000)
-        toast.applyPreset(ToastPreset.ERROR)
-        toast.show()
-        return False, f"Error downloading model: {str(e)}"
+        return False, str(e)
+    return True, f"Model '{model_name}' downloaded successfully to {model_path}"
+        
+

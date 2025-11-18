@@ -1,7 +1,9 @@
 import os
 from PyQt5.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QListWidget, QListWidgetItem, QMessageBox, QProgressBar,QDoubleSpinBox, QComboBox,QScrollArea,QWidget,QSizePolicy,QFrame, QGroupBox, QMessageBox, QSpinBox
 from PyQt5.QtCore import QThread, pyqtSignal, Qt, QSettings
-from util.modelmanagement import WHISPER_MODEL_INFO, Toast, list_downloaded_models, delete_model, get_total_models_size, download_model
+from pyqttoast import Toast, ToastPreset
+from util.modelmanagement import WHISPER_MODEL_INFO, fw_download_model, list_downloaded_models, delete_model, get_total_models_size, download_model, displayToast
+from widgets.SearchWidget import resource_path
 class Settings:
     def __init__(self, page_widget):
         super().__init__()
@@ -450,8 +452,6 @@ class ModelManagerDialog(QDialog):
         self.total_size_label.setText(f"Total models size: {total_size:.1f} MB")
 
     def download_model(self, model_name):
-        from pyqttoast import Toast, ToastPreset
-
         reply = QMessageBox.question(
             self,
             "Download Model",
@@ -460,27 +460,31 @@ class ModelManagerDialog(QDialog):
             QMessageBox.Yes
         )
         if reply == QMessageBox.Yes:
-            toast = Toast()
-            toast.setDuration(5000)
-            toast.setTitle('Downloading Model')
-            toast.setText(f"Downloading model '{model_name}'...")
-            toast.applyPreset(ToastPreset.SUCCESS)
-            toast.show()
-            success, message = download_model(model_name)  # <-- your function
-            if success:
-                QMessageBox.information(self, "Success", message)
-                self.refresh_models()
-            else:
-                QMessageBox.critical(self, "Error", message)
+            # Show starting toast, not success
+            displayToast('Downloading Model', f"Starting download of '{model_name}'...", ToastPreset.INFORMATION, duration=3000)
+            
+            # Store thread as instance variable to prevent garbage collection
+            self.download_thread = downloadThread(model_name)
+            self.download_thread.finished.connect(self.on_download_finished)
+            self.download_thread.start()
+
+    def on_download_finished(self, success, message):
+        if success:
+            displayToast('Download Successful', message, ToastPreset.SUCCESS, duration=5000)
+            self.refresh_models()
+        else:
+            displayToast('Download Failed', f"Error downloading model: {message}", ToastPreset.ERROR, duration=5000)
+        
+        # Clean up thread reference
+        self.download_thread = None
 
     def delete_selected_model(self):
         current_item = self.models_list.currentItem()
         if not current_item:
             QMessageBox.warning(self, "Warning", "Please select a model to delete")
             return
-
+        
         model_name = current_item.data(Qt.UserRole)
-
         reply = QMessageBox.question(
             self,
             "Confirm Deletion",
@@ -489,7 +493,7 @@ class ModelManagerDialog(QDialog):
             QMessageBox.Yes | QMessageBox.No,
             QMessageBox.No
         )
-
+        
         if reply == QMessageBox.Yes:
             success, message = delete_model(model_name)
             if success:
@@ -497,3 +501,25 @@ class ModelManagerDialog(QDialog):
                 self.refresh_models()
             else:
                 QMessageBox.critical(self, "Error", message)
+                
+
+
+class downloadThread(QThread):
+    finished = pyqtSignal(bool, str)
+    
+    def __init__(self, model_name):
+        super().__init__()
+        self.model_name = model_name
+    
+    def run(self):
+        try:
+            cache_dir = resource_path(f"models/{self.model_name}")
+            os.makedirs(cache_dir, exist_ok=True)
+            model_path = fw_download_model(
+                self.model_name,
+                cache_dir=cache_dir,
+                local_files_only=False
+            )
+            self.finished.emit(True, f"Model '{self.model_name}' downloaded successfully")
+        except Exception as e:
+            self.finished.emit(False, str(e))
