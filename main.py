@@ -343,7 +343,7 @@ class MainWindow(QMainWindow):
         self.settings.setValue("maxlen", 5)
         self.settings.setValue('auto_length', 1)
         self.settings.setValue('suggestion_length', 3)
-        self.settings.setValue('confidence_threshold', 50)
+        self.settings.setValue('prev_context', 50)
         self.settings.setValue('prev_context', 1)
         # self.settings.setValue("silencelen", 0.90)
         

@@ -2,6 +2,7 @@ import os
 from PyQt5.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QListWidget, QListWidgetItem, QMessageBox, QProgressBar,QDoubleSpinBox, QComboBox,QScrollArea,QWidget,QSizePolicy,QFrame, QGroupBox, QMessageBox, QSpinBox
 from PyQt5.QtCore import QThread, pyqtSignal, Qt, QSettings
 from pyqttoast import Toast, ToastPreset
+import torch
 from util.modelmanagement import WHISPER_MODEL_INFO, fw_download_model, list_downloaded_models, delete_model, get_total_models_size, download_model, displayToast
 from widgets.SearchWidget import resource_path
 class Settings:
@@ -160,24 +161,69 @@ class Settings:
         except Exception:
             pass
     def reset_settings(self):
-        defaults = self.settings.value("default_settings")
-        print("Defaults", defaults)
-        settings = [self.processing, self.model, self.beam, self.temp, self.core, self.best, self.energy, self.minlen, self.maxlen, self.channel, self.chunks, self.rate, self.silence, 
-                    # not in defaults list:
-                    self.suggest_len, self.auto_searchlen, self.con_threshold, self.prev_context]
-        index = 0
-        for box in settings:
-            if isinstance(box, QComboBox):
-                box.setCurrentText(defaults[index])
-                self.settings.setValue(box.objectName(), defaults[index])
-            elif isinstance(box, QSpinBox):
-                box.setValue(int(defaults[index]))
-                self.settings.setValue(box.objectName(), defaults[index])
-            else:
-                box.setValue(float(defaults[index]))
-                self.settings.setValue(box.objectName(), defaults[index])
-            index += 1
-                
+        self.default_settings = {
+        # Model Settings
+        'processing': 'cpu' if not torch.cuda.is_available() else 'gpu',  # or 'cuda', 'auto'
+        'cores': max(1, torch.get_num_threads()),
+        'model': self.models_dropdw.itemText(0) if self.models_dropdw.count() > 0 else '',
+        'beam': 5,
+        'best': 5,
+        'temperature': 0.0,
+        'language': 'en',
+        
+        # Audio Settings
+        'channel': 1,  
+        'rate': 16000, 
+        'chunks': 1024, 
+        'silence': 0.90,
+        'silencelen': 500,
+        'energy': 0.001,
+        
+        
+        # Transcription Settings
+        'minlen': 1,
+        'maxlen': 5,
+        'auto_length': 1,
+        'suggestion_length': 4,
+        'con_threshold': 59,
+        'prev_context': 1,
+    }
+        self.widget_map = {
+        'processing': self.processing,
+        'model': self.model,
+        'beam': self.beam,
+        'temperature': self.temp,
+        'cores': self.core,
+        'best': self.best,
+        'auto_length': self.auto_searchlen,
+        'energy': self.energy,
+        'minlen': self.minlen,
+        'maxlen': self.maxlen,
+        'channel': self.channel,
+        'chunks': self.chunks,
+        'rate': self.rate,
+        'language': 'en',
+        'suggestion_length': self.suggest_len,
+        'silencelen': self.silence,
+        'silence': self.silence,
+        'con_threshold': self.con_threshold, 
+        'prev_context': self.prev_context
+    }
+        for setting_name, default_value in self.default_settings.items():
+            widget = self.widget_map.get(setting_name)
+            if widget is None:
+                print(f"Warning: Widget '{setting_name}' not found")
+                continue
+            
+            # Set widget value based on type
+            if isinstance(widget, QComboBox):
+                widget.setCurrentText(str(default_value))
+            elif isinstance(widget, QSpinBox):
+                widget.setValue(int(default_value))
+            elif isinstance(widget, QDoubleSpinBox):
+                widget.setValue(float(default_value))
+            # Save to QSettings
+            self.settings.setValue(setting_name, default_value)
       
         
         
@@ -205,12 +251,12 @@ class Settings:
         self.savebtn.clicked.connect(self.save_settings)
         self.resetbtn.clicked.connect(self.reset_settings)
         
-        self.resetbtn.setDisabled(True) #disabling reset button for now
+        # self.resetbtn.setDisabled(True) #disabling reset button for now
         
         self.auto_len = self.page_widget.findChild(QSpinBox, "auto_length")
         self.suggestion = self.page_widget.findChild(QSpinBox, "suggestion_length")
-        self.con_threshold = self.page_widget.findChild(QDoubleSpinBox, "confidence_threshold")
-        self.prev_context = self.page_widget.findChild(QSpinBox, "previous_context")
+        self.con_threshold = self.page_widget.findChild(QSpinBox, "confidence_threshold")
+        self.prev_context = self.page_widget.findChild(QSpinBox, "prev_context")
         
         self.processing.currentIndexChanged.connect(self.processing_clicked)
     #    self.processing.currentIndexChanged.connect(self.processing_clicked)
