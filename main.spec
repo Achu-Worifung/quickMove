@@ -62,22 +62,8 @@ hidden_imports += [
 # Explicit common model entrypoints
 hidden_imports += [
     'transformers.models.auto',
-    'transformers.models.bert',
     'transformers.models.distilbert',
-    'transformers.models.roberta',
-    'transformers.models.gpt2',
-    'transformers.models.t5',
     'transformers.models.whisper',
-]
-
-# Additional transformers internals that sometimes are missed
-hidden_imports += [
-    'transformers.tokenization_utils',
-    'transformers.tokenization_utils_base',
-    'transformers.tokenization_utils_fast',
-    'transformers.configuration_utils',
-    'transformers.modeling_utils',
-    'transformers.file_utils',
 ]
 
 # Add hidden imports discovered by collect_all for optional packages
@@ -139,7 +125,7 @@ for pkg in ['tokenizers', 'torch', 'numpy', 'sentencepiece', 'huggingface_hub', 
         pass
 
 # Recursive inclusion of local model folders (if present)
-for folder in ['models', 'finetuned_distilbert_bert', 'bibles']:
+for folder in ['finetuned_distilbert_bert', 'bibles']:
     if os.path.exists(folder):
         for file in glob.glob(f'{folder}/**/*', recursive=True):
             if os.path.isfile(file):

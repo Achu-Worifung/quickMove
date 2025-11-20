@@ -80,6 +80,7 @@ def get_energy_threshold(audio_data, threshold_value=0.05):
         return False
     audio_data_fp32 = np.frombuffer(audio_data, dtype=np.int16).astype(np.float32) / 32768.0
     energy = np.sum(audio_data_fp32 ** 2) / len(audio_data_fp32)
+    # print(f"Calculated energy: {energy}, Threshold: {threshold_value} ->", energy > threshold_value)
     return energy > threshold_value
 
 def cleanup_audio_resources(audio_instance, stream_instance):
@@ -187,7 +188,8 @@ class ProcessorThread(QThread):
         self.best_of = int(settings.value('best') or 2)
         self.temperature = float(settings.value('temperature') or 0.00)
         self.language = settings.value('language') or 'en'
-        self.energy_threshold = float(settings.value('energy_threshold') or 0.10)
+        self.energy_threshold = float(settings.value('energy') or 0.10)
+        print(f"Processor: Energy threshold set to {settings.value('energy')}")
         model_size = (settings.value('model') or 'tiny').lower()
         cpu_cores = int(settings.value('cpu_cores') or 1)
         processing = settings.value('processing') or ('CPU' if not torch.cuda.is_available() else 'GPU')
@@ -499,12 +501,14 @@ def run_transcription(recording_page, search_Page=None, lineEdit=None, worker_th
         while not controller.is_stopped():
             try:
                 data = stream.read(CHUNK, exception_on_overflow=False)
+                # print("Audio (Producer): Read audio chunk.",)
                 
                 # Use a non-blocking put with try/except
                 try:
                     audio_queue.put(data, block=True, timeout=0.5)
                 except Exception as queue_error:
                     # Queue full or other error - skip this chunk
+                    print('here is the queue error:', queue_error)
                     pass
                     
             except (OSError, IOError) as e:
