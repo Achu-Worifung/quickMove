@@ -191,7 +191,7 @@ class ProcessorThread(QThread):
         self.energy_threshold = float(settings.value('energy') or 0.10)
         print(f"Processor: Energy threshold set to {settings.value('energy')}")
         model_size = (settings.value('model') or 'tiny').lower()
-        cpu_cores = int(settings.value('cpu_cores') or 1)
+        cpu_cores = int(settings.value('cores') or 1)
         processing = settings.value('processing') or ('CPU' if not torch.cuda.is_available() else 'GPU')
         
         self.RATE = int(settings.value('rate') or 16000)
@@ -202,12 +202,17 @@ class ProcessorThread(QThread):
         self.SAMPLE_WIDTH = pyaudio.PyAudio().get_sample_size(self.FORMAT)
         
         self.silence_length = float(settings.value('silence') or 0.5)
-        self.min_record_len = float(settings.value('minlen') or 1.0)
-        self.max_record_len = float(settings.value('maxlen') or 5.0)
+        self.min_record_len = float(settings.value('minlen') or .25)
+        self.max_record_len = float(settings.value('maxlen') or 1)
         computation_type = "float16" if processing == "GPU" else "int8"
         self.auto_search_size = int(settings.value('auto_length') or 1)
         self.confidence_threshold = float(percent_to_log_prob(settings.value('confidence_threshold')) or -0.4)
         self.use_prev_context = int(settings.value('prev_context') or 0)
+        
+        #setting the models max and min lenghts
+        # self.max_record_len = 1 
+        # self.min_record_len = .5
+        print(f'min len set to: {self.min_record_len}, max len set to: {self.max_record_len}')
         
 
         # --- Load all models ---
