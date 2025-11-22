@@ -56,8 +56,12 @@ def get_WhisperModel():
 def get_pipeline():
     global _pipeline
     if _pipeline is None:
-        from transformers import pipeline
-        _pipeline = pipeline
+        try:
+            from transformers import pipeline
+            _pipeline = pipeline
+        except ImportError as e:
+            print(f"Error importing 'pipeline' from 'transformers': {e}")
+            _pipeline = None
     return _pipeline
 def percent_to_log_prob(percent):
     """
@@ -176,7 +180,10 @@ class ProcessorThread(QThread):
     def __init__(self, audio_queue, controller, worker_thread):
         super().__init__()
         torch = get_torch()
-        pipeline = get_pipeline()
+        max_trys = 5
+        for _ in range(max_trys):
+            pipeline = get_pipeline()
+            if pipeline is not None: break
         WhisperModel = get_WhisperModel()
         self.audio_queue = audio_queue
         self.controller = controller
@@ -243,6 +250,8 @@ class ProcessorThread(QThread):
             num_workers=cpu_cores,
             download_root=resource_path(os.path.join(f'./models/{model_size}'))
         )
+        
+
         print("Processor: Whisper model loaded.")
 
     def run(self):

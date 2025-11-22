@@ -678,6 +678,7 @@ class WhisperWindow(QFrame):
         self.close_button.clicked.connect(self.close)
         self.lineEdit = self.findChild(QLineEdit, 'lineEdit')
         self.label = self.findChild(QLabel, 'sound')
+        self.label.setAlignment(Qt.AlignCenter)
         self.record_btn = self.findChild(QCheckBox, 'checkBox')
         self.record_btn.setChecked(True)
         self.record_btn.clicked.connect(self.start_recording)
@@ -733,6 +734,8 @@ class WhisperWindow(QFrame):
             print("Checkbox is checked, starting visualization automatically")
             QTimer.singleShot(100, self.soundwave_label.start_recording_visualization)
         # --- END SOUNDWAVE BLOCK ---
+        
+        
     def toggle_minimize(self):
         print('here is the size of container', self)
         if self.is_minimized:
@@ -804,8 +807,7 @@ class WhisperWindow(QFrame):
         else:
             print("Stopping soundwave visualization")
             self.label.setText("Not listening")
-            self.lineEdit.setText("")  
-            self.label.setAlignment(Qt.AlignCenter)
+            
             self.label.setStyleSheet(
                 """
                     color: red;
