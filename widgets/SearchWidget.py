@@ -804,6 +804,17 @@ class WhisperWindow(QFrame):
         else:
             print("Stopping soundwave visualization")
             self.label.setText("Not listening")
+            self.lineEdit.setText("")  
+            self.label.setAlignment(Qt.AlignCenter)
+            self.label.setStyleSheet(
+                """
+                    color: red;
+                    font-size: 16px;
+                    font-weight: bold;
+                    text-align: center;
+
+                """
+            )
             
             # Stop transcription gracefully
             if self.transcription_thread.isRunning():
@@ -821,8 +832,8 @@ class WhisperWindow(QFrame):
         print("WhisperWindow closing")
         
         # --- SOUNDWAVE DISABLED ---
-        # if hasattr(self, 'soundwave_label'):
-        #     self.soundwave_label.stop_recording_visualization()
+        if hasattr(self, 'soundwave_label'):
+            self.soundwave_label.stop_recording_visualization()
         
         # Graceful shutdown of transcription thread
         if hasattr(self, 'transcription_thread') and self.transcription_thread.isRunning():
