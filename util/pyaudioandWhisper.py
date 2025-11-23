@@ -106,19 +106,21 @@ def cleanup_audio_resources(audio_instance, stream_instance):
             print(f"Error terminating PyAudio: {e}")
 
 def cleanup_model_resources(model_instance, classifier_instance):
-    """Safely deletes models and clears GPU cache."""
-    torch = get_torch()
-    if model_instance is not None:
-        try: del model_instance
-        except Exception as e: print(f"Error deleting whisper model: {e}")
-    if classifier_instance is not None:
-        try: del classifier_instance
-        except Exception as e: print(f"Error deleting classifier: {e}")
+    """Safely handles model cleanup."""
+    # 1. Just set references to None. Let Python GC handle the rest naturally.
+    # Explicitly calling 'del' on C++ wrappers during shutdown is risky.
+    model_instance = None
+    classifier_instance = None
+    
+    # 2. ONLY run CUDA cleanup if we are NOT shutting down the whole app.
+    # (Assuming you can detect this, but for now, it's safer to simply REMOVE empty_cache
+    # from the shutdown path entirely. The OS cleans up GPU memory on exit anyway.)
     
     gc.collect()
-    if torch.cuda.is_available():
-        torch.cuda.empty_cache()
-        print("Models deleted, CUDA cache cleared.")
+    
+    # REMOVED: torch.cuda.empty_cache() 
+    # Why? Calling this during process exit causes SegFaults.
+    print("Models references released.")
 
 def perform_auto_search(query, worker_thread, score=None, max_len=10):
     """Executes a Google Custom Search and emits results to the main thread."""
@@ -270,6 +272,9 @@ class ProcessorThread(QThread):
             while not self.controller.is_stopped():
                 try:
                     data = self.audio_queue.get(timeout=1.0)
+                    if data is None:
+                        print("Processor: Received stop signal (Poison Pill). Exiting loop.")
+                        break
                     
                     is_loud = get_energy_threshold(data, threshold_value=self.energy_threshold)
 
@@ -486,7 +491,7 @@ def run_transcription(recording_page, search_Page=None, lineEdit=None, worker_th
             for i in range(max_retries):
                 if controller.is_stopped(): 
                     if audio_inst:
-                        audio_inst.terminate()
+                        cleanup_audio_resources(audio_inst, stream_instance)
                     return False
                 try:
                     stream_inst = audio_inst.open(
@@ -504,7 +509,7 @@ def run_transcription(recording_page, search_Page=None, lineEdit=None, worker_th
                     time.sleep(2)
             
             if audio_inst: 
-                audio_inst.terminate()
+                    cleanup_audio_resources(audio_inst, stream_instance)
             return False
 
         if not initialize_audio_stream():
@@ -541,12 +546,24 @@ def run_transcription(recording_page, search_Page=None, lineEdit=None, worker_th
         controller.stop()
         
         if processor_thread is not None:
+            print("Audio (Producer): Sending stop signal to processor...")
+            
+            # 1. Send the Poison Pill to break the processor loop immediately
+            try:
+                audio_queue.put(None) 
+            except:
+                pass
+
+            # 2. Wait for the thread to clean up its own resources
             print("Audio (Producer): Waiting for processor to finish...")
-            processor_thread.wait(5000) # Wait 5 seconds
+            # Wait longer if necessary, but do NOT call terminate()
+            processor_thread.wait(10000) 
+            
             if processor_thread.isRunning():
-                print("Audio (Producer): Processor didn't stop, terminating...")
-                processor_thread.terminate()
-                processor_thread.wait()
+                print("Audio (Producer): Warning - Processor took too long, but NOT forcing termination to avoid GPU crash.")
+                # We intentionally leave it running rather than crash the app. 
+                # The daemon flag usually handles this on app exit, 
+                # or it will exit eventually when the queue unblocks.
         
         cleanup_audio_resources(audio, stream)
         print("Audio (Producer): Thread completely finished.")

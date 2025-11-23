@@ -813,7 +813,6 @@ class WhisperWindow(QFrame):
                     color: red;
                     font-size: 16px;
                     font-weight: bold;
-                    text-align: center;
 
                 """
             )
@@ -823,7 +822,7 @@ class WhisperWindow(QFrame):
                 self.transcription_thread.stop_transcription()
                 if not self.transcription_thread.wait(5000):
                     print("Transcription didn't stop gracefully, forcing termination")
-                    self.transcription_thread.terminate()
+                    # self.transcription_thread.terminate()
                     self.transcription_thread.wait()
             
             # Stop soundwave
@@ -832,27 +831,39 @@ class WhisperWindow(QFrame):
 
     def close(self):
         print("WhisperWindow closing")
-        
+
         # --- SOUNDWAVE DISABLED ---
         if hasattr(self, 'soundwave_label'):
             self.soundwave_label.stop_recording_visualization()
-        
+
         # Graceful shutdown of transcription thread
         if hasattr(self, 'transcription_thread') and self.transcription_thread.isRunning():
             print("Requesting graceful transcription shutdown...")
+            
+            # 1. Signal the thread to stop (this breaks the loop in run_transcription)
             self.transcription_thread.stop_transcription()
             
-            if not self.transcription_thread.wait(5000):
-                print("Timeout waiting for graceful shutdown, forcing termination")
-                self.transcription_thread.terminate()
-                self.transcription_thread.wait()
+            # 2. Wait for a reasonable time (e.g., 3 seconds)
+            # Most small segments finish quickly.
+            if self.transcription_thread.wait(3000):
+                print("Transcription stopped gracefully.")
             else:
-                print("Transcription stopped gracefully")
-        
+                # 3. TIMEOUT HIT: Do NOT terminate.
+                print("Transcription is busy cleaning up. Detaching thread...")
+                
+                # We connect the thread's finished signal to its own deletion
+                # so it cleans itself up whenever it eventually finishes.
+                self.transcription_thread.finished.connect(self.transcription_thread.deleteLater)
+                
+                # We stop tracking it so the window can close smoothly
+                self.transcription_thread = None 
+                
+                print("Thread detached. It will exit naturally in the background.")
+
         if self.search_widget:
             self.search_widget.listening_window = None
             print('Cleared listening_window reference in SearchWidget')
-        
+
         super().close()
 
     def mousePressEvent(self, event):
