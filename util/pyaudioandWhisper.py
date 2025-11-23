@@ -491,7 +491,7 @@ def run_transcription(recording_page, search_Page=None, lineEdit=None, worker_th
             for i in range(max_retries):
                 if controller.is_stopped(): 
                     if audio_inst:
-                        cleanup_audio_resources(audio_inst, stream_instance)
+                        cleanup_audio_resources(audio_inst, stream_inst)
                     return False
                 try:
                     stream_inst = audio_inst.open(
@@ -509,7 +509,7 @@ def run_transcription(recording_page, search_Page=None, lineEdit=None, worker_th
                     time.sleep(2)
             
             if audio_inst: 
-                    cleanup_audio_resources(audio_inst, stream_instance)
+                    cleanup_audio_resources(audio_inst, stream_inst)
             return False
 
         if not initialize_audio_stream():

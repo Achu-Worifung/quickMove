@@ -832,38 +832,37 @@ class WhisperWindow(QFrame):
     def close(self):
         print("WhisperWindow closing")
 
-        # --- SOUNDWAVE DISABLED ---
+        # Stop soundwave visualization if it exists
         if hasattr(self, 'soundwave_label'):
             self.soundwave_label.stop_recording_visualization()
 
         # Graceful shutdown of transcription thread
         if hasattr(self, 'transcription_thread') and self.transcription_thread.isRunning():
             print("Requesting graceful transcription shutdown...")
-            
-            # 1. Signal the thread to stop (this breaks the loop in run_transcription)
+
+            # Signal the thread to stop
             self.transcription_thread.stop_transcription()
-            
-            # 2. Wait for a reasonable time (e.g., 3 seconds)
-            # Most small segments finish quickly.
-            if self.transcription_thread.wait(3000):
+
+            # Wait for the thread to finish
+            if self.transcription_thread.wait(3000):  # Wait for up to 3 seconds
                 print("Transcription stopped gracefully.")
             else:
-                # 3. TIMEOUT HIT: Do NOT terminate.
-                print("Transcription is busy cleaning up. Detaching thread...")
-                
-                # We connect the thread's finished signal to its own deletion
-                # so it cleans itself up whenever it eventually finishes.
+                print("Transcription is still running. Detaching thread...")
+                # Detach the thread to allow it to finish in the background
                 self.transcription_thread.finished.connect(self.transcription_thread.deleteLater)
-                
-                # We stop tracking it so the window can close smoothly
-                self.transcription_thread = None 
-                
-                print("Thread detached. It will exit naturally in the background.")
+                self.transcription_thread = None
 
+        # Clear any previous transcription data if necessary
+        if hasattr(self.lineEdit, 'text') and self.lineEdit.text().strip():
+            print("Clearing previous transcription data.")
+            self.lineEdit.clear()
+
+        # Clear the reference to the listening window in the parent widget
         if self.search_widget:
             self.search_widget.listening_window = None
-            print('Cleared listening_window reference in SearchWidget')
+            print("Cleared listening_window reference in SearchWidget")
 
+        # Call the parent class's close method
         super().close()
 
     def mousePressEvent(self, event):
