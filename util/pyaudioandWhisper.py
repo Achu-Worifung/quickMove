@@ -417,7 +417,7 @@ def transcrip(model, filename, beam_size, best_of, temperature, language, vad_fi
                                 )
     return segments
 
-def run_transcription(recording_page, search_Page=None, lineEdit=None, worker_thread=None, controller=None):
+def run_transcription(recording_page, search_Page=None, lineEdit=None, worker_thread=None, controller=None, processor_thread_ref=None):
     """
     This is the "Producer" function.
     It runs inside the TranscriptionWorker QThread.
@@ -446,6 +446,10 @@ def run_transcription(recording_page, search_Page=None, lineEdit=None, worker_th
             controller=controller,
             worker_thread=worker_thread # Pass the main TranscriptionWorker
         )
+        
+        # Store reference in worker_thread for cleanup access
+        if processor_thread_ref is not None:
+            processor_thread_ref.processor_thread = processor_thread
         
         # --- FIX: Connect Signals BEFORE starting the thread ---
         if hasattr(worker_thread, 'guiTextReady'):
@@ -530,9 +534,20 @@ def run_transcription(recording_page, search_Page=None, lineEdit=None, worker_th
             print("Audio (Producer): Waiting for processor to finish...")
             processor_thread.wait(5000) # Wait 5 seconds
             if processor_thread.isRunning():
-                print("Audio (Producer): Processor didn't stop, terminating...")
+                print("Audio (Producer): Processor didn't stop gracefully, cleaning up CUDA resources before terminating...")
+                # Clean up CUDA resources before terminating
+                try:
+                    cleanup_model_resources(
+                        getattr(processor_thread, 'model', None),
+                        getattr(processor_thread, 'bible_classifier_model', None)
+                    )
+                except Exception as e:
+                    print(f"Audio (Producer): Error cleaning up models before terminate: {e}")
                 processor_thread.terminate()
                 processor_thread.wait()
         
         cleanup_audio_resources(audio, stream)
+        # Clear the reference
+        if processor_thread_ref is not None:
+            processor_thread_ref.processor_thread = None
         print("Audio (Producer): Thread completely finished.")

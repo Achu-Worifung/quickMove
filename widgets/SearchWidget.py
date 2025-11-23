@@ -809,9 +809,25 @@ class WhisperWindow(QFrame):
             if self.transcription_thread.isRunning():
                 self.transcription_thread.stop_transcription()
                 if not self.transcription_thread.wait(5000):
-                    print("Transcription didn't stop gracefully, forcing termination")
+                    print("Transcription didn't stop gracefully, cleaning up CUDA resources before forcing termination")
+                    # Clean up CUDA resources before terminating to prevent crashes
+                    try:
+                        self.transcription_thread.cleanup_cuda_resources()
+                    except Exception as e:
+                        print(f"Error during CUDA cleanup in start_recording: {e}")
                     self.transcription_thread.terminate()
                     self.transcription_thread.wait()
+                    # Final cleanup attempt after termination
+                    try:
+                        self.transcription_thread.cleanup_cuda_resources()
+                    except Exception as e:
+                        print(f"Error during final CUDA cleanup in start_recording: {e}")
+                else:
+                    # Still do cleanup even if it stopped gracefully
+                    try:
+                        self.transcription_thread.cleanup_cuda_resources()
+                    except Exception as e:
+                        print(f"Error during graceful CUDA cleanup in start_recording: {e}")
             
             # Stop soundwave
             if hasattr(self, 'soundwave_label'):
@@ -830,11 +846,26 @@ class WhisperWindow(QFrame):
             self.transcription_thread.stop_transcription()
             
             if not self.transcription_thread.wait(5000):
-                print("Timeout waiting for graceful shutdown, forcing termination")
+                print("Timeout waiting for graceful shutdown, cleaning up CUDA resources before forcing termination")
+                # Clean up CUDA resources before terminating to prevent crashes
+                try:
+                    self.transcription_thread.cleanup_cuda_resources()
+                except Exception as e:
+                    print(f"Error during CUDA cleanup in close(): {e}")
                 self.transcription_thread.terminate()
                 self.transcription_thread.wait()
+                # Final cleanup attempt after termination
+                try:
+                    self.transcription_thread.cleanup_cuda_resources()
+                except Exception as e:
+                    print(f"Error during final CUDA cleanup: {e}")
             else:
                 print("Transcription stopped gracefully")
+                # Still do cleanup even if it stopped gracefully
+                try:
+                    self.transcription_thread.cleanup_cuda_resources()
+                except Exception as e:
+                    print(f"Error during graceful CUDA cleanup: {e}")
         
         if self.search_widget:
             self.search_widget.listening_window = None
@@ -871,6 +902,7 @@ class TranscriptionWorker(QThread):
             self.search_page = search_page
             self.lineEdit = lineEdit # Pass lineEdit to run_transcription
             self.controller = transcriber.TranscriptionController()
+            self.processor_thread = None  # Store reference to processor thread for cleanup
 
     def run(self):
         transcriber.run_transcription(
@@ -878,10 +910,45 @@ class TranscriptionWorker(QThread):
             search_Page=self.search_page,
             lineEdit=self.lineEdit, # Pass it (though it's no longer used for .setText)
             worker_thread=self,     # Pass self (this QThread)
-            controller=self.controller
+            controller=self.controller,
+            processor_thread_ref=self  # Pass self to store processor_thread reference
         )
         self.finished.emit()
     
     def stop_transcription(self):
         print("Stopping transcription gracefully...")
         self.controller.stop()
+    
+    def cleanup_cuda_resources(self):
+        """Force cleanup of CUDA resources, even if thread was terminated."""
+        print("TranscriptionWorker: Force cleaning up CUDA resources...")
+        try:
+            # If processor_thread exists, try to clean up models
+            if self.processor_thread is not None:
+                model = None
+                classifier = None
+                try:
+                    # Try to get model references safely
+                    if hasattr(self.processor_thread, 'model'):
+                        model = self.processor_thread.model
+                    if hasattr(self.processor_thread, 'bible_classifier_model'):
+                        classifier = self.processor_thread.bible_classifier_model
+                except Exception as attr_error:
+                    print(f"TranscriptionWorker: Could not access model attributes: {attr_error}")
+                
+                # Clean up if we have any models
+                if model is not None or classifier is not None:
+                    transcriber.cleanup_model_resources(model, classifier)
+                else:
+                    # Even if we can't access models, try to clear CUDA cache
+                    try:
+                        torch = transcriber.get_torch()
+                        if torch.cuda.is_available():
+                            torch.cuda.empty_cache()
+                            print("TranscriptionWorker: CUDA cache cleared (models not accessible)")
+                    except Exception as cache_error:
+                        print(f"TranscriptionWorker: Could not clear CUDA cache: {cache_error}")
+        except Exception as e:
+            print(f"TranscriptionWorker: Error during CUDA cleanup: {e}")
+            import traceback
+            traceback.print_exc()
