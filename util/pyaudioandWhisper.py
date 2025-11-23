@@ -189,11 +189,9 @@ class ProcessorThread(QThread):
         self.temperature = float(settings.value('temperature') or 0.00)
         self.language = settings.value('language') or 'en'
         self.energy_threshold = float(settings.value('energy') or 0.10)
-        print(f"Processor: Energy threshold set to {settings.value('energy')}")
         model_size = (settings.value('model') or 'tiny').lower()
-        cpu_cores = int(settings.value('cpu_cores') or 1)
+        cpu_cores = int(settings.value('cores') or 1)
         processing = settings.value('processing') or ('CPU' if not torch.cuda.is_available() else 'GPU')
-        
         self.RATE = int(settings.value('rate') or 16000)
         self.CHUNK = int(settings.value('chunks') or 1024)
         self.CHANNELS = int(settings.value('channel') or 1)
@@ -209,6 +207,8 @@ class ProcessorThread(QThread):
         self.confidence_threshold = float(percent_to_log_prob(settings.value('confidence_threshold')) or -0.4)
         self.use_prev_context = int(settings.value('prev_context') or 0)
         
+        #lets print all the values for validation 
+        print("Processor: All settings loaded successfully.")
 
         # --- Load all models ---
         self.model = None
