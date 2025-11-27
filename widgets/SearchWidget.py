@@ -844,7 +844,7 @@ class WhisperWindow(QFrame):
             self.transcription_thread.stop_transcription()
 
             # Wait for the thread to finish
-            if self.transcription_thread.wait(3000):  # Wait for up to 3 seconds
+            if self.transcription_thread.wait(15000):  # Wait for up to 15 seconds
                 print("Transcription stopped gracefully.")
             else:
                 print("Transcription is still running. Detaching thread...")
@@ -861,6 +861,19 @@ class WhisperWindow(QFrame):
         if self.search_widget:
             self.search_widget.listening_window = None
             print("Cleared listening_window reference in SearchWidget")
+        # Extra GPU sync before close
+        try:
+            import torch
+            import time
+            if torch.cuda.is_available():
+                print("Final GPU sync before close...")
+                torch.cuda.synchronize()
+                time.sleep(0.5)  # Longer wait
+                torch.cuda.empty_cache()
+                time.sleep(0.3)
+                print("GPU cleared")
+        except:
+            pass
 
         # Call the parent class's close method
         super().close()

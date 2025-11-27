@@ -105,10 +105,14 @@ def cleanup_audio_resources(audio_instance, stream_instance):
         except Exception as e:
             print(f"Error terminating PyAudio: {e}")
 
-def cleanup_model_resources(model_instance, classifier_instance):
+def cleanup_model_resources(model_instance, classifier_instance, text_ready_signal=None):
     """Safely handles model cleanup."""
+    print('here is the text ready signal:', text_ready_signal)
+    text_ready_signal.disconnect() if text_ready_signal else None
+    print('text_ready_signal disconnected.')
     # 1. Just set references to None. Let Python GC handle the rest naturally.
     # Explicitly calling 'del' on C++ wrappers during shutdown is risky.
+    
     model_instance = None
     classifier_instance = None
     
@@ -397,8 +401,7 @@ class ProcessorThread(QThread):
                             silent_frames = 0
                             is_recording_speech = False
                             
-                            if torch.cuda.is_available():
-                                torch.cuda.empty_cache()
+
 
                 except Empty:
                     continue
@@ -414,7 +417,7 @@ class ProcessorThread(QThread):
             traceback.print_exc()
         finally:
             print("Processor: Shutting down...")
-            cleanup_model_resources(self.model, self.bible_classifier_model)
+            cleanup_model_resources(self.model, self.bible_classifier_model, self.textReady)
             print("Processor: Thread finished.")
 
 # ===================================================================
