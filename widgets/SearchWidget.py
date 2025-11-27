@@ -776,7 +776,7 @@ class WhisperWindow(QFrame):
 
 class TranscriptionWorker(QThread):
     finished = pyqtSignal()
-    autoSearchResults = pyqtSignal(list, str)
+    autoSearchResults = pyqtSignal(list, str, float,int) # Emit results, query, confidence, and max_len
 
     def __init__(self, parent=None, search_page = None):
         super().__init__(parent)

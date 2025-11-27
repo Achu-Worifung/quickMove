@@ -39,6 +39,8 @@ def run_transcription(recording_page, search_Page=None, lineEdit=None, worker_th
     processing = settings.value('processing') or ('CPU' if not torch.cuda.is_available() else 'GPU')
     confidence_threshold = float(percent_to_log_prob(settings.value('confidence_threshold')) or -0.4)
     best_of = int(settings.value('best') or 2)
+    auto_search_size = int(settings.value('auto_length') or 1)
+
 
     
     RATE = int(settings.value('rate') or 16000)
@@ -208,7 +210,7 @@ def run_transcription(recording_page, search_Page=None, lineEdit=None, worker_th
                             if label == 'bible' and worker_thread:
                                 # We usually search the full transcription, 
                                 # but you can pass text_to_classify if you want the context included in the Google search too.
-                                perform_auto_search(full_trans, worker_thread)
+                                perform_auto_search(text_to_classify, score, auto_search_size, worker_thread)
 
                         # Update context for the NEXT loop (Last 4 words)
                         words = full_trans.split()
@@ -232,7 +234,7 @@ def run_transcription(recording_page, search_Page=None, lineEdit=None, worker_th
         if stream: stream.close()
         if audio: audio.terminate()
 
-def perform_auto_search(query, worker_thread):
+def perform_auto_search(query, confidence, max_len, worker_thread):
     if not query or not worker_thread: return
     
     # We append KJV Bible verse to ensure relevance
@@ -248,16 +250,16 @@ def perform_auto_search(query, worker_thread):
         'num': 10,
     }
     try:
-        response = httpx.get(url, params=params)
+        response = httpx.get(url, params=params, timeout=10.0)
         response.raise_for_status()
         results = response.json()
+        items = results.get("items", [])
+        print(f"Auto-search found {len(items)} items for query: '{query_full}'")
         
-        # Taking results and reversing them (as per your original logic)
-        reversed_items = results.get("items", [])[::-1]
-        
-        if reversed_items:
-            print(f"Search match: {reversed_items[0].get('title')}")
-            worker_thread.autoSearchResults.emit(reversed_items, query_full)
-
+        if items and worker_thread:
+             # This signal is defined in TranscriptionWorker in your other file
+             worker_thread.autoSearchResults.emit(items, query_full, confidence, max_len)
+    except httpx.TimeoutException:
+         print("Auto-search timed out.")
     except Exception as e:
-        print(f"Auto-search error: {e}")
+        print(f"Error in auto-search: {e}")
