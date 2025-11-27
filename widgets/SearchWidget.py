@@ -671,15 +671,24 @@ class WhisperWindow(QFrame):
     def __init__(self, parent=None, search_widget=None):
         super().__init__(parent)
         link = os.path.join(os.path.dirname(__file__), '../ui/listening_window.ui')
+        link = os.path.join(os.path.dirname(__file__), '../ui/listening_window.ui')
         self.listening_window = loadUi(link, self)
         self.setWindowFlags(Qt.FramelessWindowHint)
         self.close_button.clicked.connect(self.close)
         self.lineEdit = self.findChild(QLineEdit, 'lineEdit')
-        self.record_btn = self.checkBox
-        self.checkBox.setChecked(True)
-        self.checkBox.clicked.connect(self.start_recording)
+        self.label = self.findChild(QLabel, 'sound')
+        self.record_btn = self.findChild(QCheckBox, 'checkBox')
+        self.record_btn.setChecked(True)
+        self.record_btn.clicked.connect(self.start_recording)
         self.search_page = parent
         self.search_widget = search_widget
+        self.minimize_btn = self.findChild(QPushButton, 'min')
+        self.vbox = self.findChild(QVBoxLayout, 'verticalLayout')
+        self.minimize_btn.clicked.connect(self.toggle_minimize)
+        self.title = self.findChild(QLabel, 'title')
+        self.title.setText('')
+        
+        self.is_minimized = False
         
         # Start transcription in a separate thread
         self.transcription_thread = TranscriptionWorker(self, search_page=parent)
@@ -689,31 +698,26 @@ class WhisperWindow(QFrame):
         self.transcription_thread.start()
 
         # Create the soundwave label
-        # self.soundwave_label = soundwave.SoundWaveLabel(self)
-        
-        # Find original label and replace it
+        from util import soundwave
+        self.soundwave_label = soundwave.SoundWaveLabel(self)
         original_label = self.findChild(QLabel, 'sound')
-        # if original_label:
-        #     geometry = original_label.geometry()
-        #     parent_widget = original_label.parent()
+        # Find original label and replace it
+        if original_label:
+            geometry = original_label.geometry()
+            parent_widget = original_label.parent()
+            original_label.setParent(None)
+            original_label.deleteLater()  # Properly delete the old label
             
-        #     # Remove original label
-        #     original_label.setParent(None)
-            
-        #     # Set up the new sound wave label
-        #     self.soundwave_label.setParent(parent_widget)
-        #     self.soundwave_label.setGeometry(geometry)
-        #     self.soundwave_label.setText("Not listening")
-        #     self.soundwave_label.setStyleSheet('margin: 30px auto; color: white;')
-            
-        #     self.label = self.soundwave_label
-        #     print("Soundwave label created and replaced original label")  # Debug print
-        # else:
-        #     print("Original 'sound' label not found!")  # Debug print
-        
-        # if self.checkBox.isChecked():
-        #     print("Checkbox is checked, starting visualization automatically")  # Debug print
-        #     self.soundwave_label.start_recording_visualization()
+            self.vbox.insertWidget(2, self.soundwave_label)
+            self.label = self.soundwave_label
+            print("Soundwave label created and replaced original label")
+        else:
+            print("Original 'sound' label not found!")
+
+        # Start visualization if checkbox is checked
+        if self.checkBox.isChecked():
+            print("Checkbox is checked, starting visualization automatically")
+            QTimer.singleShot(100, self.soundwave_label.start_recording_visualization)
 
     def start_recording(self):
         print(f"Start recording called, checkbox checked: {self.record_btn.isChecked()}")  # Debug print
@@ -727,7 +731,51 @@ class WhisperWindow(QFrame):
             print("Stopping soundwave visualization")  # Debug print
             self.transcription_thread.terminate()
             self.soundwave_label.stop_recording_visualization()
-
+    def toggle_minimize(self):
+        print('here is the size of container', self)
+        if self.is_minimized:
+            self.title.setText('')
+            self.is_minimized = False
+            self.record_btn.show()
+            self.record_btn.setVisible(True)
+            self.soundwave_label.show()
+            self.soundwave_label.setVisible(True)
+            self.soundwave_label.start_recording_visualization() if self.record_btn.isChecked() else None
+            self.lineEdit.show()
+            self.lineEdit.setVisible(True)
+            self.vbox.invalidate()
+            self.vbox.activate()
+            
+            # Use setFixedSize or setMinimumSize/setMaximumSize
+            self.setFixedSize(679, 311)
+            
+            # Alternative: use adjustSize() to let Qt calculate
+            # self.adjustSize()
+            
+            print('Restored listening window')
+            print('vbox size:', self.vbox.geometry())
+        else:
+            self.title.setText('Listening (minimized)') if self.record_btn.isChecked() else self.title.setText('Not listening (minimized)')
+            self.is_minimized = True
+            self.record_btn.hide()
+            self.record_btn.setVisible(False)
+            self.soundwave_label.stop_recording_visualization()
+            self.soundwave_label.hide()
+            self.soundwave_label.setVisible(False)
+            self.lineEdit.hide()
+            self.lineEdit.setVisible(False)
+            self.vbox.invalidate()
+            self.vbox.activate()
+            
+            # Use setFixedSize
+            self.setFixedSize(550, 80)
+            
+            print('Minimized listening window')
+            print('vbox size:', self.vbox.geometry())
+        self.updateGeometry()
+    
+        # Process any pending events to ensure the resize happens
+        QApplication.processEvents()
     def close(self):
         print("WhisperWindow closing")
         
