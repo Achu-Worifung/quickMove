@@ -694,6 +694,8 @@ class WhisperWindow(QFrame):
         self.transcription_thread = TranscriptionWorker(self, search_page=parent)
 
         self.transcription_thread.autoSearchResults.connect(self.search_widget.add_auto_search_results)
+        self.transcription_thread.guitextReady.connect(self.update_transcription_text)
+
 
         self.transcription_thread.start()
 
@@ -718,7 +720,24 @@ class WhisperWindow(QFrame):
         if self.checkBox.isChecked():
             print("Checkbox is checked, starting visualization automatically")
             QTimer.singleShot(100, self.soundwave_label.start_recording_visualization)
-
+    @pyqtSlot(str) 
+    def update_transcription_text(self, text):
+        """
+        This function is *guaranteed* to run on the main GUI thread.
+        It is the ONLY safe place to call self.lineEdit.setText().
+        """
+        MAX_WORDS = 100  # Set the maximum number of words allowed
+        print('updating transcription text', text)
+        
+        current_ui_text = self.lineEdit.text()
+        combined_text = (current_ui_text + " " + text).strip()
+        
+        # Split the text into words and enforce the limit
+        words = combined_text.split()
+        if len(words) > MAX_WORDS:
+            combined_text = " ".join(words[:MAX_WORDS])
+        
+        self.lineEdit.setText(combined_text)
     def start_recording(self):
         print(f"Start recording called, checkbox checked: {self.record_btn.isChecked()}")  # Debug print
         if self.record_btn.isChecked():
@@ -825,6 +844,7 @@ class WhisperWindow(QFrame):
 class TranscriptionWorker(QThread):
     finished = pyqtSignal()
     autoSearchResults = pyqtSignal(list, str, float,int) # Emit results, query, confidence, and max_len
+    guitextReady = pyqtSignal(str)  # emit transcribed text 
 
     def __init__(self, parent=None, search_page = None):
         super().__init__(parent)

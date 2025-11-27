@@ -191,7 +191,8 @@ def run_transcription(recording_page, search_Page=None, lineEdit=None, worker_th
                     )
                     
                     full_trans = " ".join([s.text for s in segments]).strip()
-                    
+                    worker_thread.guitextReady.emit(full_trans)  # Emit the transcribed text to update the GUI
+
                     if full_trans:
                         # --- CONTEXT LOGIC START ---
                         # Combine previous context with current text for classification
