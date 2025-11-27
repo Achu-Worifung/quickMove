@@ -16,7 +16,7 @@ except ImportError:
     print("PyAudio not available - soundwave will use simulated audio")
 
 class SoundWaveLabel(QLabel):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, level_callback=None):
         super().__init__(parent)
         self.num_bars = 40
         self.wave_heights = [0.0] * self.num_bars
@@ -50,7 +50,10 @@ class SoundWaveLabel(QLabel):
         
         # Thread safety flag
         self._stop_monitoring = False
-        
+
+        # Callback for audio level changes
+        self.level_callback = level_callback
+
     def start_recording_visualization(self):
         """Start the audio level visualization"""
         print("Starting recording visualization")
@@ -173,6 +176,10 @@ class SoundWaveLabel(QLabel):
                 
                 self.current_level = level
                 consecutive_errors = 0  # Reset error count on success
+
+                # Invoke the callback with the current level
+                if self.level_callback:
+                    self.level_callback(level)
                 
             except Exception as e:
                 consecutive_errors += 1
