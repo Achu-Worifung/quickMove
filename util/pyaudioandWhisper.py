@@ -37,6 +37,9 @@ def run_transcription(recording_page, search_Page=None, lineEdit=None, worker_th
     model_size = (settings.value('model') or 'tiny').lower()
     cpu_cores = int(settings.value('cores') or 1)
     processing = settings.value('processing') or ('CPU' if not torch.cuda.is_available() else 'GPU')
+    confidence_threshold = float(percent_to_log_prob(settings.value('confidence_threshold')) or -0.4)
+    best_of = int(settings.value('best') or 2)
+
     
     RATE = int(settings.value('rate') or 16000)
     CHUNK = int(settings.value('chunks') or 1024)
@@ -180,7 +183,9 @@ def run_transcription(recording_page, search_Page=None, lineEdit=None, worker_th
                         temperature=temperature,
                         language=language,
                         vad_filter=True,
-                        vad_parameters=dict(min_silence_duration_ms=500)
+                        best_of=best_of,
+                        vad_parameters=dict(min_silence_duration_ms=500),
+                        log_prob_threshold=confidence_threshold
                     )
                     
                     full_trans = " ".join([s.text for s in segments]).strip()
@@ -211,7 +216,6 @@ def run_transcription(recording_page, search_Page=None, lineEdit=None, worker_th
                             previous_context = " ".join(words[-CONTEXT_WORD_LIMIT:])
                         else:
                             previous_context = full_trans
-                        # --- CONTEXT LOGIC END ---
 
                     counter += 1
 
