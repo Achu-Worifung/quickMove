@@ -795,11 +795,13 @@ class WhisperWindow(QFrame):
         if self.record_btn.isChecked():
             self.label.setText("")  # Clear text when starting
             if not self.transcription_thread.isRunning():
+                print("Starting transcription thread")
                 self.transcription_thread = TranscriptionWorker(self, search_page=self.search_page, lineEdit=self.lineEdit)
                 self.transcription_thread.autoSearchResults.connect(self.search_widget.add_auto_search_results)
                 self.transcription_thread.guiTextReady.connect(self.update_transcription_text)
                 self.transcription_thread.start()
-        
+            else:
+                print("Transcription thread is already running")
             # Start soundwave visualization
             if hasattr(self, 'soundwave_label'):
                 print("Starting soundwave visualization")
@@ -819,11 +821,12 @@ class WhisperWindow(QFrame):
             
             # Stop transcription gracefully
             if self.transcription_thread.isRunning():
-                self.transcription_thread.stop_transcription()
-                if not self.transcription_thread.wait(5000):
-                    print("Transcription didn't stop gracefully, forcing termination")
+                self.transcription_thread.disconnect()
+                self.transcription_thread = None
+                # if not self.transcription_thread.wait(5000):
+                    # print("Transcription didn't stop gracefully, forcing termination")
                     # self.transcription_thread.terminate()
-                    self.transcription_thread.wait()
+                    # self.transcription_thread.wait()
             
             # Stop soundwave
             if hasattr(self, 'soundwave_label'):
@@ -841,39 +844,49 @@ class WhisperWindow(QFrame):
             print("Requesting graceful transcription shutdown...")
 
             # Signal the thread to stop
-            self.transcription_thread.stop_transcription()
-
+            # self.transcription_thread.stop_transcription()
+            self.transcription_thread.disconnect() #remove any connected slots to avoid further GUI updates 
+            # self.transcription_thread.stop()  # Ask the thread to quit
+            self.transcription_thread.stop_transcription() #stopting the transcriptin but not waiting for it to finish
+            self.transcription_thread.deleteLater()
+           
+            self.transcription_thread = None
+            # import gc 
+            # gc.collect()
+            print("Transcription thread signaled to stop.")
+            
+            # self.transcription_thread.stop_transcription()
             # Wait for the thread to finish
-            if self.transcription_thread.wait(15000):  # Wait for up to 15 seconds
-                print("Transcription stopped gracefully.")
-            else:
-                print("Transcription is still running. Detaching thread...")
-                # Detach the thread to allow it to finish in the background
-                self.transcription_thread.finished.connect(self.transcription_thread.deleteLater)
-                self.transcription_thread = None
+            # if self.transcription_thread.wait():  # Wait for up to 15 seconds
+            #     print("Transcription stopped gracefully.")
+            # else:
+            #     print("Transcription is still running. Detaching thread...")
+            #     # Detach the thread to allow it to finish in the background
+            #     self.transcription_thread.finished.connect(self.transcription_thread.deleteLater)
+            #     self.transcription_thread = None
 
         # Clear any previous transcription data if necessary
-        if hasattr(self.lineEdit, 'text') and self.lineEdit.text().strip():
-            print("Clearing previous transcription data.")
-            self.lineEdit.clear()
+        # if hasattr(self.lineEdit, 'text') and self.lineEdit.text().strip():
+        #     print("Clearing previous transcription data.")
+        #     self.lineEdit.clear()
 
-        # Clear the reference to the listening window in the parent widget
-        if self.search_widget:
-            self.search_widget.listening_window = None
-            print("Cleared listening_window reference in SearchWidget")
-        # Extra GPU sync before close
-        try:
-            import torch
-            import time
-            if torch.cuda.is_available():
-                print("Final GPU sync before close...")
-                torch.cuda.synchronize()
-                time.sleep(0.5)  # Longer wait
-                torch.cuda.empty_cache()
-                time.sleep(0.3)
-                print("GPU cleared")
-        except:
-            pass
+        # # Clear the reference to the listening window in the parent widget
+        # if self.search_widget:
+        #     self.search_widget.listening_window = None
+        #     print("Cleared listening_window reference in SearchWidget")
+        # # Extra GPU sync before close
+        # try:
+        #     import torch
+        #     import time
+        #     if torch.cuda.is_available():
+        #         print("Final GPU sync before close...")
+        #         torch.cuda.synchronize()
+        #         time.sleep(0.5)  # Longer wait
+        #         torch.cuda.empty_cache()
+        #         time.sleep(0.3)
+        #         print("GPU cleared")
+        # except:
+        #     pass
 
         # Call the parent class's close method
         super().close()
@@ -917,6 +930,7 @@ class TranscriptionWorker(QThread):
             controller=self.controller
         )
         self.finished.emit()
+
     
     def stop_transcription(self):
         print("Stopping transcription gracefully...")

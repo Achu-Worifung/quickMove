@@ -87,44 +87,9 @@ def get_energy_threshold(audio_data, threshold_value=0.05):
     # print(f"Calculated energy: {energy}, Threshold: {threshold_value} ->", energy > threshold_value)
     return energy > threshold_value
 
-def cleanup_audio_resources(audio_instance, stream_instance):
-    """Safely closes audio stream and terminates PyAudio instance."""
-    if stream_instance is not None:
-        try:
-            if stream_instance.is_active():
-                stream_instance.stop_stream()
-            stream_instance.close()
-            print("Audio stream closed.")
-        except Exception as e:
-            print(f"Error closing stream: {e}")
-            
-    if audio_instance is not None:
-        try:
-            audio_instance.terminate()
-            print("PyAudio terminated.")
-        except Exception as e:
-            print(f"Error terminating PyAudio: {e}")
 
-def cleanup_model_resources(model_instance, classifier_instance, text_ready_signal=None):
-    """Safely handles model cleanup."""
-    print('here is the text ready signal:', text_ready_signal)
-    text_ready_signal.disconnect() if text_ready_signal else None
-    print('text_ready_signal disconnected.')
-    # 1. Just set references to None. Let Python GC handle the rest naturally.
-    # Explicitly calling 'del' on C++ wrappers during shutdown is risky.
-    
-    model_instance = None
-    classifier_instance = None
-    
-    # 2. ONLY run CUDA cleanup if we are NOT shutting down the whole app.
-    # (Assuming you can detect this, but for now, it's safer to simply REMOVE empty_cache
-    # from the shutdown path entirely. The OS cleans up GPU memory on exit anyway.)
-    
-    gc.collect()
-    
-    # REMOVED: torch.cuda.empty_cache() 
-    # Why? Calling this during process exit causes SegFaults.
-    print("Models references released.")
+def cleanup_model_resources(model_instance, classifier_instance, text_ready_signal=None, worker_thread=None):
+    pass
 
 def perform_auto_search(query, worker_thread, score=None, max_len=10):
     """Executes a Google Custom Search and emits results to the main thread."""
@@ -161,6 +126,7 @@ class TranscriptionController:
     """Controller class to manage transcription lifecycle thread-safely."""
     def __init__(self):
         self._should_stop = False
+        self._is_processing = False  # New flag to track processing state
         self._lock = threading.Lock()
     
     def stop(self):
@@ -170,6 +136,16 @@ class TranscriptionController:
     def is_stopped(self):
         with self._lock:
             return self._should_stop
+
+    def set_processing(self, value):
+        """Set the processing state."""
+        with self._lock:
+            self._is_processing = value
+
+    def is_processing(self):
+        """Check if processing is active."""
+        with self._lock:
+            return self._is_processing
 
 # ===================================================================
 # CONSUMER THREAD (as a QThread)
@@ -221,18 +197,12 @@ class ProcessorThread(QThread):
         self.auto_search_size = int(settings.value('auto_length') or 1)
         self.confidence_threshold = float(percent_to_log_prob(settings.value('confidence_threshold')) or -0.4)
         self.use_prev_context = int(settings.value('prev_context') or 0)
-        
-        #setting the models max and min lenghts
-        # self.max_record_len = 1 
-        # self.min_record_len = .5
-        print(f'min len set to: {self.min_record_len}, max len set to: {self.max_record_len}')
-        
+                
 
         # --- Load all models ---
         self.model = None
         self.bible_classifier_model = None
         
-        print("Processor: Loading models...")
         model_source = 'finetuned_distilbert_bert'
         try:
             self.bible_classifier_model = pipeline(
@@ -240,7 +210,6 @@ class ProcessorThread(QThread):
                 model=resource_path(model_source),
                 device=0 if torch.cuda.is_available() else -1
             )
-            print(f"Processor: Classifier loaded from {model_source}")
         except Exception as e:
             print(f"Processor: Failed to load classifier: {e}")
 
@@ -258,7 +227,6 @@ class ProcessorThread(QThread):
         )
         
 
-        print("Processor: Whisper model loaded.")
 
     def run(self):
         """Main processing loop for the consumer thread."""
@@ -318,8 +286,7 @@ class ProcessorThread(QThread):
                                     wf.setsampwidth(self.SAMPLE_WIDTH)
                                     wf.setframerate(self.RATE)
                                     wf.writeframes(b''.join(frames))
-                                # Transcribe from file
-                                # Replace the entire segment processing section (around lines 195-235)
+                                
 
                                 # After writing the WAV file and before transcription:
                                 segments = transcrip(
@@ -355,8 +322,6 @@ class ProcessorThread(QThread):
 
                                     if self.bible_classifier_model:
                                         # Classify ONLY the current segment (no contamination)
-                                        print(f"Processor: prev_context='{prev_context}'")
-                                        print(f"Processor: current_segment_text='{current_segment_text.strip()}'")
                                         print(f"Processor: Classifying CURRENT segment only: '{current_segment_text.strip()}'")
                                         
                                         result = self.bible_classifier_model(current_segment_text.strip())
@@ -417,12 +382,9 @@ class ProcessorThread(QThread):
             traceback.print_exc()
         finally:
             print("Processor: Shutting down...")
-            cleanup_model_resources(self.model, self.bible_classifier_model, self.textReady)
+            cleanup_model_resources(self.model, self.bible_classifier_model, self.textReady, self.worker_thread)
             print("Processor: Thread finished.")
 
-# ===================================================================
-# PRODUCER FUNCTION (run_transcription)
-# ===================================================================
 def transcrip(model, filename, beam_size, best_of, temperature, language, vad_filter, word_timestamps, prev_segment_text = "", log_prob_threshold=-0.4):
     context = prev_segment_text[-400:] if prev_segment_text else ""
     print('here is the prev segment text:', prev_segment_text)
@@ -439,134 +401,92 @@ def transcrip(model, filename, beam_size, best_of, temperature, language, vad_fi
                                 )
     return segments
 
+
+# ===================================================================
+# PRODUCER FUNCTION (run_transcription)
+# ===================================================================
+
 def run_transcription(recording_page, search_Page=None, lineEdit=None, worker_thread=None, controller=None):
-    """
-    This is the "Producer" function.
-    It runs inside the TranscriptionWorker QThread.
-    It starts the ProcessorThread and then only reads from PyAudio.
-    """
     if controller is None:
         controller = TranscriptionController()
-
-    load_dotenv(os.path.join(basedir, '.env'))
 
     CHANNELS = int(settings.value('channel') or 1)
     RATE = int(settings.value('rate') or 16000)
     CHUNK = int(settings.value('chunks') or 1024)
     FORMAT = pyaudio.paInt16
-    
+
+    audio_queue = Queue(maxsize=10)
     audio = None
     stream = None
-    processor_thread = None
-    
+
+    # Start processor thread first
+    processor_thread = ProcessorThread(audio_queue, controller, worker_thread)
+    processor_thread.textReady.connect(worker_thread.guiTextReady)
+    processor_thread.start()
+
+    print("Audio (Producer): ProcessorThread started")
+
+   
+    def callback(in_data, frame_count, time_info, status):
+        if controller.is_stopped():
+            return (None, pyaudio.paComplete)
+
+        try:
+            audio_queue.put_nowait(in_data)
+        except:
+            # Queue full → drop audio silently
+            pass
+
+        return (None, pyaudio.paContinue)
+
     try:
-        audio_queue = Queue(maxsize=10) # Max 10 chunks in queue
-        
-        # Create the Consumer thread
-        processor_thread = ProcessorThread(
-            audio_queue=audio_queue,
-            controller=controller,
-            worker_thread=worker_thread # Pass the main TranscriptionWorker
+        audio = pyaudio.PyAudio()
+
+        stream = audio.open(
+            format=FORMAT,
+            channels=CHANNELS,
+            rate=RATE,
+            input=True,
+            frames_per_buffer=CHUNK,
+            stream_callback=callback,
         )
-        
-        # --- FIX: Connect Signals BEFORE starting the thread ---
-        if hasattr(worker_thread, 'guiTextReady'):
-            processor_thread.textReady.connect(worker_thread.guiTextReady)
-            print("Audio (Producer): Connected ProcessorThread.textReady to worker_thread.guiTextReady")
-        else:
-            print("CRITICAL: worker_thread does not have 'guiTextReady' signal! GUI text will not update.")
 
-        # NOW start the processor thread
-        processor_thread.start()
-        print("Audio (Producer): ProcessorThread started")
+        stream.start_stream()
+        print("Audio (Producer): Callback stream started")
 
-        def initialize_audio_stream():
-            nonlocal audio, stream
-            cleanup_audio_resources(audio, stream)
-            audio, stream = None, None
-            if controller.is_stopped(): 
-                return False
-            
-            audio_inst = pyaudio.PyAudio()
-            stream_inst = None
-            max_retries = 5
-            
-            for i in range(max_retries):
-                if controller.is_stopped(): 
-                    if audio_inst:
-                        cleanup_audio_resources(audio_inst, stream_inst)
-                    return False
-                try:
-                    stream_inst = audio_inst.open(
-                        format=FORMAT, 
-                        channels=CHANNELS, 
-                        rate=RATE, 
-                        input=True, 
-                        frames_per_buffer=CHUNK
-                    )
-                    print("Audio (Producer): Stream initialized.")
-                    audio, stream = audio_inst, stream_inst
-                    return True
-                except Exception as e:
-                    print(f"Audio (Producer): Init failed (attempt {i+1}/{max_retries}): {e}")
-                    time.sleep(2)
-            
-            if audio_inst: 
-                    cleanup_audio_resources(audio_inst, stream_inst)
-            return False
+        # Keep thread alive while callback runs
+        while stream.is_active() and not controller.is_stopped():
+            QThread.msleep(50)
 
-        if not initialize_audio_stream():
-            print("Audio (Producer): Could not initialize. Exiting thread.")
-            return
-
-        print("Audio (Producer): Recording...")
-        while not controller.is_stopped():
-            try:
-                data = stream.read(CHUNK, exception_on_overflow=False)
-                # print("Audio (Producer): Read audio chunk.",)
-                
-                # Use a non-blocking put with try/except
-                try:
-                    audio_queue.put(data, block=True, timeout=0.5)
-                except Exception as queue_error:
-                    # Queue full or other error - skip this chunk
-                    print('here is the queue error:', queue_error)
-                    pass
-                    
-            except (OSError, IOError) as e:
-                print(f"Audio (Producer): Stream error: {e}")
-                print("Audio (Producer): Attempting to reinitialize...")
-                if not initialize_audio_stream():
-                    print("Audio (Producer): Failed to recover. Exiting.")
-                    break
-                
     except Exception as e:
-        print(f"Audio (Producer): Critical error: {e}")
-        import traceback
-        traceback.print_exc()
+        print("Audio (Producer): Error:", e)
+
     finally:
-        print("Audio (Producer): Shutting down...")
-        controller.stop()
+        print("Audio (Producer): Cleaning up callback stream...")
+        processor_thread.controller.stop()
         
-        if processor_thread is not None:
-            print("Audio (Producer): Sending stop signal to processor...")
-            
-            # 1. Send the Poison Pill to break the processor loop immediately
+        if stream is not None:
             try:
-                audio_queue.put(None) 
+                stream.stop_stream()
+                stream.close()
+                print('the stream is closed')
             except:
                 pass
 
-            # 2. Wait for the thread to clean up its own resources
-            print("Audio (Producer): Waiting for processor to finish...")
-            # Wait longer if necessary, but do NOT call terminate()
-            processor_thread.wait(10000) 
-            
-            if processor_thread.isRunning():
-                print("Audio (Producer): Warning - Processor took too long, but NOT forcing termination to avoid GPU crash.")
-                # We intentionally leave it running rather than crash the app. 
-                # The daemon flag usually handles this on app exit, 
-                # or it will exit eventually when the queue unblocks.
+        if audio is not None:
+            try:
+                audio.terminate()
+                print('the audio is terminated')
+            except:
+                pass
+
+        # Send poison pill
+        try:
+            audio_queue.put_nowait(None)
+            print("Audio (Producer): Poison pill sent.")
+        except:
+            pass
         
-        cleanup_audio_resources(audio, stream)
-        print("Audio (Producer): Thread completely finished.")
+        processor_thread.wait()
+        processor_thread.deleteLater()
+        print("Audio (Producer): Fully stopped.")
