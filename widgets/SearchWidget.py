@@ -670,225 +670,81 @@ class SearchWidget(QDialog):
 class WhisperWindow(QFrame):
     def __init__(self, parent=None, search_widget=None):
         super().__init__(parent)
-        
-
         link = os.path.join(os.path.dirname(__file__), '../ui/listening_window.ui')
         self.listening_window = loadUi(link, self)
         self.setWindowFlags(Qt.FramelessWindowHint)
         self.close_button.clicked.connect(self.close)
         self.lineEdit = self.findChild(QLineEdit, 'lineEdit')
-        self.label = self.findChild(QLabel, 'sound')
-        self.label.setAlignment(Qt.AlignCenter)
-        self.record_btn = self.findChild(QCheckBox, 'checkBox')
-        self.record_btn.setChecked(True)
-        self.record_btn.clicked.connect(self.start_recording)
+        self.record_btn = self.checkBox
+        self.checkBox.setChecked(True)
+        self.checkBox.clicked.connect(self.start_recording)
         self.search_page = parent
         self.search_widget = search_widget
-        self.minimize_btn = self.findChild(QPushButton, 'min')
-        self.vbox = self.findChild(QVBoxLayout, 'verticalLayout')
-        self.minimize_btn.clicked.connect(self.toggle_minimize)
-        self.title = self.findChild(QLabel, 'title')
-        self.title.setText('')
         
-        self.is_minimized = False
+        # Start transcription in a separate thread
+        self.transcription_thread = TranscriptionWorker(self, search_page=parent)
 
-        # --- THIS IS THE CRITICAL CRASH-FIX ---
-        # 1. Create the worker, passing the lineEdit
-        self.transcription_thread = TranscriptionWorker(
-            self, 
-            search_page=parent, 
-            lineEdit=self.lineEdit # Pass the widget
-        )
-        
-        # 2. Connect the auto-search signal
         self.transcription_thread.autoSearchResults.connect(self.search_widget.add_auto_search_results)
-        
-        # 3. Connect the thread-safe text signal to the GUI slot
-        self.transcription_thread.guiTextReady.connect(self.update_transcription_text)
 
-        # 4. Start the thread
         self.transcription_thread.start()
 
-
-        # --- SOUNDWAVE VISUALIZER RE-ENABLED WITH FIXES ---
-        from util import soundwave
-
+        # Create the soundwave label
+        # self.soundwave_label = soundwave.SoundWaveLabel(self)
         
-        self.soundwave_label = soundwave.SoundWaveLabel(self)
+        # Find original label and replace it
         original_label = self.findChild(QLabel, 'sound')
+        # if original_label:
+        #     geometry = original_label.geometry()
+        #     parent_widget = original_label.parent()
+            
+        #     # Remove original label
+        #     original_label.setParent(None)
+            
+        #     # Set up the new sound wave label
+        #     self.soundwave_label.setParent(parent_widget)
+        #     self.soundwave_label.setGeometry(geometry)
+        #     self.soundwave_label.setText("Not listening")
+        #     self.soundwave_label.setStyleSheet('margin: 30px auto; color: white;')
+            
+        #     self.label = self.soundwave_label
+        #     print("Soundwave label created and replaced original label")  # Debug print
+        # else:
+        #     print("Original 'sound' label not found!")  # Debug print
         
-        if original_label:
-            geometry = original_label.geometry()
-            parent_widget = original_label.parent()
-            original_label.setParent(None)
-            original_label.deleteLater()  # Properly delete the old label
-            
-            self.vbox.insertWidget(2, self.soundwave_label)
-            self.label = self.soundwave_label
-            print("Soundwave label created and replaced original label")
-        else:
-            print("Original 'sound' label not found!")
-
-        # Start visualization if checkbox is checked
-        if self.checkBox.isChecked():
-            print("Checkbox is checked, starting visualization automatically")
-            QTimer.singleShot(100, self.soundwave_label.start_recording_visualization)
-        # --- END SOUNDWAVE BLOCK ---
-        
-        
-    def toggle_minimize(self):
-        print('here is the size of container', self)
-        if self.is_minimized:
-            self.title.setText('')
-            self.is_minimized = False
-            self.record_btn.show()
-            self.record_btn.setVisible(True)
-            self.soundwave_label.show()
-            self.soundwave_label.setVisible(True)
-            self.soundwave_label.start_recording_visualization() if self.record_btn.isChecked() else None
-            self.lineEdit.show()
-            self.lineEdit.setVisible(True)
-            self.vbox.invalidate()
-            self.vbox.activate()
-            
-            # Use setFixedSize or setMinimumSize/setMaximumSize
-            self.setFixedSize(679, 311)
-            
-            # Alternative: use adjustSize() to let Qt calculate
-            # self.adjustSize()
-            
-            print('Restored listening window')
-            print('vbox size:', self.vbox.geometry())
-        else:
-            self.title.setText('Listening (minimized)') if self.record_btn.isChecked() else self.title.setText('Not listening (minimized)')
-            self.is_minimized = True
-            self.record_btn.hide()
-            self.record_btn.setVisible(False)
-            self.soundwave_label.stop_recording_visualization()
-            self.soundwave_label.hide()
-            self.soundwave_label.setVisible(False)
-            self.lineEdit.hide()
-            self.lineEdit.setVisible(False)
-            self.vbox.invalidate()
-            self.vbox.activate()
-            
-            # Use setFixedSize
-            self.setFixedSize(550, 80)
-            
-            print('Minimized listening window')
-            print('vbox size:', self.vbox.geometry())
-        self.updateGeometry()
-    
-        # Process any pending events to ensure the resize happens
-        QApplication.processEvents()
-    @pyqtSlot(str) 
-    def update_transcription_text(self, text):
-        """
-        This function is *guaranteed* to run on the main GUI thread.
-        It is the ONLY safe place to call self.lineEdit.setText().
-        """
-        current_ui_text = self.lineEdit.text()
-        self.lineEdit.setText((current_ui_text + " " + text).strip())
+        # if self.checkBox.isChecked():
+        #     print("Checkbox is checked, starting visualization automatically")  # Debug print
+        #     self.soundwave_label.start_recording_visualization()
 
     def start_recording(self):
-        print(f"Start recording called, checkbox checked: {self.record_btn.isChecked()}")
+        print(f"Start recording called, checkbox checked: {self.record_btn.isChecked()}")  # Debug print
         if self.record_btn.isChecked():
-            self.label.setText("")  # Clear text when starting
+            # Fix: Don't start transcription_thread again if it's already running
             if not self.transcription_thread.isRunning():
-                print("Starting transcription thread")
-                self.transcription_thread = TranscriptionWorker(self, search_page=self.search_page, lineEdit=self.lineEdit)
-                self.transcription_thread.autoSearchResults.connect(self.search_widget.add_auto_search_results)
-                self.transcription_thread.guiTextReady.connect(self.update_transcription_text)
                 self.transcription_thread.start()
-            else:
-                print("Transcription thread is already running")
-            # Start soundwave visualization
-            if hasattr(self, 'soundwave_label'):
-                print("Starting soundwave visualization")
-                self.soundwave_label.start_recording_visualization()
+            print("Starting soundwave visualization")  # Debug print
+            self.soundwave_label.start_recording_visualization()
         else:
-            print("Stopping soundwave visualization")
-            self.label.setText("Not listening")
-            
-            self.label.setStyleSheet(
-                """
-                    color: red;
-                    font-size: 16px;
-                    font-weight: bold;
-
-                """
-            )
-            
-            # Stop transcription gracefully
-            if self.transcription_thread.isRunning():
-                self.transcription_thread.disconnect()
-                self.transcription_thread = None
-                # if not self.transcription_thread.wait(5000):
-                    # print("Transcription didn't stop gracefully, forcing termination")
-                    # self.transcription_thread.terminate()
-                    # self.transcription_thread.wait()
-            
-            # Stop soundwave
-            if hasattr(self, 'soundwave_label'):
-                self.soundwave_label.stop_recording_visualization()
+            print("Stopping soundwave visualization")  # Debug print
+            self.transcription_thread.terminate()
+            self.soundwave_label.stop_recording_visualization()
 
     def close(self):
         print("WhisperWindow closing")
-
-        # Stop soundwave visualization if it exists
+        
         if hasattr(self, 'soundwave_label'):
             self.soundwave_label.stop_recording_visualization()
-
-        # Graceful shutdown of transcription thread
-        if hasattr(self, 'transcription_thread') and self.transcription_thread.isRunning():
-            print("Requesting graceful transcription shutdown...")
-
-            # Signal the thread to stop
-            # self.transcription_thread.stop_transcription()
-            self.transcription_thread.disconnect() #remove any connected slots to avoid further GUI updates 
-            # self.transcription_thread.stop()  # Ask the thread to quit
-            self.transcription_thread.stop_transcription() #stopting the transcriptin but not waiting for it to finish
-            self.transcription_thread.deleteLater()
-           
-            self.transcription_thread = None
-            # import gc 
-            # gc.collect()
-            print("Transcription thread signaled to stop.")
-            
-            # self.transcription_thread.stop_transcription()
-            # Wait for the thread to finish
-            # if self.transcription_thread.wait():  # Wait for up to 15 seconds
-            #     print("Transcription stopped gracefully.")
-            # else:
-            #     print("Transcription is still running. Detaching thread...")
-            #     # Detach the thread to allow it to finish in the background
-            #     self.transcription_thread.finished.connect(self.transcription_thread.deleteLater)
-            #     self.transcription_thread = None
-
-        # Clear any previous transcription data if necessary
-        # if hasattr(self.lineEdit, 'text') and self.lineEdit.text().strip():
-        #     print("Clearing previous transcription data.")
-        #     self.lineEdit.clear()
-
-        # # Clear the reference to the listening window in the parent widget
-        # if self.search_widget:
-        #     self.search_widget.listening_window = None
-        #     print("Cleared listening_window reference in SearchWidget")
-        # # Extra GPU sync before close
-        # try:
-        #     import torch
-        #     import time
-        #     if torch.cuda.is_available():
-        #         print("Final GPU sync before close...")
-        #         torch.cuda.synchronize()
-        #         time.sleep(0.5)  # Longer wait
-        #         torch.cuda.empty_cache()
-        #         time.sleep(0.3)
-        #         print("GPU cleared")
-        # except:
-        #     pass
-
-        # Call the parent class's close method
+        
+        # Ensure the transcription thread is properly terminated
+        if self.transcription_thread.isRunning():
+            self.transcription_thread.terminate() 
+            self.transcription_thread.wait()  
+            print('Terminated transcription thread')
+        
+        # Clear the reference in the parent SearchWidget
+        if self.search_widget:
+            self.search_widget.listening_window = None
+            print('Cleared listening_window reference in SearchWidget')
+        
         super().close()
 
     def mousePressEvent(self, event):
@@ -908,30 +764,32 @@ class WhisperWindow(QFrame):
         delta = event.globalPos() - self.oldPos
         self.move(self.x() + delta.x(), self.y() + delta.y())
         self.oldPos = event.globalPos()
+    def start_recording(self):
+        if self.record_btn.isChecked():
+            self.transcription_thread.start()
+            self.soundwave_label.start_recording_visualization()
+        else:
+            self.transcription_thread.terminate()
+            self.soundwave_label.stop_recording_visualization()
+
+
 
 class TranscriptionWorker(QThread):
     finished = pyqtSignal()
-    autoSearchResults = pyqtSignal(list, str, float, int)  # Emit results, query, confidence, and max_len
-    guiTextReady = pyqtSignal(str) # The safe signal for the GUI
+    autoSearchResults = pyqtSignal(list, str)
 
-    def __init__(self, parent=None, search_page=None, lineEdit=None):
-            super().__init__(parent)
-            self.record_page = parent
-            self.search_page = search_page
-            self.lineEdit = lineEdit # Pass lineEdit to run_transcription
-            self.controller = transcriber.TranscriptionController()
+    def __init__(self, parent=None, search_page = None):
+        super().__init__(parent)
+        self.record_page = parent
+        self.search_page = search_page
+        self.lineEdit = self.record_page.lineEdit
 
     def run(self):
+        
         transcriber.run_transcription(
-            recording_page=self.record_page,
-            search_Page=self.search_page,
-            lineEdit=self.lineEdit, # Pass it (though it's no longer used for .setText)
-            worker_thread=self,     # Pass self (this QThread)
-            controller=self.controller
+            recording_page=self.record_page, 
+            search_Page=self.search_page, 
+            lineEdit=self.lineEdit, 
+            worker_thread=self 
         )
         self.finished.emit()
-
-    
-    def stop_transcription(self):
-        print("Stopping transcription gracefully...")
-        self.controller.stop()
