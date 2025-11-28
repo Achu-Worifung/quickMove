@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>840</width>
-    <height>879</height>
+    <height>798</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -496,40 +496,6 @@ background-color: rgb(139, 139, 139);
                <property name="icon">
                 <iconset>
                  <normaloff>../Icons/1564529_mechanism_options_settings_configuration_setting_icon.ico</normaloff>../Icons/1564529_mechanism_options_settings_configuration_setting_icon.ico</iconset>
-               </property>
-               <property name="iconSize">
-                <size>
-                 <width>35</width>
-                 <height>35</height>
-                </size>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QPushButton" name="about">
-               <property name="sizePolicy">
-                <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-                 <horstretch>0</horstretch>
-                 <verstretch>0</verstretch>
-                </sizepolicy>
-               </property>
-               <property name="font">
-                <font>
-                 <pointsize>-1</pointsize>
-                 <weight>50</weight>
-                 <italic>false</italic>
-                 <bold>false</bold>
-                </font>
-               </property>
-               <property name="styleSheet">
-                <string notr="true"/>
-               </property>
-               <property name="text">
-                <string>ABOUT</string>
-               </property>
-               <property name="icon">
-                <iconset>
-                 <normaloff>../Icons/4470663_description_about_app_web_info_icon.ico</normaloff>../Icons/4470663_description_about_app_web_info_icon.ico</iconset>
                </property>
                <property name="iconSize">
                 <size>
@@ -2414,7 +2380,7 @@ QScrollBar::sub-page:vertical {
                  <property name="geometry">
                   <rect>
                    <x>0</x>
-                   <y>-547</y>
+                   <y>0</y>
                    <width>566</width>
                    <height>1293</height>
                   </rect>

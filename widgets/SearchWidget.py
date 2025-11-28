@@ -681,6 +681,8 @@ class WhisperWindow(QFrame):
         self.vbox = self.findChild(QVBoxLayout, 'verticalLayout')
         self.minimize_btn.clicked.connect(self.toggle_minimize)
         self.title = self.findChild(QLabel, 'title')
+        self.lineEdit.setText('Loading models...')
+        self.lineEdit.setAlignment(Qt.AlignCenter | Qt.AlignVCenter)
         self.title.setText('')
         
         self.is_minimized = False
@@ -690,6 +692,7 @@ class WhisperWindow(QFrame):
 
         self.transcription_thread.autoSearchResults.connect(self.search_widget.add_auto_search_results)
         self.transcription_thread.guitextReady.connect(self.update_transcription_text)
+        self.transcription_thread.loadingStatus.connect(self.updateLoadingStatus)
 
 
         self.transcription_thread.start()
@@ -715,6 +718,11 @@ class WhisperWindow(QFrame):
         if self.checkBox.isChecked():
             print("Checkbox is checked, starting visualization automatically")
             QTimer.singleShot(100, self.soundwave_label.start_recording_visualization)
+    @pyqtSlot()
+    def updateLoadingStatus(self):
+        self.lineEdit.setText('')
+        self.lineEdit.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+        
     @pyqtSlot(str) 
     def update_transcription_text(self, text):
         """
@@ -840,6 +848,7 @@ class TranscriptionWorker(QThread):
     finished = pyqtSignal()
     autoSearchResults = pyqtSignal(list, str, float,int) # Emit results, query, confidence, and max_len
     guitextReady = pyqtSignal(str)  # emit transcribed text 
+    loadingStatus = pyqtSignal()  # signal to update loading status
 
     def __init__(self, parent=None, search_page = None):
         super().__init__(parent)

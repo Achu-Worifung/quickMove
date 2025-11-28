@@ -120,6 +120,8 @@ def run_transcription(recording_page, search_Page=None, lineEdit=None, worker_th
     torch = get_torch()
     WhisperModel = get_WhisperModel()
     
+    worker_thread.loadingStatus.emit()  # Signal to update loading status in GUI
+    
     
     #retry logic for lazy import failures
   
