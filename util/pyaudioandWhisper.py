@@ -1,20 +1,25 @@
 import pyaudio
 import numpy as np
-from faster_whisper import WhisperModel
-import torch
 import wave
 import os
 from PyQt5.QtCore import QSettings
 import tempfile
 import httpx
 from urllib.parse import quote_plus
-from transformers import pipeline
 from util.util import resource_path
 import math
 import time
+import threading
+import importlib
 
 settings = QSettings("MyApp", "AutomataSimulator")
+_torch = None
+_transformers = None
+_pipeline = None
+_WhisperModel = None
 
+# Cache for modules imported by lazy_import to avoid repeated imports and retries
+_lazy_import_cache = {}
 def get_energy_threshold(audio_data, threshold_value=0.05):
     audio_data = np.frombuffer(audio_data, dtype=np.int16).astype(np.float32) / 32768.0
     energy = np.sum(audio_data ** 2) / len(audio_data)
@@ -25,6 +30,61 @@ def percent_to_log_prob(percent):
     if percent <= 0: return float('-inf')
     if percent >= 100: return 0.0
     return math.log(percent / 100.0)
+def lazy_import(module_name, max_retries=3, delay=2):
+    """
+    Lazily import a module with retry logic.
+    
+    :param module_name: The name of the module to import.
+    :param max_retries: Maximum number of retries for the import.
+    :param delay: Delay (in seconds) between retries.
+    :return: The imported module.
+    """
+    if module_name in _lazy_import_cache:
+        return _lazy_import_cache[module_name]
+
+    last_exception = None
+    for attempt in range(max_retries):
+        try:
+            module = importlib.import_module(module_name)
+            _lazy_import_cache[module_name] = module
+            return module
+        except Exception as e:
+            last_exception = e
+            print(f"Retry {attempt + 1}/{max_retries} for module '{module_name}' failed: {e}")
+            time.sleep(delay)
+
+    raise ImportError(f"Failed to import module '{module_name}' after {max_retries} retries") from last_exception
+
+# Specific lazy import functions
+def get_torch():
+    return lazy_import("torch")
+
+def get_transformers():
+    transformers = lazy_import("transformers")
+    # Suppress irrelevant warnings from transformers
+    transformers.utils.logging.set_verbosity_error()
+    return transformers
+
+def get_WhisperModel():
+    faster_whisper = lazy_import("faster_whisper")
+    return faster_whisper.WhisperModel
+
+def get_pipeline():
+    transformers = get_transformers()
+    return transformers.pipeline
+
+# Preload models in a background thread
+def load_models_if_needed():
+    try:
+        get_torch()
+        get_transformers()
+        get_WhisperModel()
+        get_pipeline()
+    except Exception as e:
+        print(f"Error during model preloading: {e}")
+
+# Start preloading in a background thread
+threading.Thread(target=load_models_if_needed, daemon=True).start()
 
 def run_transcription(recording_page, search_Page=None, lineEdit=None, worker_thread=None):
     # --- Load Settings ---
@@ -55,7 +115,14 @@ def run_transcription(recording_page, search_Page=None, lineEdit=None, worker_th
     whisper_model = None
     classifier = None
     model_source = 'finetuned_distilbert_bert'
+    transformers = get_transformers()
+    pipeline = get_pipeline()
+    torch = get_torch()
+    WhisperModel = get_WhisperModel()
     
+    
+    #retry logic for lazy import failures
+  
     try:
         classifier = pipeline(
             'text-classification',
