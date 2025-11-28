@@ -1,13 +1,9 @@
 
-from PyQt5 import QtWidgets
-from PyQt5.QtWidgets import *
 from util import Message as msg
 from PyQt5.QtCore import QSettings
-import sys
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QPainter, QBrush, QColor
-from PyQt5.QtWidgets import (QApplication, QPushButton, QMainWindow,
-                           QWidget, QVBoxLayout)
+from PyQt5.QtWidgets import (QApplication, QPushButton,QWidget,QLabel)
 from PyQt5.QtCore import QRect
 
 class SearchArea(QWidget):

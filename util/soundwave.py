@@ -1,8 +1,7 @@
-import sys
 import time
 import math
 from PyQt5.QtCore import QTimer, Qt, QRectF
-from PyQt5.QtGui import QPainter, QColor, QLinearGradient, QPainterPath, QPen
+from PyQt5.QtGui import QPainter, QColor
 from PyQt5.QtWidgets import QLabel
 import numpy as np
 import threading

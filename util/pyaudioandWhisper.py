@@ -1,4 +1,3 @@
-import threading
 import pyaudio
 import numpy as np
 from faster_whisper import WhisperModel

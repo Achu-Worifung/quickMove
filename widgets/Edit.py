@@ -1,6 +1,5 @@
-from PyQt5.QtWidgets import *
+from PyQt5.QtWidgets import QLabel, QPushButton, QWidget, QTableWidget
 from PyQt5 import QtWidgets
-from functools import partial
 from util import  Simulate, Message as msg, dataMod, walk
 from util.event_tracker import EventTracker
 from PyQt5.QtCore import pyqtSignal

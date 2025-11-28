@@ -3,26 +3,18 @@ from PyQt5.QtCore import Qt
 from dotenv import load_dotenv
 from PyQt5.uic import loadUi
 import httpx
-from PyQt5.QtWidgets import QDialog, QApplication, QLabel
+from PyQt5.QtWidgets import QDialog, QApplication, QLabel, QLineEdit, QPushButton, QVBoxLayout, QComboBox, QWidget, QFrame, QCheckBox
 from collections import OrderedDict
 import util.getReference as getReference
-from widgets.SearchBar import AutocompleteWidget
-from PyQt5.QtCore import QThread, pyqtSignal, QMimeData, QTimer, pyqtSlot
-import asyncio
+from PyQt5.QtCore import QThread, pyqtSignal, QTimer, pyqtSlot
 from functools import partial
-from typing import Dict, Optional
+from typing import  Optional
 import util.Simulate as Simulate
-from PyQt5.QtCore import QPropertyAnimation, QEasingCurve
 import util.savedVerses as savedVerses
 from PyQt5.QtCore import QSettings
-from urllib.parse import quote_plus
 import re
 import string
-from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import *
 import util.pyaudioandWhisper as transcriber
-# from util import soundwave  # --- DISABLED TO PREVENT CRASH ---
-from PyQt5.QtWidgets import QSizePolicy
 import json
 from util.findVerseBox import findPrevDisplayedVerse
 import util.Message as msg
@@ -164,11 +156,7 @@ class SearchWidget(QDialog):
         self.double_search = True
 
         # autocomplete
-        from widgets.SearchBar import AutocompleteWidget
-        self.autoComplete_widget = AutocompleteWidget(bar=self.search_bar[0], width_widget=self.searchBarContainer)
-        self.search_bar[0].textChanged.connect(
-            lambda text, d=self.data: self.handle_search(d, text)
-        )
+        self.refresh_search_widget()
 
         # listening window
         self.listening_window = None
@@ -180,6 +168,13 @@ class SearchWidget(QDialog):
         self.record.clicked.connect(lambda checked=False: self.startWhisper())
 
 
+    def refresh_search_widget(self):
+        from widgets.SearchBar import AutocompleteWidget
+        self.autoComplete_widget = AutocompleteWidget(bar=self.search_bar[0], width_widget=self.searchBarContainer)
+        self.search_bar[0].textChanged.connect(
+            lambda text, d=self.data: self.handle_search(d, text)
+        )
+        
     def startWhisper(self):
         """Create/show listening window once; protected against re-entrant calls."""
         if self.listening_window is not None and self.listening_window.isVisible():
@@ -232,7 +227,7 @@ class SearchWidget(QDialog):
         self.record = self.search_page.findChild(QPushButton, 'listen')
         # ensure version items exist once
         if self.version.count() == 0:
-            self.version.addItems(['KJV', 'NIV', 'ESV', 'ASV', 'NLT'])
+            self.version.addItems(['ESV','KJV', 'NIV', 'ASV', 'NLT'])
 
         print('listen button', self.record)
 

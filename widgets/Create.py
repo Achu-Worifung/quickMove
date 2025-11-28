@@ -1,6 +1,4 @@
-from PyQt5.QtWidgets import *
-from PyQt5 import QtWidgets
-from functools import partial
+from PyQt5.QtWidgets import QPushButton, QWidget, QPlainTextEdit
 from PyQt5.QtCore import QThread
 from util.event_tracker import EventTracker
 class Create(QWidget):
