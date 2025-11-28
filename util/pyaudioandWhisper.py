@@ -99,6 +99,7 @@ def run_transcription(recording_page, search_Page=None, lineEdit=None, worker_th
     confidence_threshold = float(percent_to_log_prob(settings.value('confidence_threshold')) or -0.4)
     best_of = int(settings.value('best') or 2)
     auto_search_size = int(settings.value('auto_length') or 1)
+    use_prev_context = int(settings.value('prev_context') or 0)
 
 
     
@@ -185,7 +186,7 @@ def run_transcription(recording_page, search_Page=None, lineEdit=None, worker_th
     
     # Store the last few words from the previous segment
     previous_context = "" 
-    CONTEXT_WORD_LIMIT = 4
+    CONTEXT_WORD_LIMIT = 4 if use_prev_context == 1 else 0
 
     try:
         while True:
@@ -254,6 +255,7 @@ def run_transcription(recording_page, search_Page=None, lineEdit=None, worker_th
                         language=language,
                         vad_filter=True,
                         best_of=best_of,
+                        initial_prompt = previous_context if use_prev_context == 1 else "",
                         vad_parameters=dict(min_silence_duration_ms=500),
                         log_prob_threshold=confidence_threshold
                     )
