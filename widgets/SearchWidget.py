@@ -739,10 +739,10 @@ class WhisperWindow(QFrame):
             # Fix: Don't start transcription_thread again if it's already running
             if not self.transcription_thread.isRunning():
                 self.transcription_thread.start()
-            print("Starting soundwave visualization")  # Debug print
+            print("Starting soundwave visualization")  
             self.soundwave_label.start_recording_visualization()
         else:
-            print("Stopping soundwave visualization")  # Debug print
+            print("Stopping soundwave visualization")  
             self.transcription_thread.terminate()
             self.soundwave_label.stop_recording_visualization()
     def toggle_minimize(self):

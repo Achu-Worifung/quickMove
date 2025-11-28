@@ -97,6 +97,15 @@ class SoundWaveLabel(QLabel):
             if not still_animating:
                 self.clear_timer.stop()
                 self.setText("Not listening")
+                self.setAlignment(Qt.AlignCenter)
+                self.setStyleSheet("""
+                                   color: gray;
+                                      font-size: 14px;
+                                      font-weight: bold;
+                                      font-family: Arial;
+                                      text-align: center;
+                                      
+                                   """)
 
         self.clear_timer = QTimer()
         self.clear_timer.timeout.connect(clear_bars)
