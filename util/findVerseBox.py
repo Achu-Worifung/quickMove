@@ -6,6 +6,8 @@ from PyQt5.QtCore import QSettings
 from util.util import resource_path
 from util import Message as msg
 import os
+import mss 
+import mss.tools
 
 # lightweight modules we keep top-level:
 # QSettings is cheap so we keep it
@@ -85,10 +87,18 @@ def findPrevDisplayedVerse() -> Optional[str]:
             pytesseract = get_pytesseract()
 
             # screenshot (PIL Image)
-            screenshot = pyautogui.screenshot(region=img_area)
+            with mss.mss() as sct:
+                 monitor = {
+                     "top": img_area[1],
+                     "left": img_area[0],
+                     "width": img_area[2] - img_area[0],
+                     "height": img_area[3] - img_area[1],
+                 }
+                 sct_img = sct.grab(monitor)
+
+                 screenshot_np = np.array(sct_img)
 
             # Convert the screenshot to OpenCV format
-            screenshot_np = np.array(screenshot)
             screenshot_cv = cv2.cvtColor(screenshot_np, cv2.COLOR_RGB2BGR)
 
             # Preprocessing for better OCR accuracy
