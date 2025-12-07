@@ -107,6 +107,8 @@ def findPrevDisplayedVerse() -> Optional[str]:
 
             # Perform OCR
             text = pytesseract.image_to_string(thresh)
+            text = text.split("(")[0].strip()
+            print('here is the box text:', text)
             return text
         else:
             return None
