@@ -1,6 +1,4 @@
-from PyQt5.QtWidgets import *
-from PyQt5 import QtWidgets
-from functools import partial
+from PyQt5.QtWidgets import QPushButton, QWidget, QPlainTextEdit
 from PyQt5.QtCore import QThread
 from util.event_tracker import EventTracker
 class Create(QWidget):
@@ -46,6 +44,7 @@ class Create(QWidget):
        
         # modifying the action list to remove last click
         self.event_tracker_thread.tracker.actionList = self.event_tracker_thread.tracker.actionList[:-1]
+        self.text_edit.clear()
         self.event_tracker_thread.tracker.stop_tracking()
         
     def on_event_recorded(self, event):

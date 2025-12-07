@@ -186,7 +186,7 @@ background-color: rgb(107, 123, 148);
        </property>
       </widget>
      </item>
-     <item>
+     <item alignment="Qt::AlignHCenter|Qt::AlignVCenter">
       <widget class="QLabel" name="sound">
        <property name="maximumSize">
         <size>

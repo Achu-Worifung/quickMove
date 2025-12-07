@@ -9,9 +9,8 @@ import threading
 
 from util.util import resource_path
 import sys
-from PyQt5.QtWidgets import QDialog, QMessageBox
-from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QLabel, QPushButton, QTableWidgetItem, QMainWindow, QSizeGrip
-from PyQt5.QtGui import QIcon
+from PyQt5.QtWidgets import QMessageBox
+from PyQt5.QtWidgets import QApplication, QMainWindow, QSizeGrip
 from PyQt5.QtCore import Qt, QSettings, QThread, pyqtSignal
 from PyQt5.uic import loadUi
 from util import  Message as msg

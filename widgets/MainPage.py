@@ -1,6 +1,4 @@
-from PyQt5.QtWidgets import *
-from PyQt5.QtCore import Qt
-from PyQt5 import QtCore
+from PyQt5.QtWidgets import QWidget, QVBoxLayout
 from PyQt5 import QtWidgets
 import util.walk as walk
 from util.clearLayout import clearLayout
@@ -116,6 +114,7 @@ class MainPage(QWidget):
         else:
             # Update data if needed when returning to this page
             self.search_widget.data = automaton
+            self.search_widget.refresh_search_widget()
             self.search_widget.name = automaton.get('name', 'unknown')
         
         self.page.parent().setCurrentIndex(2)

@@ -3,26 +3,18 @@ from PyQt5.QtCore import Qt
 from dotenv import load_dotenv
 from PyQt5.uic import loadUi
 import httpx
-from PyQt5.QtWidgets import QDialog, QApplication, QLabel
+from PyQt5.QtWidgets import QDialog, QApplication, QLabel, QLineEdit, QPushButton, QVBoxLayout, QComboBox, QWidget, QFrame, QCheckBox
 from collections import OrderedDict
 import util.getReference as getReference
-from widgets.SearchBar import AutocompleteWidget
-from PyQt5.QtCore import QThread, pyqtSignal, QMimeData, QTimer, pyqtSlot
-import asyncio
+from PyQt5.QtCore import QThread, pyqtSignal, QTimer, pyqtSlot
 from functools import partial
-from typing import Dict, Optional
+from typing import  Optional
 import util.Simulate as Simulate
-from PyQt5.QtCore import QPropertyAnimation, QEasingCurve
 import util.savedVerses as savedVerses
 from PyQt5.QtCore import QSettings
-from urllib.parse import quote_plus
 import re
 import string
-from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import *
 import util.pyaudioandWhisper as transcriber
-# from util import soundwave  # --- DISABLED TO PREVENT CRASH ---
-from PyQt5.QtWidgets import QSizePolicy
 import json
 from util.findVerseBox import findPrevDisplayedVerse
 import util.Message as msg
@@ -164,11 +156,7 @@ class SearchWidget(QDialog):
         self.double_search = True
 
         # autocomplete
-        from widgets.SearchBar import AutocompleteWidget
-        self.autoComplete_widget = AutocompleteWidget(bar=self.search_bar[0], width_widget=self.searchBarContainer)
-        self.search_bar[0].textChanged.connect(
-            lambda text, d=self.data: self.handle_search(d, text)
-        )
+        self.refresh_search_widget()
 
         # listening window
         self.listening_window = None
@@ -180,6 +168,13 @@ class SearchWidget(QDialog):
         self.record.clicked.connect(lambda checked=False: self.startWhisper())
 
 
+    def refresh_search_widget(self):
+        from widgets.SearchBar import AutocompleteWidget
+        self.autoComplete_widget = AutocompleteWidget(bar=self.search_bar[0], width_widget=self.searchBarContainer)
+        self.search_bar[0].textChanged.connect(
+            lambda text, d=self.data: self.handle_search(d, text)
+        )
+        
     def startWhisper(self):
         """Create/show listening window once; protected against re-entrant calls."""
         if self.listening_window is not None and self.listening_window.isVisible():
@@ -232,7 +227,7 @@ class SearchWidget(QDialog):
         self.record = self.search_page.findChild(QPushButton, 'listen')
         # ensure version items exist once
         if self.version.count() == 0:
-            self.version.addItems(['KJV', 'NIV', 'ESV', 'ASV', 'NLT'])
+            self.version.addItems(['ESV','KJV', 'NIV', 'ASV', 'NLT'])
 
         print('listen button', self.record)
 
@@ -670,8 +665,7 @@ class SearchWidget(QDialog):
 class WhisperWindow(QFrame):
     def __init__(self, parent=None, search_widget=None):
         super().__init__(parent)
-        
-
+        link = os.path.join(os.path.dirname(__file__), '../ui/listening_window.ui')
         link = os.path.join(os.path.dirname(__file__), '../ui/listening_window.ui')
         self.listening_window = loadUi(link, self)
         self.setWindowFlags(Qt.FramelessWindowHint)
@@ -687,35 +681,27 @@ class WhisperWindow(QFrame):
         self.vbox = self.findChild(QVBoxLayout, 'verticalLayout')
         self.minimize_btn.clicked.connect(self.toggle_minimize)
         self.title = self.findChild(QLabel, 'title')
+        self.lineEdit.setText('Loading models...')
+        self.lineEdit.setAlignment(Qt.AlignCenter | Qt.AlignVCenter)
         self.title.setText('')
         
         self.is_minimized = False
-
-        # --- THIS IS THE CRITICAL CRASH-FIX ---
-        # 1. Create the worker, passing the lineEdit
-        self.transcription_thread = TranscriptionWorker(
-            self, 
-            search_page=parent, 
-            lineEdit=self.lineEdit # Pass the widget
-        )
         
-        # 2. Connect the auto-search signal
+        # Start transcription in a separate thread
+        self.transcription_thread = TranscriptionWorker(self, search_page=parent)
+
         self.transcription_thread.autoSearchResults.connect(self.search_widget.add_auto_search_results)
-        
-        # 3. Connect the thread-safe text signal to the GUI slot
-        self.transcription_thread.guiTextReady.connect(self.update_transcription_text)
+        self.transcription_thread.guitextReady.connect(self.update_transcription_text)
+        self.transcription_thread.loadingStatus.connect(self.updateLoadingStatus)
 
-        # 4. Start the thread
+
         self.transcription_thread.start()
 
-
-        # --- SOUNDWAVE VISUALIZER RE-ENABLED WITH FIXES ---
+        # Create the soundwave label
         from util import soundwave
-
-        
         self.soundwave_label = soundwave.SoundWaveLabel(self)
         original_label = self.findChild(QLabel, 'sound')
-        
+        # Find original label and replace it
         if original_label:
             geometry = original_label.geometry()
             parent_widget = original_label.parent()
@@ -732,7 +718,41 @@ class WhisperWindow(QFrame):
         if self.checkBox.isChecked():
             print("Checkbox is checked, starting visualization automatically")
             QTimer.singleShot(100, self.soundwave_label.start_recording_visualization)
-        # --- END SOUNDWAVE BLOCK ---
+    @pyqtSlot()
+    def updateLoadingStatus(self):
+        self.lineEdit.setText('')
+        self.lineEdit.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+        
+    @pyqtSlot(str) 
+    def update_transcription_text(self, text):
+        """
+        This function is *guaranteed* to run on the main GUI thread.
+        It is the ONLY safe place to call self.lineEdit.setText().
+        """
+        MAX_WORDS = 100  # Set the maximum number of words allowed
+        print('updating transcription text', text)
+        
+        current_ui_text = self.lineEdit.text()
+        combined_text = (current_ui_text + " " + text).strip()
+        
+        # Split the text into words and enforce the limit
+        words = combined_text.split()
+        if len(words) > MAX_WORDS:
+            combined_text = " ".join(words[:MAX_WORDS])
+        
+        self.lineEdit.setText(combined_text)
+    def start_recording(self):
+        print(f"Start recording called, checkbox checked: {self.record_btn.isChecked()}")  # Debug print
+        if self.record_btn.isChecked():
+            # Fix: Don't start transcription_thread again if it's already running
+            if not self.transcription_thread.isRunning():
+                self.transcription_thread.start()
+            print("Starting soundwave visualization")  
+            self.soundwave_label.start_recording_visualization()
+        else:
+            print("Stopping soundwave visualization")  
+            self.transcription_thread.terminate()
+            self.soundwave_label.stop_recording_visualization()
     def toggle_minimize(self):
         print('here is the size of container', self)
         if self.is_minimized:
@@ -778,64 +798,19 @@ class WhisperWindow(QFrame):
     
         # Process any pending events to ensure the resize happens
         QApplication.processEvents()
-    @pyqtSlot(str) 
-    def update_transcription_text(self, text):
-        """
-        This function is *guaranteed* to run on the main GUI thread.
-        It is the ONLY safe place to call self.lineEdit.setText().
-        """
-        current_ui_text = self.lineEdit.text()
-        self.lineEdit.setText((current_ui_text + " " + text).strip())
-
-    def start_recording(self):
-        print(f"Start recording called, checkbox checked: {self.record_btn.isChecked()}")
-        if self.record_btn.isChecked():
-            self.label.setText("")  # Clear text when starting
-            if not self.transcription_thread.isRunning():
-                self.transcription_thread = TranscriptionWorker(self, search_page=self.search_page, lineEdit=self.lineEdit)
-                self.transcription_thread.autoSearchResults.connect(self.search_widget.add_auto_search_results)
-                self.transcription_thread.guiTextReady.connect(self.update_transcription_text)
-                self.transcription_thread.start()
-        
-            # Start soundwave visualization
-            if hasattr(self, 'soundwave_label'):
-                print("Starting soundwave visualization")
-                self.soundwave_label.start_recording_visualization()
-        else:
-            print("Stopping soundwave visualization")
-            self.label.setText("Not listening")
-            
-            # Stop transcription gracefully
-            if self.transcription_thread.isRunning():
-                self.transcription_thread.stop_transcription()
-                if not self.transcription_thread.wait(5000):
-                    print("Transcription didn't stop gracefully, forcing termination")
-                    self.transcription_thread.terminate()
-                    self.transcription_thread.wait()
-            
-            # Stop soundwave
-            if hasattr(self, 'soundwave_label'):
-                self.soundwave_label.stop_recording_visualization()
-
     def close(self):
         print("WhisperWindow closing")
         
-        # --- SOUNDWAVE DISABLED ---
-        # if hasattr(self, 'soundwave_label'):
-        #     self.soundwave_label.stop_recording_visualization()
+        if hasattr(self, 'soundwave_label'):
+            self.soundwave_label.stop_recording_visualization()
         
-        # Graceful shutdown of transcription thread
-        if hasattr(self, 'transcription_thread') and self.transcription_thread.isRunning():
-            print("Requesting graceful transcription shutdown...")
-            self.transcription_thread.stop_transcription()
-            
-            if not self.transcription_thread.wait(5000):
-                print("Timeout waiting for graceful shutdown, forcing termination")
-                self.transcription_thread.terminate()
-                self.transcription_thread.wait()
-            else:
-                print("Transcription stopped gracefully")
+        # Ensure the transcription thread is properly terminated
+        if self.transcription_thread.isRunning():
+            self.transcription_thread.terminate() 
+            self.transcription_thread.wait()  
+            print('Terminated transcription thread')
         
+        # Clear the reference in the parent SearchWidget
         if self.search_widget:
             self.search_widget.listening_window = None
             print('Cleared listening_window reference in SearchWidget')
@@ -859,29 +834,34 @@ class WhisperWindow(QFrame):
         delta = event.globalPos() - self.oldPos
         self.move(self.x() + delta.x(), self.y() + delta.y())
         self.oldPos = event.globalPos()
+    def start_recording(self):
+        if self.record_btn.isChecked():
+            self.transcription_thread.start()
+            self.soundwave_label.start_recording_visualization()
+        else:
+            self.transcription_thread.terminate()
+            self.soundwave_label.stop_recording_visualization()
+
+
 
 class TranscriptionWorker(QThread):
     finished = pyqtSignal()
-    autoSearchResults = pyqtSignal(list, str, float, int)  # Emit results, query, confidence, and max_len
-    guiTextReady = pyqtSignal(str) # The safe signal for the GUI
+    autoSearchResults = pyqtSignal(list, str, float,int) # Emit results, query, confidence, and max_len
+    guitextReady = pyqtSignal(str)  # emit transcribed text 
+    loadingStatus = pyqtSignal()  # signal to update loading status
 
-    def __init__(self, parent=None, search_page=None, lineEdit=None):
-            super().__init__(parent)
-            self.record_page = parent
-            self.search_page = search_page
-            self.lineEdit = lineEdit # Pass lineEdit to run_transcription
-            self.controller = transcriber.TranscriptionController()
+    def __init__(self, parent=None, search_page = None):
+        super().__init__(parent)
+        self.record_page = parent
+        self.search_page = search_page
+        self.lineEdit = self.record_page.lineEdit
 
     def run(self):
+        
         transcriber.run_transcription(
-            recording_page=self.record_page,
-            search_Page=self.search_page,
-            lineEdit=self.lineEdit, # Pass it (though it's no longer used for .setText)
-            worker_thread=self,     # Pass self (this QThread)
-            controller=self.controller
+            recording_page=self.record_page, 
+            search_Page=self.search_page, 
+            lineEdit=self.lineEdit, 
+            worker_thread=self 
         )
         self.finished.emit()
-    
-    def stop_transcription(self):
-        print("Stopping transcription gracefully...")
-        self.controller.stop()

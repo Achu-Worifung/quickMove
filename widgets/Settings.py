@@ -1,9 +1,9 @@
 import os
-from PyQt5.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QListWidget, QListWidgetItem, QMessageBox, QProgressBar,QDoubleSpinBox, QComboBox,QScrollArea,QWidget,QSizePolicy,QFrame, QGroupBox, QMessageBox, QSpinBox
+from PyQt5.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QListWidget, QListWidgetItem, QMessageBox,QDoubleSpinBox, QComboBox,QScrollArea,QWidget,QSizePolicy,QFrame, QGroupBox, QMessageBox, QSpinBox
 from PyQt5.QtCore import QThread, pyqtSignal, Qt, QSettings
-from pyqttoast import Toast, ToastPreset
+from pyqttoast import  ToastPreset
 import torch
-from util.modelmanagement import WHISPER_MODEL_INFO, fw_download_model, list_downloaded_models, delete_model, get_total_models_size, download_model, displayToast
+from util.modelmanagement import WHISPER_MODEL_INFO, fw_download_model, list_downloaded_models, delete_model, get_total_models_size, displayToast
 from widgets.SearchWidget import resource_path
 class Settings:
     def __init__(self, page_widget):

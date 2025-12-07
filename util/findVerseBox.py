@@ -1,7 +1,7 @@
 # ocr_util.py  (refactor of your module)
 import importlib
 import threading
-from typing import Optional, Tuple
+from typing import Optional
 from PyQt5.QtCore import QSettings
 from util.util import resource_path
 from util import Message as msg
