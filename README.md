@@ -1,7 +1,3 @@
-This README is designed specifically for **QuickMove** as a standalone, professional repository. It emphasizes your architectural choices, the "human-in-the-loop" AI workflow, and the performance results you achieved.
-
----
-
 # **QuickMove: AI-Driven Presentation Companion**
 
 ## **Overview**
@@ -18,22 +14,13 @@ QuickMove is built with **PyQt5**, leveraging a modular, event-driven UI archite
 
 The system follows a structured pipeline to combine AI speed with human oversight:
 
-* 
 **Audio Transcription:** Captures the speaker's voice using a transformer-based **ASR (Automated Speech Recognition)** model for high-accuracy transcription.
 
-
-* 
 **Contextual Classification:** A fine-tuned **DistilBERT** model analyzes the text to determine if it is a biblical reference.
 
-
-* 
 **Visual Extraction:** An **OpenCV + OCR** pipeline extracts on-screen text from video feeds to synchronize slides with live content.
 
-
-* 
 **User Validation:** If a reference is detected, the application surfaces the verse for the operator to review and push live.
-
-
 
 ---
 
@@ -41,28 +28,17 @@ The system follows a structured pipeline to combine AI speed with human oversigh
 
 ### **AI & NLP Integration**
 
-* 
 **DistilBERT Classification:** Utilized for intelligent text classification to improve search relevance and contextual accuracy.
 
-
-* 
 **Real-Time ASR:** Integrated a transformer-based speech-to-text system capable of handling live event environments.
 
-
-* 
 **Computer Vision (OCR):** Deployed **OpenCV** pipelines to automate synchronization between video feeds and presentation slides.
-
-
 
 ### **Technical Specifications**
 
-* 
 **Frontend:** Developed a responsive **PyQt5 GUI** with optimized multi-threading to ensure the interface remains fluid during high-stakes operations.
 
-
-* 
 **Efficiency:** Streamlined the scripture display process, resulting in a **50% reduction in latency** compared to manual searching.
-
 
 
 ---
@@ -71,11 +47,9 @@ The system follows a structured pipeline to combine AI speed with human oversigh
 
 ### **Prerequisites**
 
-* 
 **Operating System:** Windows (for ProPresenter/VideoPsalm compatibility).
 
-
-* **Python Version:** Python 3.9+ recommended.
+  **Python Version:** Python 3.9+ recommended.
 
 ### **Installation**
 
