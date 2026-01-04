@@ -11,6 +11,9 @@ import math
 import time
 import threading
 import importlib
+import webrtcvad
+
+
 
 settings = QSettings("MyApp", "AutomataSimulator")
 _torch = None
@@ -85,60 +88,52 @@ def load_models_if_needed():
 
 # Start preloading in a background thread
 threading.Thread(target=load_models_if_needed, daemon=True).start()
+import re
+
+def extract_stable_sentences(text):
+    """Return only completed sentences (drop trailing fragment)."""
+    sentences = re.split(r'(?<=[.!?])\s+', text.strip())
+    if len(sentences) <= 1:
+        return ""
+    return " ".join(sentences[:-1])
+
+def frames_overlap(frames, rate, chunk, overlap_sec=0.7):
+    overlap_frames = int(overlap_sec * rate / chunk)
+    if len(frames) > overlap_frames:
+        return frames[-overlap_frames:]
+    return frames
 
 def run_transcription(recording_page, search_Page=None, lineEdit=None, worker_thread=None):
-    # --- Load Settings ---
     print("Processor: Loading settings...")
-    beam_size = int(settings.value('beam') or 5)
-    temperature = float(settings.value('temperature') or 0.00)
+
+    beam_size = 1                       # REAL-TIME SAFE
+    best_of = 1
+    temperature = 0.0
+
     language = settings.value('language') or 'en'
     energy_threshold = float(settings.value('energy') or 0.10)
     model_size = (settings.value('model') or 'tiny').lower()
     cpu_cores = int(settings.value('cores') or 1)
-    processing = settings.value('processing') or ('CPU' if not torch.cuda.is_available() else 'GPU')
     confidence_threshold = float(percent_to_log_prob(settings.value('confidence_threshold')) or -0.4)
-    best_of = int(settings.value('best') or 2)
     auto_search_size = int(settings.value('auto_length') or 1)
-    use_prev_context = int(settings.value('prev_context') or 0)
 
-
-    
     RATE = int(settings.value('rate') or 16000)
     CHUNK = int(settings.value('chunks') or 1024)
     CHANNELS = int(settings.value('channel') or 1)
     FORMAT = pyaudio.paInt16
-    
-    silence_length = float(settings.value('silence') or 0.5)
-    min_record_len = float(settings.value('minlen') or .25)
-    max_record_len = float(settings.value('maxlen') or 10) # Increased default max len for usability
-    
-    # --- Model Setup ---
-    whisper_model = None
-    classifier = None
-    model_source = 'finetuned_distilbert_bert'
-    transformers = get_transformers()
-    pipeline = get_pipeline()
+
+    silence_length = float(settings.value('silence') or 0.6)
+    min_record_len = float(settings.value('minlen') or 0.25)
+    max_record_len = float(settings.value('maxlen') or 20)  # allow full thoughts
+
     torch = get_torch()
     WhisperModel = get_WhisperModel()
-    
     worker_thread.loadingStatus.emit()  # Signal to update loading status in GUI
-    
-    
-    #retry logic for lazy import failures
-  
-    try:
-        classifier = pipeline(
-            'text-classification',
-            model=resource_path(model_source),
-            device=0 if torch.cuda.is_available() else -1
-        )
-    except Exception as e:
-        print(f"Processor: Failed to load classifier: {e}")
 
-    device_type = 'cuda' if processing == "GPU" and torch.cuda.is_available() else 'cpu'
+
+    device_type = 'cuda' if torch.cuda.is_available() else 'cpu'
     computation_type = "float16" if device_type == 'cuda' else "int8"
-    
-    print(f"Processor: Loading Whisper on {device_type}...")
+
     whisper_model = WhisperModel(
         model_size,
         device=device_type,
@@ -146,164 +141,115 @@ def run_transcription(recording_page, search_Page=None, lineEdit=None, worker_th
         num_workers=cpu_cores,
         download_root=resource_path(os.path.join(f'./models/{model_size}'))
     )
+    vad = webrtcvad.Vad(2)  # Set aggressiveness mode (0-3)
 
-    # --- Audio Initialization Helper ---
-    audio = None
-    stream = None
+
+
+    audio = pyaudio.PyAudio()
+    stream = audio.open(format=FORMAT, channels=CHANNELS, rate=RATE,
+                        input=True, frames_per_buffer=CHUNK)
+
+    previous_audio_overlap = []
+
+    # VAD requires specific frame sizes: 10, 20, or 30ms at 8k, 16k, 32k, or 48k Hz
+    vad_frame_duration = 30  # ms (30ms works well for real-time)
+    vad_frame_size = int(RATE * vad_frame_duration / 1000) * 2  # 2 bytes per sample (16-bit)
     
-    def initialize_audio():
-        nonlocal audio, stream
-        if stream:
-            try:
-                stream.stop_stream()
-                stream.close()
-            except: pass
-        if audio:
-            try: audio.terminate()
-            except: pass
-            
-        audio = pyaudio.PyAudio()
-        max_retries = 5
-        
-        for i in range(max_retries):
-            try:
-                stream = audio.open(format=FORMAT, channels=CHANNELS, rate=RATE, 
-                                  input=True, frames_per_buffer=CHUNK)
-                print("Audio stream initialized.")
-                return True
-            except Exception as e:
-                print(f"Retry audio init ({i+1}/{max_retries}): {e}")
-                time.sleep(1)
-        return False
-
-    if not initialize_audio():
-        print("Fatal: Could not init audio.")
-        return
-
-    # --- Main Loop Variables ---
-    print("Recording started...")
-    counter = 1
-    
-    # Store the last few words from the previous segment
-    previous_context = "" 
-    CONTEXT_WORD_LIMIT = 4 if use_prev_context == 1 else 0
-
     try:
         while True:
             frames = []
             has_speech = False
+            silence_frames = 0
+            max_silence_frames = int(silence_length * 1000 / vad_frame_duration)
             
             print("Waiting for speech...")
-            
-            # 1. Listen for initial sound
-            while True:
-                try:
-                    data = stream.read(CHUNK, exception_on_overflow=False)
-                    if get_energy_threshold(data, threshold_value=energy_threshold):
-                        frames.append(data)
-                        has_speech = True
+
+            # Wait for initial speech detection
+            while not has_speech:
+                audio_chunk = stream.read(int(RATE * vad_frame_duration / 1000), exception_on_overflow=False)
+                
+                if len(audio_chunk) == vad_frame_size:
+                    has_speech = vad.is_speech(audio_chunk, RATE)
+                    if has_speech:
+                        print("Speech detected! Recording...")
+                        frames.append(audio_chunk)
                         break
-                except Exception as e:
-                    print(f"Stream error (wait): {e}")
-                    initialize_audio()
-            
-            # 2. Record until silence or max length
-            silent_frames = 0
-            silence_frames_threshold = int(silence_length * RATE / CHUNK)
-            
+
+            # Record while speech is present (with silence timeout)
+            recording_start = time.time()
             while True:
-                try:
-                    data = stream.read(CHUNK, exception_on_overflow=False)
-                    frames.append(data)
-                    
-                    if get_energy_threshold(data, threshold_value=energy_threshold):
-                        silent_frames = 0
+                audio_chunk = stream.read(int(RATE * vad_frame_duration / 1000), exception_on_overflow=False)
+                frames.append(audio_chunk)
+                
+                recording_duration = time.time() - recording_start
+                
+                # Check for speech in this frame
+                if len(audio_chunk) == vad_frame_size:
+                    if vad.is_speech(audio_chunk, RATE):
+                        silence_frames = 0  # Reset silence counter
                     else:
-                        silent_frames += 1
-                    
-                    recording_seconds = len(frames) * CHUNK / RATE
-                    
-                    if silent_frames >= silence_frames_threshold and recording_seconds >= min_record_len:
-                        break
-                    if recording_seconds >= max_record_len:
-                        break
-                        
-                except Exception as e:
-                    print(f"Stream error (record): {e}")
-                    initialize_audio()
+                        silence_frames += 1
+                
+                # Stop conditions
+                if recording_duration >= max_record_len:
+                    print(f"Max recording length reached ({max_record_len}s)")
+                    break
+                
+                if silence_frames >= max_silence_frames and recording_duration >= min_record_len:
+                    print(f"Silence detected after {recording_duration:.2f}s")
                     break
 
-            # 3. Transcribe and Classify
-            if has_speech and len(frames) > 0:
-                temp_filename = ""
-                try:
-                    # Create temp file
-                    with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as temp_file:
-                        temp_filename = temp_file.name
-                    
-                    with wave.open(temp_filename, 'wb') as wf:
-                        wf.setnchannels(CHANNELS)
-                        wf.setsampwidth(audio.get_sample_size(FORMAT))
-                        wf.setframerate(RATE)
-                        wf.writeframes(b''.join(frames))
-                    
-                    # Transcribe
-                    segments, _ = whisper_model.transcribe(
-                        temp_filename,
-                        beam_size=beam_size,
-                        temperature=temperature,
-                        language=language,
-                        vad_filter=True,
-                        best_of=best_of,
-                        initial_prompt = previous_context if use_prev_context == 1 else "",
-                        vad_parameters=dict(min_silence_duration_ms=500),
-                        log_prob_threshold=confidence_threshold
-                    )
-                    
-                    full_trans = " ".join([s.text for s in segments]).strip()
-                    worker_thread.guitextReady.emit(full_trans)  # Emit the transcribed text to update the GUI
+            # Skip if recording is too short
+            if recording_duration < min_record_len:
+                print(f"Recording too short ({recording_duration:.2f}s), skipping...")
+                continue
 
-                    if full_trans:
-                        # --- CONTEXT LOGIC START ---
-                        # Combine previous context with current text for classification
-                        text_to_classify = f"{previous_context} {full_trans}".strip()
-                        
-                        print(f"Transcribed: '{full_trans}'")
-                        print(f"Classifying Context: '{text_to_classify}'") # Debugging context
+            print(f"Recording finished: {recording_duration:.2f}s, {len(frames)} frames")
 
-                        if classifier:
-                            result = classifier(text_to_classify)
-                            label = result[0]['label']
-                            score = result[0]['score']
-                            
-                            print(f"Result: {label} ({score:.2f})")
-                            
-                            if label == 'bible' and worker_thread:
-                                # We usually search the full transcription, 
-                                # but you can pass text_to_classify if you want the context included in the Google search too.
-                                perform_auto_search(text_to_classify, score, auto_search_size, worker_thread)
+            # 🔁 AUDIO OVERLAP (instead of text context)
+            frames = previous_audio_overlap + frames
 
-                        # Update context for the NEXT loop (Last 4 words)
-                        words = full_trans.split()
-                        if len(words) > CONTEXT_WORD_LIMIT:
-                            previous_context = " ".join(words[-CONTEXT_WORD_LIMIT:])
-                        else:
-                            previous_context = full_trans
+            with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as temp_file:
+                temp_filename = temp_file.name
 
-                    counter += 1
+            with wave.open(temp_filename, 'wb') as wf:
+                wf.setnchannels(CHANNELS)
+                wf.setsampwidth(audio.get_sample_size(FORMAT))
+                wf.setframerate(RATE)
+                wf.writeframes(b''.join(frames))
 
-                except Exception as e:
-                    print(f"Processing error: {e}")
-                finally:
-                    if os.path.exists(temp_filename):
-                        try: os.remove(temp_filename)
-                        except: pass
+            segments, _ = whisper_model.transcribe(
+                temp_filename,
+                language=language,
+                beam_size=1,
+                best_of=1,
+                temperature=0.0,
+                vad_filter=False,                   # IMPORTANT
+                log_prob_threshold=confidence_threshold
+            )
+
+            raw_text = " ".join(s.text for s in segments).strip()
+            stable_text = extract_stable_sentences(raw_text)
+            print(f"Transcribed: {raw_text}")
+            print(f"Stable text: {stable_text}")
+            worker_thread.guitextReady.emit(raw_text)
+
+            if stable_text:
+                worker_thread.guitextReady.emit(stable_text)
+
+                if worker_thread and auto_search_size > 0:
+                    perform_auto_search(stable_text, 1.0, auto_search_size, worker_thread)
+
+            # 🔁 Prepare overlap for next iteration
+            previous_audio_overlap = frames_overlap(frames, RATE, CHUNK)
+
+            os.remove(temp_filename)
 
     except KeyboardInterrupt:
         print("Stopped by user.")
     finally:
-        if stream: stream.close()
-        if audio: audio.terminate()
+        stream.close()
+        audio.terminate()
 
 def perform_auto_search(query, confidence, max_len, worker_thread):
     if not query or not worker_thread: return
