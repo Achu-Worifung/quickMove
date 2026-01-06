@@ -141,7 +141,7 @@ def run_transcription(recording_page, search_Page=None, lineEdit=None, worker_th
         num_workers=cpu_cores,
         download_root=resource_path(os.path.join(f'./models/{model_size}'))
     )
-    vad = webrtcvad.Vad(2)  # Set aggressiveness mode (0-3)
+    vad = webrtcvad.Vad(3)  # Set aggressiveness mode (0-3)
 
 
 
@@ -154,26 +154,33 @@ def run_transcription(recording_page, search_Page=None, lineEdit=None, worker_th
     # VAD requires specific frame sizes: 10, 20, or 30ms at 8k, 16k, 32k, or 48k Hz
     vad_frame_duration = 30  # ms (30ms works well for real-time)
     vad_frame_size = int(RATE * vad_frame_duration / 1000) * 2  # 2 bytes per sample (16-bit)
+    speech_detected_count = 0
     
     try:
         while True:
             frames = []
-            has_speech = False
             silence_frames = 0
             max_silence_frames = int(silence_length * 1000 / vad_frame_duration)
             
-            print("Waiting for speech...")
+            print(f"Waiting for speech... (frame size: {vad_frame_size} bytes, aggressiveness: 2)")
 
             # Wait for initial speech detection
-            while not has_speech:
+            while True:
                 audio_chunk = stream.read(int(RATE * vad_frame_duration / 1000), exception_on_overflow=False)
                 
                 if len(audio_chunk) == vad_frame_size:
-                    has_speech = vad.is_speech(audio_chunk, RATE)
-                    if has_speech:
-                        print("Speech detected! Recording...")
-                        frames.append(audio_chunk)
-                        break
+                    is_speech = vad.is_speech(audio_chunk, RATE)
+                    if is_speech:
+                        speech_detected_count += 1
+                        if speech_detected_count >= 2:  # Require 2 consecutive speech frames
+                            print(f"✓ Speech detected! Recording...")
+                            frames.append(audio_chunk)
+                            break
+                    else:
+                        speech_detected_count = 0
+                else:
+                    print(f"⚠ Chunk size mismatch: got {len(audio_chunk)}, expected {vad_frame_size}")
+                    speech_detected_count = 0
 
             # Record while speech is present (with silence timeout)
             recording_start = time.time()
@@ -185,18 +192,22 @@ def run_transcription(recording_page, search_Page=None, lineEdit=None, worker_th
                 
                 # Check for speech in this frame
                 if len(audio_chunk) == vad_frame_size:
-                    if vad.is_speech(audio_chunk, RATE):
+                    is_speech = vad.is_speech(audio_chunk, RATE)
+                    if is_speech:
                         silence_frames = 0  # Reset silence counter
                     else:
                         silence_frames += 1
+                else:
+                    # If we can't validate with VAD, be conservative
+                    silence_frames += 1
                 
-                # Stop conditions
+                # Stop conditions (check min length before allowing silence stop)
                 if recording_duration >= max_record_len:
                     print(f"Max recording length reached ({max_record_len}s)")
                     break
                 
-                if silence_frames >= max_silence_frames and recording_duration >= min_record_len:
-                    print(f"Silence detected after {recording_duration:.2f}s")
+                if recording_duration >= min_record_len and silence_frames >= max_silence_frames:
+                    print(f"Silence detected after {recording_duration:.2f}s ({silence_frames} silent frames)")
                     break
 
             # Skip if recording is too short
