@@ -723,21 +723,26 @@ class WhisperWindow(QFrame):
     @pyqtSlot(str) 
     def update_transcription_text(self, text):
         """
-        This function is *guaranteed* to run on the main GUI thread.
-        It is the ONLY safe place to call self.lineEdit.setText().
+        This function is guaranteed to run on the main GUI thread.
+        It appends new transcription text and manages word limits:
+        - Keeps appending until 200 words.
+        - If limit exceeded, only the last 10 words are kept.
         """
-        MAX_WORDS = 100  # Set the maximum number of words allowed
-        print('updating transcription text', text)
+        MAX_WORDS = 200  
+        TRUNCATE_TO = 10  
         
         current_ui_text = self.lineEdit.text()
         combined_text = (current_ui_text + " " + text).strip()
         
-        # Split the text into words and enforce the limit
         words = combined_text.split()
-        if len(words) > MAX_WORDS:
-            combined_text = " ".join(words[:MAX_WORDS])
         
+        if len(words) > MAX_WORDS:
+            combined_text = " ".join(words[-TRUNCATE_TO:])
+        
+        # Update the QLineEdit
         self.lineEdit.setText(combined_text)
+
+
     def start_recording(self):
         print(f"Start recording called, checkbox checked: {self.record_btn.isChecked()}")  # Debug print
         if self.record_btn.isChecked():
