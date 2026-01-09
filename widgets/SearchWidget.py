@@ -98,8 +98,7 @@ class locateVerseThread(QThread):
     finished = pyqtSignal(str)
 
     def run(self):
-        import util.findVerseBox as findVerseBox
-        self.finished.emit(findVerseBox.findPrevDisplayedVerse())
+        self.finished.emit(findPrevDisplayedVerse())
 
 
 
@@ -164,10 +163,15 @@ class SearchWidget(QDialog):
 
         # focus out behaviour
         self.autoComplete_widget.lineedit.focusOutEvent = self.get_prev_verse
-        self.prevVerse.clicked.connect(lambda checked=False: QTimer.singleShot(0, lambda: Simulate.present_prev_verse(self.name, self.data)))
+        self.prevVerse.clicked.connect(lambda checked=False: self.displayPrevVerse())
         self.record.clicked.connect(lambda checked=False: self.startWhisper())
 
-
+    def displayPrevVerse(self):
+        holder = findPrevDisplayedVerse()
+        print(f'prev verse {self.prev_verse_text} holder is {holder}')
+        Simulate.present_prev_verse(self.name, self.data, self.prev_verse_text)
+        self.prev_verse_text = holder
+        self.updateHistoryLabel()
     def refresh_search_widget(self):
         from widgets.SearchBar import AutocompleteWidget
         self.autoComplete_widget = AutocompleteWidget(bar=self.search_bar[0], width_widget=self.searchBarContainer)
@@ -249,19 +253,13 @@ class SearchWidget(QDialog):
         # removing the Bible reference using regex
         new_result = re.sub(r'\).*$', '', result).strip()
         self.settings.setValue('displayed_reference', new_result)
+        self.prev_verse_text = new_result
         self.updateHistoryLabel()
 
 
     def updateHistoryLabel(self):
-        original = self.settings.value('copied_reference')
-        displayed = self.settings.value('displayed_reference')
-        self.history.setText(f'Original Reference: {original} Currently Displayed Verse: {displayed}')
 
-
-    def prevVerse(self):
-        print('data', self.data)
-        Simulate.present_prev_verse(self.name)
-        self.updateHistoryLabel()
+        self.history.setText(f'Press Prev verse to Return to: {self.prev_verse_text}')
 
 
     #
@@ -538,10 +536,8 @@ class SearchWidget(QDialog):
         self.old_widget.append(single_result)
 
         def mouse_click(event, verse_key):
-            prev_verse = findPrevDisplayedVerse()
-            print('prev_verse', prev_verse)
             QTimer.singleShot(0, lambda: self.present(verse_key, self.data))
-            self.history.setText(f'Prev Displayed Verse: {prev_verse}')
+            self.history.setText(f'Prev Displayed Verse: {self.prev_verse_text}')
 
         single_result.title.mousePressEvent = partial(mouse_click, verse_key=reference)
         single_result.body.mousePressEvent = partial(mouse_click, verse_key=reference)
@@ -604,7 +600,8 @@ class SearchWidget(QDialog):
 
     def present(self, title, automata):
         self.settings.setValue("next_verse", title)
-        prev_action = ''
+        self.prev_verse_text = findPrevDisplayedVerse()
+        
         for action in automata.get('actions', []):
             if action['action'] == 'click':
                 x_coord = action['location'][0]

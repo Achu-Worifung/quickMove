@@ -9,6 +9,7 @@ from pynput.keyboard import Key, Controller as KeyboardController
 # import pyperclip
 from PyQt5.QtCore import QSettings, QMimeData
 import time
+from util.Message  import warningBox
 # import keyboard
 
 # Create controllers
@@ -55,11 +56,7 @@ def simPaste(keyvalue, pressed=True, returning=False):
     """
     Simulate pasting content from the clipboard.
     """
-    QApplication.processEvents()
-    settings = QSettings("MyApp", "AutomataSimulator")
-    presenting_verse = settings.value("next_verse", "")  # Use None as default if not set
-    presenting_verse = presenting_verse.strip()
-    clipboard.setText(presenting_verse)
+    clipboard.setText(keyvalue)
     
 
     try:
@@ -92,79 +89,35 @@ def simSelectAll(pressed=True):
         with keyboard_controller.pressed(keyboard.Key.ctrl):
             keyboard_controller.press('a')
             keyboard_controller.release('a')
-
-        # Simulate Ctrl+C (Copy)
-        with keyboard_controller.pressed(keyboard.Key.ctrl):
-            keyboard_controller.press('c')
-            keyboard_controller.release('c')
-
-        # Wait for clipboard to update
-        QApplication.processEvents()  # Process any pending events
-        time.sleep(0.1)  # Optionally give it a little more time
-        
-        # Get the text from the clipboard
-        prev_verse = clipboard.text()
-        settings.setValue('copied_reference', prev_verse)
-        
-        # #getting the current displayed verse (displaced from the previous one)
-        # verse_num = settings.value('verse_num')
-        # if verse_num is not None:
-        #       prev_verse = f'{prev_verse}-{verse_num}'
-           
-
-        # Save the text if there's anything copied
-        if prev_verse:
-            settings.setValue('prev_verse', prev_verse)
-            # print(f"Saved previous verse: {prev_verse}")
-        else:
-            pass
-            # print("No text copied to clipboard.")
         
         reset_keys()
 
     except Exception as e:
-        # print(f"Error during simSelectAll: {e}")
         reset_keys()
 
     
     
-def present_prev_verse(name = None, data = None):
+def present_prev_verse(name = None, data = None, prev_verse_text = None):
     
-        # print('presenting the previous verse', data)
-     # Get the previous verse from QSettingsd
-        next_verse = settings.value('prev_verse')
-        next_verse = next_verse.strip()
-        if not next_verse:
-            # print("Error: No previous verse found in settings.")
-            return
-        # print('Previous verse present prev verse:', next_verse)
-        settings.setValue('next_verse', next_verse)
-        # QApplication.processEvents()  # Ensure clipboard changes are processed
-        # # #switching to mime type text/plain
-        # mine_data = QMimeData()
-        # mine_data.setText(prev_verse)
-        # clipboard.setMimeData(mine_data)
-    
-        # Get the search bar location from QSettings
-        bar_location = settings.value(name, None)
-        if not bar_location or len(bar_location) != 2:
+    if not prev_verse_text:
+        warningBox(None, 'Error', 'No previous verse found to present.')
+        return
+    print('here is the data passed to present_prev_verse:', prev_verse_text)
 
-            #finding the bar location from the 
-            for i in data['actions']:
-                if i['action'] == 'click':
-                    bar_location = i['location']
-        # print(f"Bar location: {bar_location}")
+    # Get the search bar location from QSettings
+    bar_location = settings.value(name, None)
 
-        # Move the cursor to the bar location
-        simClick(bar_location[0], bar_location[1]) 
-
-        # Simulate select all, then paste
-        simSelectAll()
-        
-        # clipboard.setText(prev_verse)
-        # import time
-        # time.sleep(0.1)  # Small delay to ensure the clipboard update is ready
-        simPaste('key')
+    for action in data['actions']:
+        if action['action'] == 'click':
+            x_coord = action['location'][0]
+            y_coord = action['location'][1]
+            button = action['button']
+            simClick(x_coord, y_coord, button)
+        elif action['action'] == 'paste':
+            print('pasting')
+            simPaste(prev_verse_text, True)
+        elif action['action'] == 'select all':
+            simSelectAll(True)
 
 def reset_keys():
     """Release commonly used keys using the KeyboardController."""
