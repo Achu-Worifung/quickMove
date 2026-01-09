@@ -85,6 +85,19 @@ def load_models_if_needed():
         get_pipeline()
     except Exception as e:
         print(f"Error during model preloading: {e}")
+def get_classifier(source, pipeline=get_pipeline()):
+    
+    try:
+        classifier = pipeline (
+                'text-classification',
+                model=resource_path(source),
+                device=0 if get_torch().cuda.is_available() else -1
+        )
+    except Exception as e:
+        print(f"Processor: Failed to load classifier: {e}")
+        classifier = None
+    return classifier
+
 
 # Start preloading in a background thread
 threading.Thread(target=load_models_if_needed, daemon=True).start()
@@ -125,14 +138,18 @@ def run_transcription(recording_page, search_Page=None, lineEdit=None, worker_th
     silence_length = float(settings.value('silence') or 0.6)
     min_record_len = float(settings.value('minlen') or 0.25)
     max_record_len = float(settings.value('maxlen') or 20)  # allow full thoughts
-
+    
+    classifier_src = 'finetuned_distilbert'
     torch = get_torch()
     WhisperModel = get_WhisperModel()
+    classifier = get_classifier(classifier_src)
     worker_thread.loadingStatus.emit()  # Signal to update loading status in GUI
 
 
     device_type = 'cuda' if torch.cuda.is_available() else 'cpu'
     computation_type = "float16" if device_type == 'cuda' else "int8"
+    
+    
 
     whisper_model = WhisperModel(
         model_size,
@@ -232,10 +249,10 @@ def run_transcription(recording_page, search_Page=None, lineEdit=None, worker_th
             segments, _ = whisper_model.transcribe(
                 temp_filename,
                 language=language,
-                beam_size=1,
+                beam_size=1, #change this later
                 best_of=1,
                 temperature=0.0,
-                vad_filter=False,                   # IMPORTANT
+                vad_filter=False,                   
                 log_prob_threshold=confidence_threshold
             )
 
@@ -245,13 +262,13 @@ def run_transcription(recording_page, search_Page=None, lineEdit=None, worker_th
             print(f"Stable text: {stable_text}")
             worker_thread.guitextReady.emit(raw_text)
 
-            if stable_text:
+            if raw_text:
                 worker_thread.guitextReady.emit(stable_text)
 
                 if worker_thread and auto_search_size > 0:
-                    perform_auto_search(stable_text, 1.0, auto_search_size, worker_thread)
+                    perform_auto_search(raw_text, 1.0, auto_search_size, worker_thread)
 
-            # 🔁 Prepare overlap for next iteration
+            # Prepare overlap for next iteration
             previous_audio_overlap = frames_overlap(frames, RATE, CHUNK)
 
             os.remove(temp_filename)
@@ -263,6 +280,7 @@ def run_transcription(recording_page, search_Page=None, lineEdit=None, worker_th
         audio.terminate()
 
 def perform_auto_search(query, confidence, max_len, worker_thread):
+    print(f"Performing auto-search for query: '{query}', confidence: {confidence}, max_len: {max_len}, worker_thread: {worker_thread is not None}")
     if not query or not worker_thread: return
     
     # We append KJV Bible verse to ensure relevance
