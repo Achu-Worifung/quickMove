@@ -258,15 +258,25 @@ def run_transcription(recording_page, search_Page=None, lineEdit=None, worker_th
 
             raw_text = " ".join(s.text for s in segments).strip()
             stable_text = extract_stable_sentences(raw_text)
-            print(f"Transcribed: {raw_text}")
+            print(f"Transcribed: {stable_text}")
             print(f"Stable text: {stable_text}")
-            worker_thread.guitextReady.emit(raw_text)
+            worker_thread.guitextReady.emit(stable_text)
 
-            if raw_text:
+            if stable_text:
                 worker_thread.guitextReady.emit(stable_text)
+                
+                if classifier:
+                    try:
+                        classification = classifier(stable_text, truncation=True)
+                        label = classification[0]['label']
+                        score = classification[0]['score']
+                        print(f"Classification: {label} (score: {score:.4f})")
+                    except Exception as e:
+                        print(f"Error during classification: {e}")
+                    
 
-                if worker_thread and auto_search_size > 0:
-                    perform_auto_search(raw_text, 1.0, auto_search_size, worker_thread)
+                if worker_thread and auto_search_size > 0 and label == 'bible': #only search if classified as bible
+                    perform_auto_search(stable_text, 1.0, auto_search_size, worker_thread)
 
             # Prepare overlap for next iteration
             previous_audio_overlap = frames_overlap(frames, RATE, CHUNK)

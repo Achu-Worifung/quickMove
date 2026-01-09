@@ -16,3 +16,4 @@ QuickMoveInstaller.exe
 Outputs/
 install_build/
 *.csv
+finetuned_distilbert/
