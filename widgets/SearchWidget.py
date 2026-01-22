@@ -414,7 +414,7 @@ class SearchWidget(QDialog):
             if count >= max_results:
                 break
 
-            reference = result['reference']
+            reference = result['book'] + ' ' + str(result['chapter']) + ':' + str(result['verse']) 
 
             if reference in self.displayed_verse:
                 # Remove it and add it to the top
