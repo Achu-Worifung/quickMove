@@ -1,4 +1,5 @@
 import torch 
+import torch.nn.functional as F
 from optimum.onnxruntime import ORTModelForSequenceClassification
 from widgets.SearchWidget import QThread, pyqtSignal
 from faster_whisper import WhisperModel
@@ -271,6 +272,7 @@ class BibleSearch:
         end = time.time()
         print(f"  Semantic rerank: {end - start:.4f}s")
         return top_indices
+
     
     def rerank_with_crossencoder(self, query, candidate_indices, top_k=10):
         """Final reranking with cross-encoder"""
@@ -338,14 +340,12 @@ class BibleSearch:
         # Stage 2: Semantic rerank
         semantic_top_indices = self.semantic_rerank(query, candidate_idx, top_k=semantic_top_k)
         
+        
         # Stage 3: Cross-encoder final rerank
         final_results = self.rerank_with_crossencoder(query, semantic_top_indices, top_k=final_top_k)
         
         total_time = time.time() - start_total
-        print(f"  ⚡ Total search time: {total_time:.4f}s\n")
-        print(" Top results:")
-        for res in final_results:
-            print(f"  - {res['ref']} (score: {res['score']:.4f})")
+        
         
         return final_results
 
@@ -709,12 +709,27 @@ class TranscriptionWorker(QThread):
                 semantic_top_k=self.semantic_topk,
                 final_top_k=self.auto_topk
             )
+           
             
-            # Format results for the UI
+            for result in results:
+                score = torch.tensor(result["score"], dtype=torch.float32)
+                result["score"] = torch.sigmoid(score).mul(100).item()
+            
+            # Sort results by score
+            results = sorted(results, key=lambda x: x['score'], reverse=True)
+            
+            # Format results for the UI with Bible version
             formatted_results = []
             for result in results:
                 formatted_results.append(
-                    f"{result['ref']}\n{result['text']}"
+                    {"reference": result['ref'],
+                    "text": result['text'],
+                    "score": f"{result['score']:.2f}%",
+                    "book": result['book'],
+                    "chapter": result['chapter'],
+                    "verse": result['verse'],
+                    "version": result['version']}
+                    
                 )
             
             return formatted_results
@@ -776,6 +791,9 @@ class TranscriptionWorker(QThread):
                         
                         # Perform the search
                         results = self.perform_auto_search(query)
+                        print('result here')
+                        for result in results:
+                            print(f"  📖 {result['reference']} - Score: {result['score']}")
                         
                         # Emit the search results
                         if results:

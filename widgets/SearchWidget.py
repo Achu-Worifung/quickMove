@@ -406,18 +406,18 @@ class SearchWidget(QDialog):
     def add_auto_search_results(self, results, query, confidence=None, max_results=10):
         print('here is the max_results', max_results)
         
-        sorted_results = self.normalize_results(results)
-        print('sorted results in auto', sorted_results)
+        # sorted_results = self.normalize_results(results)
+        # print('sorted results in auto', sorted_results)
 
         count = 0
-        for result in sorted_results:
+        for result in results:
             if count >= max_results:
                 break
 
-            reference = result[0]
+            reference = result['reference']
 
             if reference in self.displayed_verse:
-                #remove it and add it to the top
+                # Remove it and add it to the top
                 widget_to_remove = self.old_widget[self.displayed_verse.index(reference)]
                 if widget_to_remove:
                     self.searchPane.removeWidget(widget_to_remove)
@@ -427,11 +427,10 @@ class SearchWidget(QDialog):
                 self.old_widget.remove(widget_to_remove)
 
             self.displayed_verse.append(reference)
-            self.add_verse_widget(query, reference=reference, result=None, confidence=confidence)
+            self.add_verse_widget(query, reference=reference, result=result, confidence=confidence)
             count += 1
 
-    def callback(self, results, query, confidence=None):
-        self.add_auto_search_results(results, query, confidence)
+
 
     def normalize_book(self, book: str) -> str:
         """
@@ -464,7 +463,7 @@ class SearchWidget(QDialog):
         # 1. 'reference' is the clean, canonical string (e.g., "Mark 12:30")
         print('adding verse widget for reference:', reference)
         
-        single_result.title.setText(reference)
+        single_result.title.setText(reference.split('(')[0].strip())
 
         # 2. Parse it to get the parts
         book, chapter, verse = getReference.parseReference(reference)
@@ -479,7 +478,7 @@ class SearchWidget(QDialog):
                 self.bible_data.get(normalized_book, {}).get(str(chapter), {}).get(str(verse), "Verse not found in this translation."),
                 query
             )
-            single_result.body.setText(body)
+            single_result.body.setText(body or "Verse not found in this translation.")
             single_result.body.setStyleSheet("""
                                              text-align: left;
                                              font-size: 14px;

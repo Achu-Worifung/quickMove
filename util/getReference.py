@@ -16,6 +16,7 @@ def parseReference(reference):
         book = match.group('book').strip()
         chapter = int(match.group('chapter'))
         verse = int(match.group('verse'))
+        print('parsed reference:', book, chapter, verse)
         return book.capitalize().strip(), str(chapter).strip(), str(verse).strip()
     return None, None, None
 def boldedText(text, enteredText):
