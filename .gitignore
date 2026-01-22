@@ -17,3 +17,5 @@ Outputs/
 install_build/
 *.csv
 finetuned_distilbert/
+
+artifacts/
