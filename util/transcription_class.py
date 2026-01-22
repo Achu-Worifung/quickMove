@@ -130,6 +130,7 @@ class TranscriptionWorker(QThread):
         
         # Thread control
         self.running = True
+        self.prev_transcription = ""
         
         # Performance monitoring
         self.stats = {
@@ -399,30 +400,59 @@ class TranscriptionWorker(QThread):
                 try:
                     # Get next transcription task with timeout
                     task = self.transcription_queue.get(timeout=0.1)
-                    
+
                     audio_data = task['audio']
                     context = task['context']
                     task_type = task['type']
-                    
+
                     # Do the actual transcription (this is slow)
                     text = self.transcribe_audio_chunk(audio_data, context)
-                    
+
                     if text:
                         # Add to context
                         self.context_manager.add_text(text)
-                        
+
                         # Emit the transcribed text
                         self.guitextReady.emit(text)
-                        
+
+                        if self.prev_transcription is None:
+                            self.prev_transcription = text
+                        else:
+                            # Find the overlap between the previous transcription and the current text
+                            overlap_index = -1
+                            for i in range(len(self.prev_transcription)):
+                                if text.startswith(self.prev_transcription[i:]):
+                                    overlap_index = i
+                                    break
+
+                            if overlap_index != -1:
+                                # Overlap found, merge the texts
+                                merged_text = self.prev_transcription[:overlap_index] + text
+                                print(f"overlap made: {merged_text}")
+                                self.prev_transcription = merged_text
+                            else:
+                                # No overlap, treat as separate
+                                print(f"no overlap: {self.prev_transcription} {text}")
+                                self.prev_transcription = text
+
+                        #START HERE WHEN YOU COME BACK
+                        query = self.prev_transcription
+                        print(f"Looking up verse for query: {query}")
+                        # Example: Replace with actual lookup logic
+                        results = ["Example verse 1", "Example verse 2"]
+
+                        # Emit or log the results
+                        self.autoSearchResults.emit(results, query, 0.9, len(results))
+
                         # IMPROVEMENT 9: Clear queue if we're falling behind
                         if self.transcription_queue.qsize() > 3:
                             print(f"⚠️ Transcription backlog: {self.transcription_queue.qsize()} tasks")
-                        
+
                 except queue.Empty:
                     continue
         except Exception as e:
             print(f"Error in transcription loop: {e}")
-
+            
     def stop(self):
         """
         IMPROVEMENT 10: Graceful shutdown method
@@ -457,7 +487,6 @@ class TranscriptionWorker(QThread):
             recording_thread.start()
             processing_thread.start()
             transcription_thread.start()
-            
             # Wait for threads to complete
             recording_thread.join()
             processing_thread.join()
