@@ -1,3 +1,5 @@
+import torch 
+from optimum.onnxruntime import ORTModelForSequenceClassification
 from widgets.SearchWidget import QThread, pyqtSignal
 from faster_whisper import WhisperModel
 from silero_vad import load_silero_vad, get_speech_timestamps
@@ -5,12 +7,16 @@ import numpy as np
 import sounddevice as sd
 import sys
 import queue
-import torch 
 import time 
 import os 
 from util.util import resource_path
 import threading
 from PyQt5.QtCore import QSettings
+from transformers import AutoModel, AutoTokenizer
+import json
+import re
+import faiss
+from rank_bm25 import BM25Okapi
 
 
 class AudioProcessor:
@@ -66,6 +72,284 @@ class ContextManager:
             return context
 
 
+class BibleSearch:
+    """Search functionality for Bible verses"""
+    
+    def __init__(self, device_type="cpu"):
+        
+
+        self.device_type = device_type
+        self.device = "cuda" if torch.cuda.is_available() and device_type == "cuda" else "cpu"
+        
+        # Configuration
+        self.DATA_FILE = resource_path("bibles/merged_bible.json")
+        self.ARTIFACT_DIR = resource_path("artifacts")
+        
+        # Ensure artifact directory exists
+        os.makedirs(self.ARTIFACT_DIR, exist_ok=True)
+        
+        # File paths
+        self.EMBEDDINGS_FILE = f"{self.ARTIFACT_DIR}/embeddings.npy"
+        self.FAISS_FILE = f"{self.ARTIFACT_DIR}/faiss.index"
+        self.METADATA_FILE = f"{self.ARTIFACT_DIR}/metadata.json"
+        self.TEXTS_FILE = f"{self.ARTIFACT_DIR}/texts.json"
+        
+        # Model names
+        self.MODEL_NAME = 'all-mpnet-base-v2'
+        self.MODEL_PATH = resource_path(f"./models/search/{self.MODEL_NAME}")
+        self.RE_RANKER_MODEL = 'cross-encoder_ms-marco-MiniLM-L6-v2'
+        self.ONNX_MODEL_DIR = resource_path(f"./models/search/{self.RE_RANKER_MODEL.replace('/', '_')}_onnx")
+        
+        # Search parameters
+        self.BM25_TOP_K = 5000
+        self.SEMANTIC_TOP_K = 100
+        self.FINAL_TOP_K = 10
+        self.BATCH_SIZE = 32
+        
+        # Initialize components
+        self.texts = None
+        self.metadata = None
+        self.bm25 = None
+        self.embeddings = None
+        self.faiss_index = None
+        self.model = None
+        self.tokenizer = None
+        self.onnx_reranker = None
+        self.reranker_tokenizer = None
+        
+        # Load data and models
+        self.load_data_and_models()
+    
+    def tokenize(self, text):
+        """Tokenize text for BM25"""
+        return re.findall(r"\b\w+\b", text.lower())
+    
+    def load_data_and_models(self):
+        """Load all data and models for search"""
+        print("📖 Loading Bible search data...")
+        
+        # Load Bible data
+        with open(self.DATA_FILE, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        
+        self.texts = [v["text"] for v in data]
+        self.metadata = [
+            {"book": v["book"], "chapter": v["chapter"], "verse": v["verse"], "version": v["version"]}
+            for v in data
+        ]
+        
+        # Build BM25 index
+        print("⚙️ Building BM25 index...")
+        tokenized_texts = [self.tokenize(t) for t in self.texts]
+        self.bm25 = BM25Okapi(tokenized_texts)
+        
+        # Load embedding model
+        print(f"Using device: {self.device}")
+        model_path = self.MODEL_PATH
+        
+        try:
+            if os.path.exists(model_path):
+                print(f" Loading cached embedding model from {model_path}...")
+                self.model = AutoModel.from_pretrained(model_path, trust_remote_code=True)
+            else:
+                print(f"⬇️ Downloading embedding model {self.MODEL_NAME}...")
+                self.model = AutoModel.from_pretrained(self.MODEL_NAME, trust_remote_code=True)
+                os.makedirs(model_path, exist_ok=True)
+                self.model.save_pretrained(model_path)
+        except Exception as e:
+            print(f" Failed to load embedding model: {e}")
+            raise
+        
+        
+        self.tokenizer = AutoTokenizer.from_pretrained(f"sentence-transformers/{self.MODEL_NAME}")
+        self.model.to(self.device)
+        self.model.eval()
+        
+        # Load ONNX reranker
+        self.load_onnx_reranker()
+        
+        # Load or build embeddings and FAISS index
+        self.load_or_build_embeddings()
+        
+        print("✅ Bible search initialized successfully!")
+    
+    def load_onnx_reranker(self):
+        """Load or convert cross-encoder to ONNX format"""
+        print("📥 Loading or converting ONNX reranker model...")
+        if os.path.exists(self.ONNX_MODEL_DIR):
+            print(f"✅ Loading ONNX reranker from {self.ONNX_MODEL_DIR}...")
+            self.onnx_reranker = ORTModelForSequenceClassification.from_pretrained(
+                self.ONNX_MODEL_DIR,
+                provider="CPUExecutionProvider" if self.device == "cpu" else "CUDAExecutionProvider"
+            )
+            self.reranker_tokenizer = AutoTokenizer.from_pretrained(self.ONNX_MODEL_DIR)
+        else:
+            print(f"⚙️ Converting {self.RE_RANKER_MODEL} to ONNX (one-time setup)...")
+            self.onnx_reranker = ORTModelForSequenceClassification.from_pretrained(
+                resource_path(self.RE_RANKER_MODEL),
+                export=True,
+                provider="CPUExecutionProvider" if self.device == "cpu" else "CUDAExecutionProvider"
+            )
+            self.reranker_tokenizer = AutoTokenizer.from_pretrained(resource_path(self.RE_RANKER_MODEL))
+            
+            os.makedirs(self.ONNX_MODEL_DIR, exist_ok=True)
+            self.onnx_reranker.save_pretrained(self.ONNX_MODEL_DIR)
+            self.reranker_tokenizer.save_pretrained(self.ONNX_MODEL_DIR)
+            print(f"✅ Saved ONNX model to {self.ONNX_MODEL_DIR}")
+    
+    def load_or_build_embeddings(self):
+        print("📥 Loading or building embeddings and FAISS index...")
+        """Load embeddings and FAISS index from disk or build them"""
+        if os.path.exists(self.EMBEDDINGS_FILE) and os.path.exists(self.FAISS_FILE):
+            print("✅ Loading embeddings and FAISS index from disk...")
+            self.embeddings = np.load(self.EMBEDDINGS_FILE)
+            self.faiss_index = faiss.read_index(self.FAISS_FILE)
+            
+            with open(self.METADATA_FILE, "r", encoding="utf-8") as f:
+                self.metadata = json.load(f)
+            
+            with open(self.TEXTS_FILE, "r", encoding="utf-8") as f:
+                self.texts = json.load(f)
+        else:
+            print("⚙️ Building embeddings and FAISS index (one-time)...")
+            self.embeddings = self.get_embeddings(self.texts, batch_size=self.BATCH_SIZE).astype("float32")
+            
+            dim = self.embeddings.shape[1]
+            self.faiss_index = faiss.IndexFlatIP(dim)
+            faiss.normalize_L2(self.embeddings)
+            self.faiss_index.add(self.embeddings)
+            
+            # Save to disk
+            np.save(self.EMBEDDINGS_FILE, self.embeddings)
+            faiss.write_index(self.faiss_index, self.FAISS_FILE)
+            
+            with open(self.METADATA_FILE, "w", encoding="utf-8") as f:
+                json.dump(self.metadata, f, indent=2)
+            
+            with open(self.TEXTS_FILE, "w", encoding="utf-8") as f:
+                json.dump(self.texts, f)
+            
+            print("✅ Saved embeddings and FAISS index")
+    
+    def get_embeddings(self, texts, batch_size=32):
+        """Get embeddings for a list of texts"""
+        all_embs = []
+        for i in range(0, len(texts), batch_size):
+            batch = texts[i:i+batch_size]
+            inputs = self.tokenizer(batch, padding=True, truncation=True, return_tensors="pt").to(self.device)
+            with torch.no_grad():
+                out = self.model(**inputs)
+                emb = out.last_hidden_state[:, 0, :].cpu().numpy()
+                all_embs.append(emb)
+        return np.vstack(all_embs)
+    
+    def bm25_recall(self, query, top_k=5000):
+        """BM25 keyword recall stage"""
+        start = time.time()
+        tokens = self.tokenize(query)
+        scores = self.bm25.get_scores(tokens)
+        top_idx = np.argsort(scores)[::-1][:top_k]
+        end = time.time()
+        print(f"  BM25 recall: {end - start:.4f}s")
+        return top_idx, scores[top_idx]
+    
+    def semantic_rerank(self, query, candidate_indices, top_k=100):
+        """Semantic reranking stage using embeddings"""
+        start = time.time()
+        q_emb = self.get_embeddings([query])
+        faiss.normalize_L2(q_emb)
+        
+        candidate_embs = self.embeddings[candidate_indices]
+        faiss.normalize_L2(candidate_embs)
+        
+        scores = candidate_embs @ q_emb.T
+        scores = scores.squeeze()
+        
+        top = np.argsort(scores)[::-1][:top_k]
+        top_indices = candidate_indices[top]
+        
+        end = time.time()
+        print(f"  Semantic rerank: {end - start:.4f}s")
+        return top_indices
+    
+    def rerank_with_crossencoder(self, query, candidate_indices, top_k=10):
+        """Final reranking with cross-encoder"""
+        start = time.time()
+        
+        if len(candidate_indices) == 0:
+            return []
+        
+        candidate_texts = [self.texts[idx] for idx in candidate_indices]
+        
+        # Tokenize inputs for ONNX model
+        inputs = self.reranker_tokenizer(
+            [query] * len(candidate_texts),
+            candidate_texts,
+            padding=True,
+            truncation=True,
+            max_length=512,
+            return_tensors="pt"
+        )
+        
+        # Move to device if using GPU
+        if self.device == "cuda":
+            inputs = {k: v.to(self.device) for k, v in inputs.items()}
+        
+        # Get scores from ONNX model
+        with torch.no_grad():
+            outputs = self.onnx_reranker(**inputs)
+            scores = outputs.logits.squeeze(-1).cpu().numpy()
+        
+        # Get top-k results
+        top = np.argsort(scores)[::-1][:top_k]
+        
+        results = []
+        for i in top:
+            idx = candidate_indices[i]
+            meta = self.metadata[idx]
+            results.append({
+                "score": float(scores[i]),
+                "ref": f"{meta['book']} {meta['chapter']}:{meta['verse']} ({meta['version']})",
+                "text": self.texts[idx],
+                "book": meta["book"],
+                "chapter": meta["chapter"],
+                "verse": meta["verse"],
+                "version": meta["version"]
+            })
+        
+        end = time.time()
+        print(f"  Cross-encoder ONNX: {end - start:.4f}s")
+        
+        return results
+    
+    def search(self, query, bm25_top_k=None, semantic_top_k=None, final_top_k=None):
+        """Main search pipeline"""
+        print(f"\n🔍 Searching for: '{query}'")
+        start_total = time.time()
+        
+        # Use provided parameters or defaults
+        bm25_top_k = bm25_top_k or self.BM25_TOP_K
+        semantic_top_k = semantic_top_k or self.SEMANTIC_TOP_K
+        final_top_k = final_top_k or self.FINAL_TOP_K
+        
+        # Stage 1: BM25 keyword recall
+        candidate_idx, _ = self.bm25_recall(query, top_k=bm25_top_k)
+        
+        # Stage 2: Semantic rerank
+        semantic_top_indices = self.semantic_rerank(query, candidate_idx, top_k=semantic_top_k)
+        
+        # Stage 3: Cross-encoder final rerank
+        final_results = self.rerank_with_crossencoder(query, semantic_top_indices, top_k=final_top_k)
+        
+        total_time = time.time() - start_total
+        print(f"  ⚡ Total search time: {total_time:.4f}s\n")
+        print(" Top results:")
+        for res in final_results:
+            print(f"  - {res['ref']} (score: {res['score']:.4f})")
+        
+        return final_results
+
+
 class TranscriptionWorker(QThread):
     
     finished = pyqtSignal()
@@ -85,6 +369,9 @@ class TranscriptionWorker(QThread):
         self.audio_processor = AudioProcessor()
         self.context_manager = ContextManager()
         
+        # Initialize Bible search
+        self.bible_search = None
+        
         # Reading data from settings 
         self.beam_size = 2  # REAL-TIME SAFE
         self.best_of = 2
@@ -100,6 +387,11 @@ class TranscriptionWorker(QThread):
         self.RATE = int(self.settings.value('rate') or 16000)
         self.CHUNK = int(self.settings.value('chunks') or 1024)
         self.CHANNELS = int(self.settings.value('channel') or 1)
+        self.semantic_topk = int(self.settings.value('semantic_topk') or 100)
+        self.auto_topk = int(self.settings.value('auto_topk') or 10)
+
+        # BM25_TOP_K: Maximum number of top results to retrieve
+        self.BM25_TOP_K = int(self.settings.value('bm25_top_k') or 1000)
 
         # Transcription parameters (based on reference implementation)
         self.sample_rate = 16000
@@ -114,7 +406,9 @@ class TranscriptionWorker(QThread):
 
         self.device_type = 'cuda' if torch.cuda.is_available() else 'cpu'
         self.computation_type = "float16" if self.device_type == 'cuda' else "int8"
-
+        #loading the search models 
+        self.initialize_bible_search()
+        
         # Initialize global variables
         self.whisper, self.vad = self.load_transcription_model()
 
@@ -141,6 +435,45 @@ class TranscriptionWorker(QThread):
         
         # Emit loading status complete
         self.loadingStatus.emit()
+        
+       
+    
+    def initialize_bible_search(self):
+        """Initialize Bible search in background thread"""
+        try:
+            print("🔄 Initializing Bible search engine...")
+            self.bible_search = BibleSearch(device_type=self.device_type)
+            print("✅ Bible search engine ready!")
+        except Exception as e:
+            print(f"❌ Failed to initialize Bible search: {e}")
+            self.bible_search = None
+    
+    def load_transcription_model(self, num_workers: int = 2, cpu_threads: int = 4):
+        """
+        Load the transcription model and Voice Activity Detection (VAD) model.
+        """
+        try:
+            self.whisper = WhisperModel(
+                self.model_size,
+                device=self.device_type,
+                compute_type=self.computation_type,
+                num_workers=num_workers,
+                cpu_threads=cpu_threads if self.device_type == "cpu" else 0,
+                download_root=resource_path(os.path.join("models", f"{self.model_size}")),
+            )
+            print("Whisper model loaded successfully.")
+        except Exception as e:
+            print(f"Error loading Whisper model: {e}")
+            self.whisper = None
+
+        try:
+            self.vad = load_silero_vad()
+            print("VAD model loaded successfully.")
+        except Exception as e:
+            print(f"Error loading VAD model: {e}")
+            self.vad = None
+            
+        return self.whisper, self.vad
     
     def audio_callback(self, indata, frames, time_info, status):
         """
@@ -326,33 +659,6 @@ class TranscriptionWorker(QThread):
             print(f"Transcription error: {e}")
             return ""
     
-    def load_transcription_model(self, num_workers: int = 2, cpu_threads: int = 4):
-        """
-        Load the transcription model and Voice Activity Detection (VAD) model.
-        """
-        try:
-            self.whisper = WhisperModel(
-                self.model_size,
-                device=self.device_type,
-                compute_type=self.computation_type,
-                num_workers=num_workers,
-                cpu_threads=cpu_threads if self.device_type == "cpu" else 0,
-                download_root=resource_path(os.path.join("models", f"{self.model_size}")),
-            )
-            print("Whisper model loaded successfully.")
-        except Exception as e:
-            print(f"Error loading Whisper model: {e}")
-            self.whisper = None
-
-        try:
-            self.vad = load_silero_vad()
-            print("VAD model loaded successfully.")
-        except Exception as e:
-            print(f"Error loading VAD model: {e}")
-            self.vad = None
-            
-        return self.whisper, self.vad
-
     def record_audio(self):
         """
         Record audio chunks - runs in its own thread
@@ -388,6 +694,34 @@ class TranscriptionWorker(QThread):
                     continue
         except Exception as e:
             print(f"Error in audio processing thread: {e}")
+
+    def perform_auto_search(self, query):
+        """Perform Bible search with the transcribed query"""
+        if not self.bible_search:
+            print("⚠️ Bible search not initialized yet")
+            return []
+        
+        try:
+            # Perform the search using the BibleSearch class
+            results = self.bible_search.search(
+                query=query,
+                bm25_top_k=self.BM25_TOP_K,
+                semantic_top_k=self.semantic_topk,
+                final_top_k=self.auto_topk
+            )
+            
+            # Format results for the UI
+            formatted_results = []
+            for result in results:
+                formatted_results.append(
+                    f"{result['ref']}\n{result['text']}"
+                )
+            
+            return formatted_results
+            
+        except Exception as e:
+            print(f"❌ Error in auto-search: {e}")
+            return ["Search error occurred. Please try again."]
 
     def transcribe_loop(self):
         """
@@ -429,22 +763,28 @@ class TranscriptionWorker(QThread):
                                 # Overlap found, merge the texts
                                 merged_text = self.prev_transcription[:overlap_index] + text
                                 print(f"overlap made: {merged_text}")
-                                self.prev_transcription = merged_text
+                                query = merged_text
                             else:
                                 # No overlap, treat as separate
                                 print(f"no overlap: {self.prev_transcription} {text}")
-                                self.prev_transcription = text
+                                query = text
+                            self.prev_transcription = text
 
-                        #START HERE WHEN YOU COME BACK
-                        query = self.prev_transcription
-                        print(f"Looking up verse for query: {query}")
-                        # Example: Replace with actual lookup logic
-                        results = ["Example verse 1", "Example verse 2"]
+                        # Perform auto-search with the transcribed text
+                        
+                        print(f"🔍 Looking up verse for query: {query}")
+                        
+                        # Perform the search
+                        results = self.perform_auto_search(query)
+                        
+                        # Emit the search results
+                        if results:
+                            confidence = 0.9  # Default confidence score
+                            self.autoSearchResults.emit(results, query, confidence, len(results))
+                        else:
+                            print("⚠️ No search results found")
 
-                        # Emit or log the results
-                        self.autoSearchResults.emit(results, query, 0.9, len(results))
-
-                        # IMPROVEMENT 9: Clear queue if we're falling behind
+                        # Clear queue if we're falling behind
                         if self.transcription_queue.qsize() > 3:
                             print(f"⚠️ Transcription backlog: {self.transcription_queue.qsize()} tasks")
 
@@ -455,7 +795,7 @@ class TranscriptionWorker(QThread):
             
     def stop(self):
         """
-        IMPROVEMENT 10: Graceful shutdown method
+        Graceful shutdown method
         """
         print("Stopping transcription worker...")
         self.running = False
@@ -487,6 +827,7 @@ class TranscriptionWorker(QThread):
             recording_thread.start()
             processing_thread.start()
             transcription_thread.start()
+            
             # Wait for threads to complete
             recording_thread.join()
             processing_thread.join()
@@ -497,5 +838,3 @@ class TranscriptionWorker(QThread):
         finally:
             self.running = False
             self.finished.emit()
-
-

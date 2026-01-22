@@ -372,6 +372,9 @@ class SearchWidget(QDialog):
     def normalize_results(self, results):
         # --- START: Frequency Sort Logic ---
         ref_counts = {}
+        # Validate input to ensure results is a list of dictionaries
+        if not isinstance(results, list) or not all(isinstance(item, dict) and 'title' in item for item in results):
+            raise ValueError("Expected results to be a list of dictionaries with a 'title' key.")
         for item in results:
             reference = getReference.getReference(item['title'].lower())
             if not reference:
@@ -630,6 +633,7 @@ class WhisperWindow(QFrame):
         self.lineEdit.setText('Loading models...')
         self.lineEdit.setAlignment(Qt.AlignCenter | Qt.AlignVCenter)
         self.title.setText('')
+        
         
         self.is_minimized = False
         

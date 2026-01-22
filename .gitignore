@@ -19,3 +19,5 @@ install_build/
 finetuned_distilbert/
 
 artifacts/
+
+bibles/
