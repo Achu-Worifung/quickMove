@@ -9,8 +9,10 @@ import threading
 
 from util.util import resource_path
 import sys
+from PyQt5.QtGui import QPixmap
+from PyQt5.QtCore import Qt, QTimer
 from PyQt5.QtWidgets import QMessageBox
-from PyQt5.QtWidgets import QApplication, QMainWindow, QSizeGrip
+from PyQt5.QtWidgets import QApplication, QMainWindow, QSizeGrip, QSplashScreen
 from PyQt5.QtCore import Qt, QSettings, QThread, pyqtSignal
 from PyQt5.uic import loadUi
 from util import  Message as msg
@@ -386,10 +388,34 @@ def main():
     app = QApplication(sys.argv)
     settings = QSettings("MyApp", "AutomataSimulator")
     
+    # # Create and show splash screen
+    # splash_pix = QPixmap(400, 300)
+    # splash_pix.fill(Qt.white)
     
+    # # Load and center the logo on the white background
+    # logo = QPixmap(resource_path("logo.ico"))
+    # if not logo.isNull():
+    #     logo = logo.scaled(150, 150, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+    #     from PyQt5.QtGui import QPainter
+    #     painter = QPainter(splash_pix)
+    #     x = (splash_pix.width() - logo.width()) // 2
+    #     y = (splash_pix.height() - logo.height()) // 2 - 30
+    #     painter.drawPixmap(x, y, logo)
+    #     painter.end()
+    
+    # splash = QSplashScreen(splash_pix, Qt.WindowStaysOnTopHint)
+    # splash.setEnabled(False)
+    # splash.showMessage("Loading interface...", Qt.AlignBottom | Qt.AlignHCenter, Qt.black)
+    # splash.show()
+    # app.processEvents()
+    
+    # Initialize main window
     window = MainWindow()
     settings.setValue("main_window", window)
     window.show()
+    
+    # # Close splash and start event loop
+    # splash.finish(window)
     sys.exit(app.exec_())
 
 if __name__ == "__main__":
