@@ -13,7 +13,7 @@ import os
 from util.util import resource_path
 import threading
 from PyQt5.QtCore import QSettings
-from transformers import AutoModel, AutoTokenizer
+from transformers import AutoModel, AutoTokenizer, pipeline
 import json
 import re
 import faiss
@@ -411,6 +411,7 @@ class TranscriptionWorker(QThread):
         
         # Initialize global variables
         self.whisper, self.vad = self.load_transcription_model()
+        self.classifer = self.get_classifier('finetuned_distilbert')
 
         # IMPROVEMENT 1: Use maxsize to prevent memory issues from unbounded queues
         self.audio_queue = queue.Queue(maxsize=100)  # Limit queue size
@@ -436,7 +437,18 @@ class TranscriptionWorker(QThread):
         # Emit loading status complete
         self.loadingStatus.emit()
         
-       
+    
+    def get_classifier(self, source:str):
+        try:
+            classifier = pipeline (
+                    'text-classification',
+                    model=resource_path(source),
+                    device=0 if self.device_type == 'cuda' else -1,
+            )
+        except Exception as e:
+            print(f"Processor: Failed to load classifier: {e}")
+            classifier = None
+        return classifier
     
     def initialize_bible_search(self):
         """Initialize Bible search in background thread"""
@@ -698,7 +710,24 @@ class TranscriptionWorker(QThread):
     def perform_auto_search(self, query):
         """Perform Bible search with the transcribed query"""
         if not self.bible_search:
-            print("⚠️ Bible search not initialized yet")
+            print("Bible search not initialized yet")
+            return []
+        try :
+            if self.classifer:
+                classification = self.classifer(query)
+                label = classification[0]['label']
+                score = classification[0]['score']
+                
+                print(f"Classifier label: {label}, score: {score:.4f}")
+                
+                if label != 'bible' and score > 0.6: #change threshold as needed
+                    print("Query classified as non-bible with high confidence, skipping search")
+                    return []
+            else:
+                print("Classifier not initialized yet")
+                return []
+        except Exception as e:
+            print(f"Error in classifier: {e}")
             return []
         
         try:
