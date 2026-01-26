@@ -467,6 +467,9 @@ class SearchWidget(QDialog):
 
         # 2. Parse it to get the parts
         book, chapter, verse = getReference.parseReference(reference)
+        
+        # Initialize body with default value
+        body = "Verse not found in this translation."
 
         if book:
             # 3. 'book' is now the canonical name (e.g., "Mark")
@@ -478,7 +481,8 @@ class SearchWidget(QDialog):
                 self.bible_data.get(normalized_book, {}).get(str(chapter), {}).get(str(verse), "Verse not found in this translation."),
                 query
             )
-            single_result.body.setText(body or "Verse not found in this translation.")
+            body = body or "Verse not found in this translation."
+            single_result.body.setText(body)
             single_result.body.setStyleSheet("""
                                              text-align: left;
                                              font-size: 14px;

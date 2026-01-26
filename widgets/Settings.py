@@ -1,5 +1,6 @@
+import configparser
 import os
-from PyQt5.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QListWidget, QListWidgetItem, QMessageBox,QDoubleSpinBox, QComboBox,QScrollArea,QWidget,QSizePolicy,QFrame, QGroupBox, QMessageBox, QSpinBox
+from PyQt5.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QListWidget, QListWidgetItem, QMessageBox, QDoubleSpinBox, QComboBox, QScrollArea, QWidget, QSizePolicy, QFrame, QGroupBox, QMessageBox, QSpinBox, QCheckBox
 from PyQt5.QtCore import QThread, pyqtSignal, Qt, QSettings
 from pyqttoast import  ToastPreset
 import torch
@@ -47,15 +48,21 @@ class Settings:
         import torch
         self.mange_models = self.page_widget.findChild(QPushButton, "manage_model")
         self.mange_models.clicked.connect(self.open_model_manager)
+        
+        # Define widget lists by type
         comboBox = [self.processing, self.model, self.channel, self.chunks, self.rate]
-        spinBox = [self.beam, self.core, self.best,self.silence, self.suggest_len, self.auto_searchlen]
+        spinBox = [self.beam, self.core, self.best, self.silence, self.suggest_len, self.auto_searchlen, 
+                   self.bible_con, self.partial_con, self.non_bible_con, self.vad]
         doubleSpinBox = [self.temp, self.energy, self.minlen, self.maxlen]
+        
         self.populate_models()
         
         self.processing.addItem("GPU") if torch.cuda.is_available() else None
         
         # Load values from QSettings into widgets WITHOUT emitting change signals
         for box in comboBox:
+            if box is None:
+                continue
             saved_value = self.settings.value(box.objectName())
             # block signals while setting initial value so setting_changed is NOT invoked
             box.blockSignals(True)
@@ -74,7 +81,10 @@ class Settings:
             box.blockSignals(False)
             # connect after initial value is set
             box.currentTextChanged.connect(lambda value, b=box: self.setting_changed(b))
+            
         for box in spinBox:
+            if box is None:
+                continue
             box.blockSignals(True)
             saved_value = self.settings.value(box.objectName())
             if saved_value is not None:
@@ -88,7 +98,10 @@ class Settings:
                 self.settings.setValue(box.objectName(), default)
             box.blockSignals(False)
             box.valueChanged.connect(lambda value, b=box: self.setting_changed(b))
+            
         for box in doubleSpinBox:
+            if box is None:
+                continue
             box.blockSignals(True)
             saved_value = self.settings.value(box.objectName())
             if saved_value is not None:
@@ -101,17 +114,57 @@ class Settings:
                 self.settings.setValue(box.objectName(), default)
             box.blockSignals(False)
             box.valueChanged.connect(lambda value, b=box: self.setting_changed(b))
+        
+        # Handle QCheckBox for multiple_trues
+        if self.multiple_trues is not None:
+            self.multiple_trues.blockSignals(True)
+            saved_value = self.settings.value("multiple_trues")
+            if saved_value is not None:
+                self.multiple_trues.setChecked(saved_value == True or saved_value == "true")
+            else:
+                self.settings.setValue("multiple_trues", False)
+            self.multiple_trues.blockSignals(False)
+            self.multiple_trues.stateChanged.connect(lambda state, b=self.multiple_trues: self.setting_changed(b))
+            
+            # Validate confidence thresholds if multiple_trues is checked
+            if self.multiple_trues.isChecked():
+                self._validate_confidence_thresholds()
             
         self.settings.sync()
+
+    def _validate_confidence_thresholds(self):
+        """Validate and adjust confidence thresholds if multiple_trues is enabled."""
+        if self.bible_con is None or self.partial_con is None:
+            return
+            
+        bible_conf = self.settings.value("bible_confidence") or 60
+        partial_conf = self.settings.value("partial_bible_confidence") or 50
+        total = bible_conf + partial_conf
+        
+        if total > 100:
+            # Reduce proportionally to equal 100
+            factor = 100 / total
+            bible_conf = int(bible_conf * factor)
+            partial_conf = int(partial_conf * factor)
+            self.settings.setValue("bible_confidence", bible_conf)
+            self.settings.setValue("partial_bible_confidence", partial_conf)
+            if self.warning is not None:
+                self.warning.setText(f"Scaled down: Bible {bible_conf}% + Partial {partial_conf}% = 100%")
+        else:
+            if self.warning is not None:
+                self.warning.setText("")
 
     def reload_ui_from_settings(self):
         """Reload UI widgets to reflect values currently persisted in QSettings
         without emitting change signals (used after discard or reset)."""
         comboBox = [self.processing, self.model, self.channel, self.chunks, self.rate]
-        spinBox = [self.beam, self.core, self.best,self.silence, self.suggest_len, self.auto_searchlen]
+        spinBox = [self.beam, self.core, self.best, self.silence, self.suggest_len, self.auto_searchlen,
+                   self.bible_con, self.partial_con, self.non_bible_con, self.vad]
         doubleSpinBox = [self.temp, self.energy, self.minlen, self.maxlen]
 
         for box in comboBox:
+            if box is None:
+                continue
             saved_value = self.settings.value(box.objectName())
             box.blockSignals(True)
             if saved_value is not None:
@@ -119,7 +172,10 @@ class Settings:
                 if idx != -1:
                     box.setCurrentIndex(idx)
             box.blockSignals(False)
+            
         for box in spinBox:
+            if box is None:
+                continue
             saved_value = self.settings.value(box.objectName())
             box.blockSignals(True)
             if saved_value is not None:
@@ -128,7 +184,10 @@ class Settings:
                 except Exception:
                     pass
             box.blockSignals(False)
+            
         for box in doubleSpinBox:
+            if box is None:
+                continue
             saved_value = self.settings.value(box.objectName())
             box.blockSignals(True)
             if saved_value is not None:
@@ -137,6 +196,14 @@ class Settings:
                 except Exception:
                     pass
             box.blockSignals(False)
+        
+        # Handle QCheckBox for multiple_trues
+        if self.multiple_trues is not None:
+            self.multiple_trues.blockSignals(True)
+            saved_value = self.settings.value("multiple_trues")
+            if saved_value is not None:
+                self.multiple_trues.setChecked(saved_value == True or saved_value == "true")
+            self.multiple_trues.blockSignals(False)
 
 
     def open_model_manager(self):
@@ -144,8 +211,18 @@ class Settings:
         dialog.exec_()
 
     def setting_changed(self, obj = None):
+        if obj is None:
+            return
         object_name = obj.objectName()
-        new_value = (obj.currentText() if isinstance(obj, QComboBox) else obj.value())
+        
+        # Handle different widget types
+        if isinstance(obj, QComboBox):
+            new_value = obj.currentText()
+        elif isinstance(obj, QCheckBox):
+            new_value = obj.isChecked()
+        else:
+            new_value = obj.value()
+            
         print(f'{object_name} changed to {new_value}')
         self.made_changes[object_name] = new_value
         # mark that there are unsaved changes
@@ -169,82 +246,59 @@ class Settings:
         except Exception:
             pass
     def reset_settings(self):
-        self.default_settings = {
-        # Model Settings
-        'processing': 'cpu' if not torch.cuda.is_available() else 'gpu',  # or 'cuda', 'auto'
-        'cores': max(1, torch.get_num_threads()),
-        'model': self.models_dropdw.itemText(0) if self.models_dropdw.count() > 0 else '',
-        'beam': 5,
-        'best': 5,
-        'temperature': 0.0,
-        'language': 'en',
+        import torch
+        deafult_processing = "GPU" if torch.cuda.is_available() else "CPU"
+        default_cores = max(1, torch.get_num_threads())
         
-        # Audio Settings
-        'channel': 1,  
-        'rate': 16000, 
-        'chunks': 1024, 
-        'silence': 0.90,
-        'silencelen': 500,
-        'energy': 0.001,
+        self.settings.setValue('default_processing', deafult_processing)
+        defaults_file = "settings.ini"
+        config = configparser.ConfigParser()
+        config.read(defaults_file)
         
+        for key, value in config.items('general'):
+            if value.lower() in ['true', 'false']:
+                self.settings.setValue(key, config.getboolean('general', key))
+            elif value.isdigit():
+                self.settings.setValue(key, config.getint('general', key))
+            else:
+                try:
+                    float_value = float(value)
+                    self.settings.setValue(key, float_value)
+                except ValueError:
+                    self.settings.setValue(key, value)
         
-        # Transcription Settings
-        'minlen': 1,
-        'maxlen': 5,
-        'auto_length': 1,
-        'suggestion_length': 4,
-        'con_threshold': 59,
-        'prev_context': 1,
-    }
-        self.widget_map = {
-        'processing': self.processing,
-        'model': self.model,
-        'beam': self.beam,
-        'temperature': self.temp,
-        'cores': self.core,
-        'best': self.best,
-        'auto_length': self.auto_searchlen,
-        'energy': self.energy,
-        'minlen': self.minlen,
-        'maxlen': self.maxlen,
-        'channel': self.channel,
-        'chunks': self.chunks,
-        'rate': self.rate,
-        'language': 'en',
-        'suggestion_length': self.suggest_len,
-        'silencelen': self.silence,
-        'silence': self.silence,
-        'con_threshold': self.con_threshold, 
-        'prev_context': self.prev_context
-    }
-        for setting_name, default_value in self.default_settings.items():
-            widget = self.widget_map.get(setting_name)
-            if widget is None:
-                print(f"Warning: Widget '{setting_name}' not found")
-                continue
-            
-            # Set widget value based on type
-            if isinstance(widget, QComboBox):
-                widget.setCurrentText(str(default_value))
-            elif isinstance(widget, QSpinBox):
-                widget.setValue(int(default_value))
-            elif isinstance(widget, QDoubleSpinBox):
-                widget.setValue(float(default_value))
-            # Save to QSettings
-            self.settings.setValue(setting_name, default_value)
+        print('Settings reset to default values.')
+        self.settings.sync()
+        
+        # Reload UI from the updated settings
+        self.reload_ui_from_settings()
+        self.made_changes.clear()
       
         
         
     def page_setup(self):
+        # Transcription Model Settings
         self.processing = self.page_widget.findChild(QComboBox, "processing")
         self.model = self.page_widget.findChild(QComboBox, "model")
         self.beam = self.page_widget.findChild(QSpinBox, "beam")
         self.temp = self.page_widget.findChild(QDoubleSpinBox, "temperature")
         self.core = self.page_widget.findChild(QSpinBox, "cores")
         self.best = self.page_widget.findChild(QSpinBox, "best")
+        self.vad = self.page_widget.findChild(QSpinBox, "vad_threshold")
+        
+        # Classification Model Settings
+        self.bible_con = self.page_widget.findChild(QSpinBox, "bible_confidence")
+        self.partial_con = self.page_widget.findChild(QSpinBox, "partial_bible_confidence")
+        self.non_bible_con = self.page_widget.findChild(QSpinBox, "non_bible_confidence")
+        self.multiple_trues = self.page_widget.findChild(QCheckBox, "multiple_trues")
+        self.warning = self.page_widget.findChild(QLabel, "percentage_warning")
+        self.warning.setText("")
+        
+        # Suggestion Settings
         self.suggest_len = self.page_widget.findChild(QSpinBox, "suggestion_length")
         self.auto_searchlen = self.page_widget.findChild(QSpinBox, "auto_length")
         
+        # Recording Settings
         self.energy = self.page_widget.findChild(QDoubleSpinBox, "energy")
         self.minlen = self.page_widget.findChild(QDoubleSpinBox, "minlen")
         self.maxlen = self.page_widget.findChild(QDoubleSpinBox, "maxlen")
@@ -253,31 +307,14 @@ class Settings:
         self.rate = self.page_widget.findChild(QComboBox, "rate")
         self.silence = self.page_widget.findChild(QSpinBox, "silencelen")
         
+        # Buttons
         self.savebtn = self.page_widget.findChild(QPushButton, "savechangesbtn")
         self.resetbtn = self.page_widget.findChild(QPushButton, "resetbtn")
         
         self.savebtn.clicked.connect(self.save_settings)
         self.resetbtn.clicked.connect(self.reset_settings)
         
-        # self.resetbtn.setDisabled(True) #disabling reset button for now
-        
-        self.auto_len = self.page_widget.findChild(QSpinBox, "auto_length")
-        self.suggestion = self.page_widget.findChild(QSpinBox, "suggestion_length")
-        self.con_threshold = self.page_widget.findChild(QSpinBox, "confidence_threshold")
-        self.prev_context = self.page_widget.findChild(QSpinBox, "prev_context")
-        
         self.processing.currentIndexChanged.connect(self.processing_clicked)
-    #    self.processing.currentIndexChanged.connect(self.processing_clicked)
-    #    self.model = self.page_widget.value("model")
-    #    self.beam = self.page_widget.value("beam")
-    #    self.temp = self.page_widget.value("temperature")
-    #    self.best = self.page_widget.value("best")
-       
-    #    self.energy =  self.page_widget.value("energy")
-    #    self.minlen = self.page_widget.value("minlen")
-    #    self.maxlen = self.page_widget.value("maxlen")
-    #    self.channel = self.page_widget.value("channel")
-    #    self.rate = self.page_widget.value("rate")
     def processing_clicked(self):
         print("Processing clicked")
         # self.settings.setValue("processing", self.processing.currentText())

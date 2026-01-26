@@ -1,10 +1,14 @@
 import os
+
+from util.modelmanagement import list_downloaded_models
 os.environ['QT_ENABLE_HIGHDPI_SCALING'] = '1'
 os.environ['QT_SCALE_FACTOR'] = '1'
 os.environ['QT_SCREEN_SCALE_FACTORS'] = '1'
 from PyQt5 import QtCore
 QtCore.QCoreApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True)
 QtCore.QCoreApplication.setAttribute(QtCore.Qt.AA_UseHighDpiPixmaps, True)
+import configparser
+import os
 import threading
 
 from util.util import resource_path
@@ -107,7 +111,7 @@ class MainWindow(QMainWindow):
         self.settings = QSettings("MyApp", "AutomataSimulator")
         self.restore_previous_geometry()
         
-        if self.settings.value("default_settings") is None:
+        if self.settings.value("default_settings") is not True:
             self.setUpDefaultSettings()
         # Store base directory
         self.settings.setValue("basedir", basedir)
@@ -315,38 +319,51 @@ class MainWindow(QMainWindow):
         import torch
         deafult_processing = "GPU" if torch.cuda.is_available() else "CPU"
         default_cores = max(1, torch.get_num_threads())
-        if torch.cuda.is_available():
-            self.settings.setValue('default_prcessing', "GPU")
-        #keep this order for the settings
-        self.settings.setValue("default_settings", [deafult_processing, "Tiny", 1, 0.00, default_cores, 1, 0.90, 1, 5, 1, 1024, 16000, 500])
         
-        self.setupInitialSettings()
-    
+        self.settings.setValue('default_processing', deafult_processing)
+        defaults_file = "settings.ini"
+        config = configparser.ConfigParser()
+        config.read(defaults_file)
+        
+        for key, value in config.items('general'):
+            if value.lower() in ['true', 'false']:
+                self.settings.setValue(key, config.getboolean('general', key))
+            elif value.isdigit():
+                self.settings.setValue(key, config.getint('general', key))
+            else:
+                try:
+                    float_value = float(value)
+                    self.settings.setValue(key, float_value)
+                except ValueError:
+                    self.settings.setValue(key, value)
+        
+        self.settings.sync()    
     def setupInitialSettings(self):
         import torch
-        self.settings.setValue('prcessing', "CPU")
-        self.settings.setValue('cores', max(1, torch.get_num_threads()))
-        self.settings.setValue('model', "Tiny")
-        self.settings.setValue('beam', 1)
-        self.settings.setValue("best", 1)
-        self.settings.setValue("termperature", 0.00)
-        self.settings.setValue("language", 'en')
-        # self.settings.setValue("vad_filter", True)
-        # self.settings.setValue("vad_parameters", True)
-        self.settings.setValue("channel", 1)
-        self.settings.setValue("rate", 16000)
-        self.settings.setValue("chunks", 1024)
-        self.settings.setValue("silence", 0.90) #not in settings
-        self.settings.setValue("silencelen", 500) #not in settings
-        self.settings.setValue("energy", 0.001)
         
-        self.settings.setValue("minlen", 1)
-        self.settings.setValue("maxlen", 5)
-        self.settings.setValue('auto_length', 1)
-        self.settings.setValue('suggestion_length', 3)
-        self.settings.setValue('prev_context', 50)
-        self.settings.setValue('prev_context', 1)
-        # self.settings.setValue("silencelen", 0.90)
+        defaults_file = "settings.ini"
+        config = configparser.ConfigParser()
+        config.read(defaults_file)
+        
+        for key, value in config.items('general'):
+            if self.settings.value(key) is None:
+                if value.lower() in ['true', 'false']:
+                    self.settings.setValue(key, config.getboolean('general', key))
+                elif value.isdigit():
+                    self.settings.setValue(key, config.getint('general', key))
+                else:
+                    try:
+                        float_value = float(value)
+                        self.settings.setValue(key, float_value)
+                    except ValueError:
+                        self.settings.setValue(key, value)
+        self.settings.setValue('processing', "CPU" if not torch.cuda.is_available() else "GPU")
+        self.settings.setValue('cores', max(1, torch.get_num_threads()))
+        self.settings.setValue('model', list_downloaded_models()[0]['name'] if len(list_downloaded_models()) > 0 else "")
+        
+        self.settings.setValue('default_settings', True)
+        
+        self.settings.sync()
         
         
 

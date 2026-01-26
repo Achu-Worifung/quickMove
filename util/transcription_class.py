@@ -375,46 +375,53 @@ class TranscriptionWorker(QThread):
         # Initialize Bible search
         self.bible_search = None
         
-        # Reading data from settings 
-        self.beam_size = 2  # REAL-TIME SAFE
-        self.best_of = 2
-        self.temperature = 0.0
-
+        # Read transcription model settings from QSettings
+        self.beam_size = int(self.settings.value('beam') or 3)
+        self.best_of = int(self.settings.value('best') or 3)
+        self.temperature = float(self.settings.value('temperature') or 0.0)
         self.language = self.settings.value('language') or 'en'
-        self.energy_threshold = float(self.settings.value('energy') or 0.10)
+        self.energy_threshold = float(self.settings.value('energy') or 0.001)
         self.model_size = (self.settings.value('model') or 'tiny').lower()
-        self.cpu_cores = int(self.settings.value('cores') or 1)
-        self.confidence_threshold = float(self.settings.value('confidence_threshold') or -0.4) or -0.4
-        self.auto_search_size = int(self.settings.value('auto_length') or 1)
+        self.cpu_cores = int(self.settings.value('cores') or 4)
+        self.confidence_threshold = float(self.settings.value('transcription_confidence') or -1.0)
+        self.auto_search_size = int(self.settings.value('auto_length') or 4)
 
+        # Audio recording settings
         self.RATE = int(self.settings.value('rate') or 16000)
         self.CHUNK = int(self.settings.value('chunks') or 1024)
         self.CHANNELS = int(self.settings.value('channel') or 1)
+        
+        # Search settings (with fallback defaults if not in settings)
         self.semantic_topk = int(self.settings.value('semantic_topk') or 100)
         self.auto_topk = int(self.settings.value('auto_topk') or 10)
-
-        # BM25_TOP_K: Maximum number of top results to retrieve
         self.BM25_TOP_K = int(self.settings.value('bm25_top_k') or 1000)
 
-        # Transcription parameters (based on reference implementation)
+        # Voice Activity Detection and transcription parameters
         self.sample_rate = 16000
         self.chunk_size = int(self.sample_rate * 0.5)  # 0.5-second chunks
-        self.vad_threshold = 0.7
-        self.min_speech_duration = 0.2
-        self.min_silence_duration = 0.2
+        self.vad_threshold = float(self.settings.value('vad_threshold') or 0.7)
+        self.min_speech_duration = float(self.settings.value('minlen') or 0.2)
+        self.min_silence_duration = float(self.settings.value('silence') or 0.3)
         
-        # Control parameters
-        self.max_accumulated_duration = 1.5  # Transcribe every 1.5 seconds of speech
-        self.min_transcription_audio = 0.8   # Minimum 0.8 seconds of audio to transcribe
+        # Control parameters for continuous transcription
+        self.max_accumulated_duration = float(self.settings.value('maxlen') or 1.5)
+        self.min_transcription_audio = float(self.settings.value('min_transcription_audio') or 0.8)
 
-        self.device_type = 'cuda' if torch.cuda.is_available() else 'cpu'
+        # Determine device and computation type from settings
+        processing_mode = self.settings.value('processing') or 'CPU'
+        self.device_type = 'cuda' if torch.cuda.is_available() and processing_mode.upper() == 'GPU' else 'cpu'
         self.computation_type = "float16" if self.device_type == 'cuda' else "int8"
+        
+        # Mark that models haven't been loaded yet
+        self.models_loaded = False
+        
         #loading the search models 
         self.initialize_bible_search()
         
-        # Initialize global variables
-        self.whisper, self.vad = self.load_transcription_model()
-        self.classifer = self.get_classifier('finetuned_distilbert')
+        # Initialize global variables to None (will be loaded in run())
+        self.whisper = None
+        self.vad = None
+        self.classifer = None
 
         # IMPROVEMENT 1: Use maxsize to prevent memory issues from unbounded queues
         self.audio_queue = queue.Queue(maxsize=100)  # Limit queue size
@@ -436,9 +443,6 @@ class TranscriptionWorker(QThread):
             'transcription_count': 0,
             'avg_transcription_time': 0.0
         }
-        
-        # Emit loading status complete
-        self.loadingStatus.emit()
         
     def pause_play(self):
         self._pause = not self._pause
@@ -468,22 +472,32 @@ class TranscriptionWorker(QThread):
             print(f"❌ Failed to initialize Bible search: {e}")
             self.bible_search = None
     
-    def load_transcription_model(self, num_workers: int = 2, cpu_threads: int = 4):
+    def load_transcription_model(self, num_workers: int = 2):
         """
         Load the transcription model and Voice Activity Detection (VAD) model.
+        Uses cpu_threads from settings if using CPU device.
         """
         try:
+            cpu_threads = self.cpu_cores if self.device_type == "cpu" else 0
+            print(f"Loading Whisper model: {self.model_size}")
+            print(f"  Device: {self.device_type}")
+            print(f"  Compute type: {self.computation_type}")
+            print(f"  CPU cores: {cpu_threads}")
+            print(f"  Model location: {resource_path(os.path.join('models', f'{self.model_size}'))}")
+            
             self.whisper = WhisperModel(
                 self.model_size,
                 device=self.device_type,
                 compute_type=self.computation_type,
                 num_workers=num_workers,
-                cpu_threads=cpu_threads if self.device_type == "cpu" else 0,
+                cpu_threads=cpu_threads,
                 download_root=resource_path(os.path.join("models", f"{self.model_size}")),
             )
-            print("Whisper model loaded successfully.")
+            print("✅ Whisper model loaded successfully.")
         except Exception as e:
-            print(f"Error loading Whisper model: {e}")
+            print(f"❌ Error loading Whisper model: {e}")
+            import traceback
+            traceback.print_exc()
             self.whisper = None
 
         try:
@@ -622,6 +636,10 @@ class TranscriptionWorker(QThread):
         Fast transcription with minimal parameters
         Runs in transcription thread - can be slow
         """
+        if self.whisper is None:
+            print("❌ Whisper model not loaded. Please check model loading errors above.")
+            return ""
+            
         if len(audio_data) < self.sample_rate * 0.3:  # Less than 0.3s
             return ""
         
@@ -728,8 +746,10 @@ class TranscriptionWorker(QThread):
                 
                 print(f"Classifier label: {label}, score: {score:.4f}")
                 
-                if label != 'bible' and score > 0.6: #change threshold as needed
-                    print("Query classified as non-bible with high confidence, skipping search")
+                # Use non_bible_confidence threshold from settings
+                non_bible_threshold = float(self.settings.value('non_bible_confidence') or 0.8) / 100.0
+                if label != 'bible' and score > non_bible_threshold:
+                    print(f"Query classified as non-bible with high confidence (>{non_bible_threshold:.2f}), skipping search")
                     return []
             else:
                 print("Classifier not initialized yet")
@@ -834,7 +854,8 @@ class TranscriptionWorker(QThread):
                         
                         # Emit the search results
                         if results:
-                            confidence = 0.9  # Default confidence score
+                            # Use bible_confidence from settings as default confidence score
+                            confidence = float(self.settings.value('bible_confidence') or 0.6) / 100.0
                             self.autoSearchResults.emit(results, query, confidence, len(results))
                         else:
                             print("⚠️ No search results found")
@@ -856,6 +877,16 @@ class TranscriptionWorker(QThread):
         print("Starting transcription worker...")
         
         try:
+            # Load models on thread start (not in __init__)
+            if not self.models_loaded:
+                print("📦 Loading Whisper and VAD models...")
+                self.whisper, self.vad = self.load_transcription_model()
+                self.classifer = self.get_classifier('finetuned_distilbert')
+                self.models_loaded = True
+                
+                # Emit loading status complete after models are loaded
+                self.loadingStatus.emit()
+            
             # Create three threads:
             # 1. Audio recording (fast, handles audio callback)
             # 2. Audio processing (fast, handles VAD and accumulation)
