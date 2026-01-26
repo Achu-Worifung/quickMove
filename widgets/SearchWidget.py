@@ -760,8 +760,7 @@ class WhisperWindow(QFrame):
         
         # Ensure the transcription thread is properly terminated
         if self.transcription_thread.isRunning():
-            self.transcription_thread.terminate() 
-            self.transcription_thread.wait()  
+            self.transcription_thread.stop()
             print('Terminated transcription thread')
         
         # Clear the reference in the parent SearchWidget

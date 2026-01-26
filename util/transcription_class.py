@@ -362,6 +362,9 @@ class TranscriptionWorker(QThread):
         super().__init__(parent)
         self.record_page = parent
         self.search_page = search_page
+        
+        self._pause = False
+        self._stop = False
         self.lineEdit = self.record_page.lineEdit
         self.settings = QSettings("MyApp", "AutomataSimulator")
         
@@ -437,7 +440,12 @@ class TranscriptionWorker(QThread):
         # Emit loading status complete
         self.loadingStatus.emit()
         
-    
+    def pause_play(self):
+        self._pause = not self._pause
+    def stop(self):
+        self._stop = True
+        print('stopping transcription thread...')
+        
     def get_classifier(self, source:str):
         try:
             classifier = pipeline (
@@ -685,7 +693,7 @@ class TranscriptionWorker(QThread):
                 latency='low'
             ):
                 print("Audio recording started")
-                while self.running:
+                while self.running and not self._stop:
                     time.sleep(0.1)  # Keep the stream alive
         except Exception as e:
             print(f"Error in recording thread: {e}")
@@ -697,7 +705,7 @@ class TranscriptionWorker(QThread):
         """
         print("Audio processing started")
         try:
-            while self.running:
+            while self.running and not self._stop:
                 try:
                     # Get next audio chunk with timeout
                     chunk = self.audio_queue.get(timeout=0.1)
@@ -774,7 +782,7 @@ class TranscriptionWorker(QThread):
         """
         print("Transcription loop started")
         try:
-            while self.running:
+            while self.running and not self._stop:
                 try:
                     # Get next transcription task with timeout
                     task = self.transcription_queue.get(timeout=0.1)
@@ -840,19 +848,6 @@ class TranscriptionWorker(QThread):
         except Exception as e:
             print(f"Error in transcription loop: {e}")
             
-    def stop(self):
-        """
-        Graceful shutdown method
-        """
-        print("Stopping transcription worker...")
-        self.running = False
-        
-        # Print final stats
-        print("\n=== Transcription Statistics ===")
-        print(f"Total transcriptions: {self.stats['transcription_count']}")
-        print(f"Average transcription time: {self.stats['avg_transcription_time']:.3f}s")
-        print(f"Audio drops: {self.stats['audio_drops']}")
-        print("================================\n")
 
     def run(self):
         """
@@ -866,22 +861,23 @@ class TranscriptionWorker(QThread):
             # 2. Audio processing (fast, handles VAD and accumulation)
             # 3. Transcription (slow, handles Whisper transcription)
             
-            recording_thread = threading.Thread(target=self.record_audio, daemon=True, name="AudioRecording")
-            processing_thread = threading.Thread(target=self.process_audio, daemon=True, name="AudioProcessing")
-            transcription_thread = threading.Thread(target=self.transcribe_loop, daemon=True, name="Transcription")
+            self.recording_thread = threading.Thread(target=self.record_audio, daemon=True, name="AudioRecording")
+            self.processing_thread = threading.Thread(target=self.process_audio, daemon=True, name="AudioProcessing")
+            self.transcription_thread = threading.Thread(target=self.transcribe_loop, daemon=True, name="Transcription")
             
             # Start all threads
-            recording_thread.start()
-            processing_thread.start()
-            transcription_thread.start()
+            self.recording_thread.start()
+            self.processing_thread.start()
+            self.transcription_thread.start()
             
             # Wait for threads to complete
-            recording_thread.join()
-            processing_thread.join()
-            transcription_thread.join()
+            self.recording_thread.join()
+            self.processing_thread.join()
+            self.transcription_thread.join()
             
         except Exception as e:
             print(f"Error in transcription worker: {e}")
         finally:
             self.running = False
+            self._stop = True
             self.finished.emit()
