@@ -364,6 +364,8 @@ class TranscriptionWorker(QThread):
         self.search_page = search_page
         
         self._pause = False
+        self.pause_event = threading.Event()
+        self.pause_event.set()
         self._stop = False
         self.lineEdit = self.record_page.lineEdit
         self.settings = QSettings("MyApp", "AutomataSimulator")
@@ -444,8 +446,7 @@ class TranscriptionWorker(QThread):
             'avg_transcription_time': 0.0
         }
         
-    def pause_play(self):
-        self._pause = not self._pause
+
     def stop(self):
         self._stop = True
         print('stopping transcription thread...')
@@ -711,7 +712,13 @@ class TranscriptionWorker(QThread):
                 latency='low'
             ):
                 print("Audio recording started")
+                # Inform UI that we're ready and listening
+                self.statusUpdate.emit("listening")
                 while self.running and not self._stop:
+                    with self.state_lock:
+                        should_stop = self._stop
+                    if should_stop:
+                        break
                     time.sleep(0.1)  # Keep the stream alive
         except Exception as e:
             print(f"Error in recording thread: {e}")
@@ -724,6 +731,15 @@ class TranscriptionWorker(QThread):
         print("Audio processing started")
         try:
             while self.running and not self._stop:
+                # Emit paused status and skip processing while paused
+                if self._pause:
+                    self.statusUpdate.emit("paused")
+                    time.sleep(0.1)
+                    continue
+                with self.state_lock:
+                    should_stop = self._stop
+                    if should_stop:
+                        break
                 try:
                     # Get next audio chunk with timeout
                     chunk = self.audio_queue.get(timeout=0.1)
@@ -748,7 +764,7 @@ class TranscriptionWorker(QThread):
                 
                 # Use non_bible_confidence threshold from settings
                 non_bible_threshold = float(self.settings.value('non_bible_confidence') or 0.8) / 100.0
-                if label != 'bible' and score > non_bible_threshold:
+                if label != 'hello' and score > non_bible_threshold:
                     print(f"Query classified as non-bible with high confidence (>{non_bible_threshold:.2f}), skipping search")
                     return []
             else:
@@ -803,6 +819,11 @@ class TranscriptionWorker(QThread):
         print("Transcription loop started")
         try:
             while self.running and not self._stop:
+                if self._pause:
+                    time.sleep(1)
+                    continue
+                
+
                 try:
                     # Get next transcription task with timeout
                     task = self.transcription_queue.get(timeout=0.1)
@@ -869,7 +890,24 @@ class TranscriptionWorker(QThread):
         except Exception as e:
             print(f"Error in transcription loop: {e}")
             
-
+    def pause_transcription(self):
+        with self.state_lock:
+            self._pause = not self._pause 
+            new_value = self._pause 
+        
+        if new_value:
+            self.pause_event.clear()
+            self.statusUpdate.emit("paused")
+            print('paused transcription')
+        else:
+            self.pause_event.set()
+            self.statusUpdate.emit("listening")
+            print('resumed transcription')
+            
+        return new_value
+        
+            
+        
     def run(self):
         """
         Main thread loop - coordinates the three worker threads

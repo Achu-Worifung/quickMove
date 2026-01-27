@@ -697,19 +697,7 @@ class WhisperWindow(QFrame):
 
         self.lineEdit.setText(combined_text)
 
-    def start_recording(self):
-        print(f"Start recording called, checkbox checked: {self.record_btn.isChecked()}")
-        if self.record_btn.isChecked():
-            # Fix: Don't start transcription_thread again if it's already running
-            if not self.transcription_thread.isRunning():
-                self.transcription_thread.start()
-            print("Starting soundwave visualization")  
-            self.soundwave_label.start_recording_visualization()
-        else:
-            print("Stopping soundwave visualization")  
-            self.transcription_thread.terminate()
-            self.soundwave_label.stop_recording_visualization()
-            
+    
     
     def toggle_minimize(self):
         print('here is the size of container', self)
@@ -792,33 +780,12 @@ class WhisperWindow(QFrame):
         self.move(self.x() + delta.x(), self.y() + delta.y())
         self.oldPos = event.globalPos()
     def start_recording(self):
+        
         if self.record_btn.isChecked():
             self.transcription_thread.start()
             self.soundwave_label.start_recording_visualization()
         else:
             self.transcription_thread.terminate()
             self.soundwave_label.stop_recording_visualization()
+        self.transcription_thread.pause_transcription()
 
-
-
-# class TranscriptionWorker(QThread):
-#     finished = pyqtSignal()
-#     autoSearchResults = pyqtSignal(list, str, float,int) # Emit results, query, confidence, and max_len
-#     guitextReady = pyqtSignal(str)  # emit transcribed text 
-#     loadingStatus = pyqtSignal()  # signal to update loading status
-
-#     def __init__(self, parent=None, search_page = None):
-#         super().__init__(parent)
-#         self.record_page = parent
-#         self.search_page = search_page
-#         self.lineEdit = self.record_page.lineEdit
-
-#     def run(self):
-        
-#         transcriber.run_transcription(
-#             recording_page=self.record_page, 
-#             search_Page=self.search_page, 
-#             lineEdit=self.lineEdit, 
-#             worker_thread=self 
-#         )
-#         self.finished.emit()
