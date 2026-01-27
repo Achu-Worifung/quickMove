@@ -782,10 +782,15 @@ class WhisperWindow(QFrame):
     def start_recording(self):
         
         if self.record_btn.isChecked():
-            self.transcription_thread.start()
+            # Only start if the thread hasn't been started yet
+            if not self.transcription_thread.isRunning():
+                self.transcription_thread.start()
+            # Resume from pause
+            self.transcription_thread.pause_transcription()
             self.soundwave_label.start_recording_visualization()
         else:
-            self.transcription_thread.terminate()
+            # Pause (do NOT terminate - threads can't be restarted after terminate)
+            self.transcription_thread.pause_transcription()
             self.soundwave_label.stop_recording_visualization()
-        self.transcription_thread.pause_transcription()
+            self.soundwave_label.clear_buffers()  # Free memory when paused
 

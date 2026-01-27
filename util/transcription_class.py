@@ -891,6 +891,10 @@ class TranscriptionWorker(QThread):
             print(f"Error in transcription loop: {e}")
             
     def pause_transcription(self):
+        """
+        Toggle pause state safely. Can be called multiple times.
+        Returns the new pause state (True = paused, False = running).
+        """
         with self.state_lock:
             self._pause = not self._pause 
             new_value = self._pause 
@@ -898,11 +902,11 @@ class TranscriptionWorker(QThread):
         if new_value:
             self.pause_event.clear()
             self.statusUpdate.emit("paused")
-            print('paused transcription')
+            print('⏸️  Paused transcription')
         else:
             self.pause_event.set()
             self.statusUpdate.emit("listening")
-            print('resumed transcription')
+            print('▶️  Resumed transcription')
             
         return new_value
         

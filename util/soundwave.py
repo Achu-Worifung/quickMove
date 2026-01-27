@@ -294,6 +294,23 @@ class SoundWaveLabel(QLabel):
             finally:
                 self.audio = None
 
+    def clear_buffers(self):
+        """Clear internal buffers and reset state to free memory (safe to call when paused)"""
+        print("Clearing soundwave buffers")
+        # Reset wave data
+        self.wave_heights = [0.0] * self.num_bars
+        self.target_heights = [0.0] * self.num_bars
+        
+        # Reset audio levels
+        self.current_level = 0.0
+        self.smoothed_level = 0.0
+        
+        # Reset phase offsets for fresh animation on resume
+        self.phase_offsets = [np.random.random() * 2 * math.pi for _ in range(self.num_bars)]
+        
+        # Force update
+        self.update()
+
     def _get_bar_color(self, height_ratio):
         """Calculate bar color based on height"""
         color_low = QColor(0, 100, 255)      # Deep Blue
