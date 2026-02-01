@@ -660,8 +660,8 @@ QScrollBar::sub-page:vertical {
                         <rect>
                          <x>0</x>
                          <y>0</y>
-                         <width>206</width>
-                         <height>74</height>
+                         <width>100</width>
+                         <height>30</height>
                         </rect>
                        </property>
                        <layout class="QVBoxLayout" name="verticalLayout_4"/>
@@ -2380,7 +2380,7 @@ QScrollBar::sub-page:vertical {
                  <property name="geometry">
                   <rect>
                    <x>0</x>
-                   <y>-364</y>
+                   <y>-470</y>
                    <width>516</width>
                    <height>1679</height>
                   </rect>
@@ -3509,27 +3509,15 @@ QCheckBox::indicator {
                          </spacer>
                         </item>
                         <item>
-                         <widget class="QSpinBox" name="vad_threshold">
+                         <widget class="QDoubleSpinBox" name="vad_threshold">
                           <property name="minimumSize">
                            <size>
                             <width>200</width>
                             <height>0</height>
                            </size>
                           </property>
-                          <property name="minimum">
-                           <number>0</number>
-                          </property>
-                          <property name="maximum">
-                           <number>1</number>
-                          </property>
                           <property name="singleStep">
-                           <number>1</number>
-                          </property>
-                          <property name="value">
-                           <number>1</number>
-                          </property>
-                          <property name="displayIntegerBase">
-                           <number>10</number>
+                           <double>0.100000000000000</double>
                           </property>
                          </widget>
                         </item>

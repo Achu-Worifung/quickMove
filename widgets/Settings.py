@@ -54,8 +54,8 @@ class Settings:
         # Define widget lists by type
         comboBox = [self.processing, self.model, self.channel, self.chunks, self.rate]
         spinBox = [self.beam, self.core, self.best, self.silence, self.suggest_len, self.auto_searchlen, 
-                   self.bible_con, self.partial_con, self.non_bible_con, self.vad]
-        doubleSpinBox = [self.temp, self.energy, self.minlen, self.maxlen]
+                   self.bible_con, self.partial_con, self.non_bible_con]
+        doubleSpinBox = [self.temp, self.energy, self.minlen, self.maxlen, self.vad]
         
         self.populate_models()
         
@@ -161,8 +161,8 @@ class Settings:
         without emitting change signals (used after discard or reset)."""
         comboBox = [self.processing, self.model, self.channel, self.chunks, self.rate]
         spinBox = [self.beam, self.core, self.best, self.silence, self.suggest_len, self.auto_searchlen,
-                   self.bible_con, self.partial_con, self.non_bible_con, self.vad]
-        doubleSpinBox = [self.temp, self.energy, self.minlen, self.maxlen]
+                   self.bible_con, self.partial_con, self.non_bible_con]
+        doubleSpinBox = [self.temp, self.energy, self.minlen, self.maxlen, self.vad]
 
         for box in comboBox:
             if box is None:
@@ -290,7 +290,7 @@ class Settings:
         self.temp = self.page_widget.findChild(QDoubleSpinBox, "temperature")
         self.core = self.page_widget.findChild(QSpinBox, "cores")
         self.best = self.page_widget.findChild(QSpinBox, "best")
-        self.vad = self.page_widget.findChild(QSpinBox, "vad_threshold")
+        self.vad = self.page_widget.findChild(QDoubleSpinBox, "vad_threshold")
         
         # Classification Model Settings
         self.bible_con = self.page_widget.findChild(QSpinBox, "bible_confidence")
