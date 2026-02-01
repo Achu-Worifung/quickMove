@@ -18,6 +18,8 @@ import json
 import re
 import faiss
 from rank_bm25 import BM25Okapi
+from scipy.special import expit
+
 
 
 class AudioProcessor:
@@ -301,6 +303,7 @@ class BibleSearch:
         with torch.no_grad():
             outputs = self.onnx_reranker(**inputs)
             scores = outputs.logits.squeeze(-1).cpu().numpy()
+            scores = expit(scores)  # Apply sigmoid to convert logits to probabilities
         
         # Get top-k results
         top = np.argsort(scores)[::-1][:top_k]
@@ -423,7 +426,6 @@ class TranscriptionWorker(QThread):
         # Initialize global variables to None (will be loaded in run())
         self.whisper = None
         self.vad = None
-        self.classifer = None
 
         # IMPROVEMENT 1: Use maxsize to prevent memory issues from unbounded queues
         self.audio_queue = queue.Queue(maxsize=100)  # Limit queue size
@@ -754,25 +756,6 @@ class TranscriptionWorker(QThread):
         if not self.bible_search:
             print("Bible search not initialized yet")
             return []
-        try :
-            if self.classifer:
-                classification = self.classifer(query)
-                label = classification[0]['label']
-                score = classification[0]['score']
-                
-                print(f"Classifier label: {label}, score: {score:.4f}")
-                
-                # Use non_bible_confidence threshold from settings
-                non_bible_threshold = float(self.settings.value('non_bible_confidence') or 0.8) / 100.0
-                if label != 'hello' and score > non_bible_threshold:
-                    print(f"Query classified as non-bible with high confidence (>{non_bible_threshold:.2f}), skipping search")
-                    return []
-            else:
-                print("Classifier not initialized yet")
-                return []
-        except Exception as e:
-            print(f"Error in classifier: {e}")
-            return []
         
         try:
             # Perform the search using the BibleSearch class
@@ -782,14 +765,9 @@ class TranscriptionWorker(QThread):
                 semantic_top_k=self.semantic_topk,
                 final_top_k=self.auto_topk
             )
-           
-            
-            for result in results:
-                score = torch.tensor(result["score"], dtype=torch.float32)
-                result["score"] = torch.sigmoid(score).mul(100).item()
             
             # Sort results by score
-            results = sorted(results, key=lambda x: x['score'], reverse=True)
+            results = sorted(results, key=lambda x: x['score'], reverse=False)
             
             # Format results for the UI with Bible version
             formatted_results = []
@@ -808,7 +786,7 @@ class TranscriptionWorker(QThread):
             return formatted_results
             
         except Exception as e:
-            print(f"❌ Error in auto-search: {e}")
+            print(f" Error in auto-search: {e}")
             return ["Search error occurred. Please try again."]
 
     def transcribe_loop(self):
@@ -869,15 +847,20 @@ class TranscriptionWorker(QThread):
                         
                         # Perform the search
                         results = self.perform_auto_search(query)
-                        print('result here')
+                      
                         for result in results:
-                            print(f"  📖 {result['reference']} - Score: {result['score']}")
+                            print(f" {result['reference']} - Score: {result['score']}")
                         
                         # Emit the search results
-                        if results:
+                        threshold = float(self.settings.value('bible_confidence') or 60) 
+                        # Keep only results >= threshold
+                        filtered_results = [
+                            r for r in results
+                            if float(r.get("score", 0)) >= threshold
+                        ]
+                        if filtered_results:
                             # Use bible_confidence from settings as default confidence score
-                            confidence = float(self.settings.value('bible_confidence') or 0.6) / 100.0
-                            self.autoSearchResults.emit(results, query, confidence, len(results))
+                            self.autoSearchResults.emit(filtered_results, query, threshold,  self.auto_search_size)
                         else:
                             print("⚠️ No search results found")
 
@@ -923,7 +906,6 @@ class TranscriptionWorker(QThread):
             if not self.models_loaded:
                 print("📦 Loading Whisper and VAD models...")
                 self.whisper, self.vad = self.load_transcription_model()
-                self.classifer = self.get_classifier('finetuned_distilbert')
                 self.models_loaded = True
                 
                 # Emit loading status complete after models are loaded

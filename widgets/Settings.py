@@ -12,6 +12,8 @@ class Settings:
         self.page_widget = page_widget
         self.model_option = None
         self.settings = QSettings("MyApp", "AutomataSimulator")
+        for key in self.settings.allKeys():
+            print(key, "=", self.settings.value(key))
         
         self.basedir = self.settings.value("basedir")
     
@@ -234,6 +236,7 @@ class Settings:
         # persist and clear pending changes
         self.settings.setValue("changesmade", False)
         self.settings.sync()
+        print("Settings saved")
         self.made_changes.clear()
     def discard_changes(self):
         # Clear pending changes and reload UI from persisted settings
@@ -246,6 +249,7 @@ class Settings:
         except Exception:
             pass
     def reset_settings(self):
+        print("Resetting settings...")
         import torch
         deafult_processing = "GPU" if torch.cuda.is_available() else "CPU"
         default_cores = max(1, torch.get_num_threads())

@@ -147,13 +147,13 @@ border-radius: 10px;</string>
                 </property>
                 <property name="minimumSize">
                  <size>
-                  <width>35</width>
+                  <width>50</width>
                   <height>35</height>
                  </size>
                 </property>
                 <property name="maximumSize">
                  <size>
-                  <width>50</width>
+                  <width>100</width>
                   <height>35</height>
                  </size>
                 </property>

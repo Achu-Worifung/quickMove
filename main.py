@@ -112,7 +112,8 @@ class MainWindow(QMainWindow):
         self.restore_previous_geometry()
         
         if self.settings.value("default_settings") is not True:
-            self.setUpDefaultSettings()
+            # self.setUpDefaultSettings()
+            self.setupInitialSettings()
         # Store base directory
         self.settings.setValue("basedir", basedir)
 

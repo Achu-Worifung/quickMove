@@ -404,10 +404,7 @@ class SearchWidget(QDialog):
             self.add_verse_widget(query=query, reference=reference[0], result=None)
 
     def add_auto_search_results(self, results, query, confidence=None, max_results=10):
-        print('here is the max_results', max_results)
         
-        # sorted_results = self.normalize_results(results)
-        # print('sorted results in auto', sorted_results)
 
         count = 0
         for result in results:
@@ -427,7 +424,7 @@ class SearchWidget(QDialog):
                 self.old_widget.remove(widget_to_remove)
 
             self.displayed_verse.append(reference)
-            self.add_verse_widget(query, reference=reference, result=result, confidence=confidence)
+            self.add_verse_widget(query, reference=reference, result=result, confidence=result['score'])
             count += 1
 
 
@@ -495,7 +492,7 @@ class SearchWidget(QDialog):
             single_result.body.setText("Error parsing reference.")
         
         if confidence:
-            single_result.confidence.setText(f'{confidence:.2f}')
+            single_result.confidence.setText(f'{confidence}')
         else:
             single_result.confidence.setStyleSheet('color: transparent;')
 
