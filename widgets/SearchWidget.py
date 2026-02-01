@@ -181,7 +181,7 @@ class SearchWidget(QDialog):
 
         if self._creating_listening_window:
             return
-        model_size = (QSettings("MyApp", "AutomataSimulator").value('model') or 'tiny').lower()
+        model_size = (QSettings("MyApp", "AutomataSimulator").value('model') or '').lower()
         model_path = resource_path(os.path.join(f'./models/{model_size}'))
         if not os.path.exists(model_path) or not os.listdir(model_path):
             msg.warningBox(self, "Model Missing", f"The Whisper model '{model_size}' is not found locally. Please ensure it is downloaded properly.")

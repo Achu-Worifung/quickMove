@@ -99,9 +99,9 @@ class BibleSearch:
         
         # Model names
         self.MODEL_NAME = 'all-mpnet-base-v2'
-        self.MODEL_PATH = resource_path(f"./models/search/{self.MODEL_NAME}")
+        self.MODEL_PATH = resource_path(f"./search/{self.MODEL_NAME}")
         self.RE_RANKER_MODEL = 'cross-encoder_ms-marco-MiniLM-L6-v2'
-        self.ONNX_MODEL_DIR = resource_path(f"./models/search/{self.RE_RANKER_MODEL.replace('/', '_')}_onnx")
+        self.ONNX_MODEL_DIR = resource_path(f"./search/{self.RE_RANKER_MODEL.replace('/', '_')}_onnx")
         
         # Search parameters
         self.BM25_TOP_K = 5000
@@ -386,7 +386,7 @@ class TranscriptionWorker(QThread):
         self.temperature = float(self.settings.value('temperature') or 0.0)
         self.language = self.settings.value('language') or 'en'
         self.energy_threshold = float(self.settings.value('energy') or 0.001)
-        self.model_size = (self.settings.value('model') or 'tiny').lower()
+        self.model_size = (self.settings.value('model') or "").lower()
         self.cpu_cores = int(self.settings.value('cores') or 4)
         self.confidence_threshold = float(self.settings.value('transcription_confidence') or -1.0)
         self.auto_search_size = int(self.settings.value('auto_length') or 4)

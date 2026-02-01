@@ -237,6 +237,8 @@ class Settings:
         self.settings.setValue("changesmade", False)
         self.settings.sync()
         print("Settings saved")
+        for key in self.settings.allKeys():
+            print(key, "=", self.settings.value(key))
         self.made_changes.clear()
     def discard_changes(self):
         # Clear pending changes and reload UI from persisted settings

@@ -111,8 +111,8 @@ class MainWindow(QMainWindow):
         self.settings = QSettings("MyApp", "AutomataSimulator")
         self.restore_previous_geometry()
         
-        if self.settings.value("default_settings") is not True:
-            # self.setUpDefaultSettings()
+        # Only run initial setup if it hasn't been done before
+        if not self.settings.value("default_settings", False, type=bool):
             self.setupInitialSettings()
         # Store base directory
         self.settings.setValue("basedir", basedir)
@@ -314,32 +314,9 @@ class MainWindow(QMainWindow):
             from widgets.MainPage import MainPage
             self.homepage = MainPage(page)
         self.stackedWidget.setCurrentIndex(0)
-
-    
-    def setUpDefaultSettings(self):
-        import torch
-        deafult_processing = "GPU" if torch.cuda.is_available() else "CPU"
-        default_cores = max(1, torch.get_num_threads())
-        
-        self.settings.setValue('default_processing', deafult_processing)
-        defaults_file = "settings.ini"
-        config = configparser.ConfigParser()
-        config.read(defaults_file)
-        
-        for key, value in config.items('general'):
-            if value.lower() in ['true', 'false']:
-                self.settings.setValue(key, config.getboolean('general', key))
-            elif value.isdigit():
-                self.settings.setValue(key, config.getint('general', key))
-            else:
-                try:
-                    float_value = float(value)
-                    self.settings.setValue(key, float_value)
-                except ValueError:
-                    self.settings.setValue(key, value)
-        
-        self.settings.sync()    
+ 
     def setupInitialSettings(self):
+        print('setting up initial settings')
         import torch
         
         defaults_file = "settings.ini"

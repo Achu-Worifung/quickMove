@@ -21,3 +21,5 @@ finetuned_distilbert/
 artifacts/
 
 bibles/
+
+search/
