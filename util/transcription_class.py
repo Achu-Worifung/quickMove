@@ -19,6 +19,7 @@ import re
 import faiss
 from rank_bm25 import BM25Okapi
 from scipy.special import expit
+import unicodedata
 
 
 
@@ -593,7 +594,13 @@ class TranscriptionWorker(QThread):
                         })
                         self.statusUpdate.emit("processing")
                     except queue.Full:
-                        print("⚠️ Transcription queue full, skipping transcription")
+                        # Clear pending items to recover from backlog
+                        try:
+                            while True:
+                                self.transcription_queue.get_nowait()
+                        except queue.Empty:
+                            pass
+                        print("⚠️ Transcription queue full, cleared backlog")
                     
                     # Keep only last 1 chunk for overlap
                     if len(self.accumulated_audio) > 1:
@@ -759,15 +766,16 @@ class TranscriptionWorker(QThread):
         
         try:
             # Perform the search using the BibleSearch class
+            # Increase final_top_k to get multiple translations per verse
             results = self.bible_search.search(
                 query=query,
                 bm25_top_k=self.BM25_TOP_K,
                 semantic_top_k=self.semantic_topk,
-                final_top_k=self.auto_topk
+                final_top_k=self.auto_topk * 2  # Allow multiple translations per verse
             )
             
-            # Sort results by score
-            results = sorted(results, key=lambda x: x['score'], reverse=False)
+            # Sort results by score in DESCENDING order (highest first)
+            results = sorted(results, key=lambda x: x['score'], reverse=True)
             
             # Format results for the UI with Bible version
             formatted_results = []
@@ -788,6 +796,40 @@ class TranscriptionWorker(QThread):
         except Exception as e:
             print(f" Error in auto-search: {e}")
             return ["Search error occurred. Please try again."]
+   
+
+    def normalize_text(self, text):
+        text = text.lower()
+        text = text.strip()
+        
+        # Remove "Original: " section and everything up to "Paraphrase: " (greedy match)
+        text = re.sub(r'original:.*?paraphrase:\s*', '', text, flags=re.DOTALL | re.IGNORECASE)
+        
+        # Remove standalone "Paraphrase: " prefix
+        text = re.sub(r'^paraphrase:\s*', '', text, flags=re.IGNORECASE)
+        
+        # Remove escaped quotes
+        text = text.replace('\\"', '"')
+        
+        # Remove outer quotes if present
+        text = text.strip('"').strip("'").strip()
+        
+        # Handle escape sequences
+        text = text.replace('\\n', ' ')
+        text = text.replace('\\t', ' ')
+        text = text.replace('\\r', ' ')
+        text = text.replace('\\', '')
+        
+        # Remove punctuation
+        text = re.sub(r'[^\w\s]', '', text)
+        
+        # Clean up extra whitespace
+        text = ' '.join(text.split())
+        
+        # Normalize unicode and keep only ASCII
+        text = unicodedata.normalize('NFKD', text).encode('ascii', 'ignore').decode('utf-8')
+        
+        return text
 
     def transcribe_loop(self):
         """
@@ -816,7 +858,7 @@ class TranscriptionWorker(QThread):
                     if text:
                         # Add to context
                         self.context_manager.add_text(text)
-
+                        text = self.normalize_text(text)
                         # Emit the transcribed text
                         self.guitextReady.emit(text)
 
@@ -825,7 +867,7 @@ class TranscriptionWorker(QThread):
                         else:
                             # Find the overlap between the previous transcription and the current text
                             overlap_index = -1
-                            for i in range(len(self.prev_transcription)):
+                            for i in range(len(self.normalize_text(self.prev_transcription))):
                                 if text.startswith(self.prev_transcription[i:]):
                                     overlap_index = i
                                     break
@@ -836,37 +878,77 @@ class TranscriptionWorker(QThread):
                                 print(f"overlap made: {merged_text}")
                                 query = merged_text
                             else:
-                                # No overlap, treat as separate
+                                # No overlap, combine both texts
                                 print(f"no overlap: {self.prev_transcription} {text}")
-                                query = text
+                                query = self.prev_transcription + " " + text
                             self.prev_transcription = text
 
                         # Perform auto-search with the transcribed text
                         
                         print(f"🔍 Looking up verse for query: {query}")
                         
+                        query = self.normalize_text(query)
+                        
                         # Perform the search
                         results = self.perform_auto_search(query)
-                      
-                        for result in results:
-                            print(f" {result['reference']} - Score: {result['score']}")
                         
                         # Emit the search results
-                        threshold = float(self.settings.value('bible_confidence') or 60) 
+                        threshold = float(self.settings.value('bible_confidence') or 60)/100
+                        
                         # Keep only results >= threshold
-                        filtered_results = [
-                            r for r in results
-                            if float(r.get("score", 0)) >= threshold
-                        ]
-                        if filtered_results:
+                        filtered_results = []
+                        for r in results:
+                            score_raw = r.get("score", 0)
+                            score_str = str(score_raw).replace("%", "")
+                            try:
+                                score_val = float(score_str)
+                            except ValueError:
+                                score_val = 0.0
+                            if score_val >= threshold:
+                                filtered_results.append(r)
+                        
+                        # Keep only the highest scoring version for each verse
+                        verse_map = {}
+                        for r in filtered_results:
+                            # Extract verse key (book:chapter:verse without translation)
+                            verse_key = f"{r['book']} {r['chapter']}:{r['verse']}"
+                            
+                            if verse_key not in verse_map:
+                                verse_map[verse_key] = r
+                            else:
+                                # Keep the highest scoring version
+                                score_raw = r.get("score", 0)
+                                score_str = str(score_raw).replace("%", "")
+                                try:
+                                    current_score = float(score_str)
+                                except ValueError:
+                                    current_score = 0.0
+                                
+                                existing_score_raw = verse_map[verse_key].get("score", 0)
+                                existing_score_str = str(existing_score_raw).replace("%", "")
+                                try:
+                                    existing_score = float(existing_score_str)
+                                except ValueError:
+                                    existing_score = 0.0
+                                
+                                if current_score > existing_score:
+                                    verse_map[verse_key] = r
+                        
+                        deduped_results = list(verse_map.values())
+                                
+                        for result in deduped_results:
+                            print(f'results after applying threshold:{threshold}')
+                            print(f" {result['reference']} - Score: {result['score']}")
+                            
+                        if deduped_results:
                             # Use bible_confidence from settings as default confidence score
-                            self.autoSearchResults.emit(filtered_results, query, threshold,  self.auto_search_size)
+                            self.autoSearchResults.emit(deduped_results, query, threshold,  self.auto_search_size)
                         else:
-                            print("⚠️ No search results found")
+                            print(" No search results found")
 
                         # Clear queue if we're falling behind
                         if self.transcription_queue.qsize() > 3:
-                            print(f"⚠️ Transcription backlog: {self.transcription_queue.qsize()} tasks")
+                            print(f" Transcription backlog: {self.transcription_queue.qsize()} tasks")
 
                 except queue.Empty:
                     continue

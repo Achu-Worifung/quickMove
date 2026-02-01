@@ -2380,7 +2380,7 @@ QScrollBar::sub-page:vertical {
                  <property name="geometry">
                   <rect>
                    <x>0</x>
-                   <y>-470</y>
+                   <y>-617</y>
                    <width>516</width>
                    <height>1679</height>
                   </rect>
@@ -3478,7 +3478,7 @@ QCheckBox::indicator {
                            <cursorShape>WhatsThisCursor</cursorShape>
                           </property>
                           <property name="toolTip">
-                           <string>model's confidence in the transcribed audio segment. Avoid hallucinations</string>
+                           <string>(VAD) Void activity detection, decides if someone is spearking rightnow or is this silence, use to cut transcription audion when no speech is detected.</string>
                           </property>
                           <property name="text">
                            <string/>
@@ -3515,6 +3515,9 @@ QCheckBox::indicator {
                             <width>200</width>
                             <height>0</height>
                            </size>
+                          </property>
+                          <property name="maximum">
+                           <double>1.000000000000000</double>
                           </property>
                           <property name="singleStep">
                            <double>0.100000000000000</double>
