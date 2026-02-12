@@ -89,6 +89,7 @@ class TranscriptionWorker(QThread):
         self.search_page = search_page
         self.classifier = Classifier()
         self.transcribed_chunks = [] #stores 2 transcribed chunks for context
+        self.classification_chunks = [] #stores the classification
         
         self._pause = False
         self.pause_event = threading.Event()
@@ -560,29 +561,33 @@ class TranscriptionWorker(QThread):
                     context = task['context']
                     task_type = task['type']
 
-                    # Do the actual transcription (this is slow)
+                    # Transcribe chunk
                     text = self.transcribe_audio_chunk(audio_data, context)
-
                     if not text:
                         continue
-                    # Add to context
-                    self.context_manager.add_text(text)
+
+                    # Normalize & add to context
                     text = self.normalize_text(text)
-                    self.transcribed_chunks.append(text)
-                    
+                    self.context_manager.add_text(text)
+
+                    # ---- Buffers ----
+                    self.transcribed_chunks.append(text)     # for UI overlap
+                    self.classification_chunks.append(text)  # for classification/search
+
+                    # Keep last 2 chunks for UI overlap
+                    if len(self.transcribed_chunks) > 2:
+                        self.transcribed_chunks = self.transcribed_chunks[-2:]
+
+                    # Keep last 2 chunks for classification
+                    if len(self.classification_chunks) > 2:
+                        self.classification_chunks = self.classification_chunks[-2:]
+
+                    # ---- Overlap verification for UI ----
                     if len(self.transcribed_chunks) < 2:
-                        #only keep the last 2 transcribed chunks
-                        print("not enough chunks for context")
+                        print("Not enough chunks for context, waiting for next...")
                         continue
-                    elif len(self.transcribed_chunks) > 2:
-                        self.transcribed_chunks.pop(0)  # Keep only last 2 chunks
 
                     prev_chunk, curr_chunk = self.transcribed_chunks[-2:]
-                    print(f"Previous chunk: {prev_chunk}")
-                    print(f"Current chunk: {curr_chunk}")
-
-                    
-                    # ---- Overlap verification ----
                     overlap_index = -1
                     for i in range(len(prev_chunk)):
                         if curr_chunk.startswith(prev_chunk[i:]):
@@ -590,92 +595,70 @@ class TranscriptionWorker(QThread):
                             break
 
                     if overlap_index != -1:
-                        # Overlap found, merge them
                         merged_text = prev_chunk[:overlap_index] + curr_chunk
                         print(f"overlap made: {merged_text}")
                     else:
-                        # No overlap, just combine
                         merged_text = prev_chunk + " " + curr_chunk
                         print(f"no overlap: {merged_text}")
 
-                    # ---- Emit verified text to UI ----
+                    # Emit verified text to UI
                     self.guitextReady.emit(merged_text)
 
-                    # ---- Use merged text for classification/search ----
-                    query = merged_text
-                    label, confidence = self.classifier.classify(query)
-                    print(f"Classification result: labele -> {label} confidence -> {confidence:.2%}")
-                    
+                    # ---- Classification/search ----
+                    # Use only the last unclassified chunk for classification to prevent bleed
+                    chunk_to_classify = self.classification_chunks[-1]
+                    label, confidence = self.classifier.classify(chunk_to_classify)
+                    print(f"Classification result: label -> {label} confidence -> {confidence:.2%}")
+
+                    # Keyword fallback
                     keyword_pattern = r"\b(god|lord|jesus|christ|bible|heaven|hell)\b"
-                    contains_keyword = re.search(keyword_pattern, query, re.IGNORECASE) is not None
+                    contains_keyword = re.search(keyword_pattern, chunk_to_classify, re.IGNORECASE) is not None
+
                     if label == "non bible" and not contains_keyword:
-                        print('non bible and does not contain key words, skipping search')
-                        continue
-                        
-                    #classification is bible or contains key words, proceed with search
-                    # Perform the search
+                        print("Non-bible and does not contain key words, skipping search")
+                        continue  # skip search for non-Bible content
+                    self.classification_chunks = []  # Clear classification buffer after use
+                    # ---- Perform search ----
+                    query = merged_text if len(self.classification_chunks) > 0 else chunk_to_classify
                     results = self.perform_auto_search(query)
-                    
-                    # Emit the search results
-                    threshold = float(self.settings.value('bible_confidence') or 60)/100
-                    
-                    # Keep only results >= threshold
+
+                    # Filter by threshold
+                    threshold = float(self.settings.value("bible_confidence") or 60) / 100
                     filtered_results = []
                     for r in results:
-                        score_raw = r.get("score", 0)
-                        score_str = str(score_raw).replace("%", "")
+                        score_str = str(r.get("score", 0)).replace("%", "")
                         try:
                             score_val = float(score_str)
                         except ValueError:
                             score_val = 0.0
                         if score_val >= threshold:
                             filtered_results.append(r)
-                    
-                    # Keep only the highest scoring version for each verse
+
+                    # Deduplicate highest-scoring verses
                     verse_map = {}
                     for r in filtered_results:
-                        # Extract verse key (book:chapter:verse without translation)
                         verse_key = f"{r['book']} {r['chapter']}:{r['verse']}"
-                        
-                        if verse_key not in verse_map:
+                        current_score = float(str(r.get("score", 0)).replace("%", ""))
+                        existing_score = float(str(verse_map.get(verse_key, {}).get("score", 0)).replace("%", ""))
+                        if verse_key not in verse_map or current_score > existing_score:
                             verse_map[verse_key] = r
-                        else:
-                            # Keep the highest scoring version
-                            score_raw = r.get("score", 0)
-                            score_str = str(score_raw).replace("%", "")
-                            try:
-                                current_score = float(score_str)
-                            except ValueError:
-                                current_score = 0.0
-                            
-                            existing_score_raw = verse_map[verse_key].get("score", 0)
-                            existing_score_str = str(existing_score_raw).replace("%", "")
-                            try:
-                                existing_score = float(existing_score_str)
-                            except ValueError:
-                                existing_score = 0.0
-                            
-                            if current_score > existing_score:
-                                verse_map[verse_key] = r
-                    
-                    deduped_results = list(verse_map.values())
-                            
-                    for result in deduped_results:
-                        print(f'results after applying threshold:{threshold}')
-                        print(f" {result['reference']} - Score: {result['score']}")
-                        
-                    if deduped_results:
-                        # Use bible_confidence from settings as default confidence score
-                        self.autoSearchResults.emit(deduped_results, query, threshold,  self.auto_search_size)
-                    else:
-                        print(" No search results found")
 
-                    # Clear queue if we're falling behind
+                    deduped_results = list(verse_map.values())
+                    for result in deduped_results:
+                        print(f"results after applying threshold:{threshold}")
+                        print(f" {result['reference']} - Score: {result['score']}")
+
+                    if deduped_results:
+                        self.autoSearchResults.emit(deduped_results, query, threshold, self.auto_search_size)
+                    else:
+                        print("No search results found")
+
+                    # ---- Handle transcription backlog ----
                     if self.transcription_queue.qsize() > 3:
-                        print(f" Transcription backlog: {self.transcription_queue.qsize()} tasks")
-                        
+                        print(f"Transcription backlog: {self.transcription_queue.qsize()} tasks")
 
                 except queue.Empty:
+
                     continue
         except Exception as e:
             print(f"Error in transcription loop: {e}")

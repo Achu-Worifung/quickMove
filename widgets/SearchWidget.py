@@ -405,6 +405,7 @@ class SearchWidget(QDialog):
 
     def add_auto_search_results(self, results, query, confidence=None, max_results=10):
         
+        results.sort(key=lambda x: x.get('score', 0), reverse=True)
 
         count = 0
         for result in results:
