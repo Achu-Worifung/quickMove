@@ -6,22 +6,17 @@ from faster_whisper import WhisperModel
 from silero_vad import load_silero_vad, get_speech_timestamps
 import numpy as np 
 import sounddevice as sd
-import sys
 import queue
 import time 
 import os 
 from util.util import resource_path
 import threading
 from PyQt5.QtCore import QSettings
-from transformers import AutoModel, AutoTokenizer, pipeline
-import json
 import re
-import faiss
 from rank_bm25 import BM25Okapi
 from scipy.special import expit
 import unicodedata
 from util.classifier import Classifier
-
 from util.biblesearch import BibleSearch
 
 
@@ -93,6 +88,7 @@ class TranscriptionWorker(QThread):
         self.record_page = parent
         self.search_page = search_page
         self.classifier = Classifier()
+        self.transcribed_chunks = [] #stores 2 transcribed chunks for context
         
         self._pause = False
         self.pause_event = threading.Event()
@@ -186,11 +182,11 @@ class TranscriptionWorker(QThread):
     def initialize_bible_search(self):
         """Initialize Bible search in background thread"""
         try:
-            print("🔄 Initializing Bible search engine...")
+            print("Initializing Bible search engine...")
             self.bible_search = BibleSearch(device_type=self.device_type)
-            print("✅ Bible search engine ready!")
+            print("Bible search engine ready!")
         except Exception as e:
-            print(f"❌ Failed to initialize Bible search: {e}")
+            print(f"Failed to initialize Bible search: {e}")
             self.bible_search = None
     
     def load_transcription_model(self, num_workers: int = 2):
@@ -214,9 +210,9 @@ class TranscriptionWorker(QThread):
                 cpu_threads=cpu_threads,
                 download_root=resource_path(os.path.join("models", f"{self.model_size}")),
             )
-            print("✅ Whisper model loaded successfully.")
+            print("Whisper model loaded successfully.")
         except Exception as e:
-            print(f"❌ Error loading Whisper model: {e}")
+            print(f"Error loading Whisper model: {e}")
             import traceback
             traceback.print_exc()
             self.whisper = None
@@ -318,7 +314,7 @@ class TranscriptionWorker(QThread):
                         except queue.Empty:
                             pass
                         queue.clear()  # Clear any remaining items just in case
-                        print("⚠️ Transcription queue full, cleared backlog")
+                        print("Transcription queue full, cleared backlog")
                     
                     # Keep only last 1 chunk for overlap
                     if len(self.accumulated_audio) > 1:
@@ -352,7 +348,7 @@ class TranscriptionWorker(QThread):
                                 self.statusUpdate.emit("processing")
                             except queue.Full:
                                 queue.clear()  # Clear any pending items to recover from backlog
-                                print("⚠️ Transcription queue full, skipping final transcription")
+                                print(" Transcription queue full, skipping final transcription")
                     
                     # Reset for next utterance
                     self.accumulated_audio = []
@@ -366,14 +362,13 @@ class TranscriptionWorker(QThread):
         Runs in transcription thread - can be slow
         """
         if self.whisper is None:
-            print("❌ Whisper model not loaded. Please check model loading errors above.")
+            print("Whisper model not loaded. Please check model loading errors above.")
             return ""
             
         if len(audio_data) < self.sample_rate * 0.3:  # Less than 0.3s
             return ""
         
         # Track transcription time
-        start_time = time.time()
         
         try:
             # Use minimal parameters for speed
@@ -402,23 +397,17 @@ class TranscriptionWorker(QThread):
                 text = segment.text.strip()
                 if text:
                     texts.append(text)
-            
-            # Update performance stats
-            elapsed = time.time() - start_time
-            self.stats['transcription_count'] += 1
-            self.stats['avg_transcription_time'] = (
-                (self.stats['avg_transcription_time'] * (self.stats['transcription_count'] - 1) + elapsed) 
-                / self.stats['transcription_count']
-            )
+    
             
             if not texts:
+                print("No text transcribed: transcription confidence may be lower than expected.")
                 return ""
             
             result = " ".join(texts).strip()
             
-            # Log performance warnings
-            if elapsed > 2.0:
-                print(f"⚠️ Slow transcription: {elapsed:.2f}s for {len(audio_data)/self.sample_rate:.2f}s audio")
+            # print(f"Transcribed: {result} confidence {segments[0].confidence if segments else 0}")
+            
+           
             
             return result
             
@@ -574,110 +563,117 @@ class TranscriptionWorker(QThread):
                     # Do the actual transcription (this is slow)
                     text = self.transcribe_audio_chunk(audio_data, context)
 
-                    if text:
-                        # Add to context
-                        self.context_manager.add_text(text)
-                        text = self.normalize_text(text)
-                        # Emit the transcribed text
-                        self.guitextReady.emit(text)
+                    if not text:
+                        continue
+                    # Add to context
+                    self.context_manager.add_text(text)
+                    text = self.normalize_text(text)
+                    self.transcribed_chunks.append(text)
+                    
+                    if len(self.transcribed_chunks) < 2:
+                        #only keep the last 2 transcribed chunks
+                        print("not enough chunks for context")
+                        continue
+                    elif len(self.transcribed_chunks) > 2:
+                        self.transcribed_chunks.pop(0)  # Keep only last 2 chunks
 
-                        if self.prev_transcription is None:
-                            self.prev_transcription = text
+                    prev_chunk, curr_chunk = self.transcribed_chunks[-2:]
+                    print(f"Previous chunk: {prev_chunk}")
+                    print(f"Current chunk: {curr_chunk}")
+
+                    
+                    # ---- Overlap verification ----
+                    overlap_index = -1
+                    for i in range(len(prev_chunk)):
+                        if curr_chunk.startswith(prev_chunk[i:]):
+                            overlap_index = i
+                            break
+
+                    if overlap_index != -1:
+                        # Overlap found, merge them
+                        merged_text = prev_chunk[:overlap_index] + curr_chunk
+                        print(f"overlap made: {merged_text}")
+                    else:
+                        # No overlap, just combine
+                        merged_text = prev_chunk + " " + curr_chunk
+                        print(f"no overlap: {merged_text}")
+
+                    # ---- Emit verified text to UI ----
+                    self.guitextReady.emit(merged_text)
+
+                    # ---- Use merged text for classification/search ----
+                    query = merged_text
+                    label, confidence = self.classifier.classify(query)
+                    print(f"Classification result: labele -> {label} confidence -> {confidence:.2%}")
+                    
+                    keyword_pattern = r"\b(god|lord|jesus|christ|bible|heaven|hell)\b"
+                    contains_keyword = re.search(keyword_pattern, query, re.IGNORECASE) is not None
+                    if label == "non bible" and not contains_keyword:
+                        print('non bible and does not contain key words, skipping search')
+                        continue
+                        
+                    #classification is bible or contains key words, proceed with search
+                    # Perform the search
+                    results = self.perform_auto_search(query)
+                    
+                    # Emit the search results
+                    threshold = float(self.settings.value('bible_confidence') or 60)/100
+                    
+                    # Keep only results >= threshold
+                    filtered_results = []
+                    for r in results:
+                        score_raw = r.get("score", 0)
+                        score_str = str(score_raw).replace("%", "")
+                        try:
+                            score_val = float(score_str)
+                        except ValueError:
+                            score_val = 0.0
+                        if score_val >= threshold:
+                            filtered_results.append(r)
+                    
+                    # Keep only the highest scoring version for each verse
+                    verse_map = {}
+                    for r in filtered_results:
+                        # Extract verse key (book:chapter:verse without translation)
+                        verse_key = f"{r['book']} {r['chapter']}:{r['verse']}"
+                        
+                        if verse_key not in verse_map:
+                            verse_map[verse_key] = r
                         else:
-                            # Find the overlap between the previous transcription and the current text
-                            overlap_index = -1
-                            for i in range(len(self.normalize_text(self.prev_transcription))):
-                                if text.startswith(self.prev_transcription[i:]):
-                                    overlap_index = i
-                                    break
-
-                            if overlap_index != -1:
-                                # Overlap found, merge the texts
-                                merged_text = self.prev_transcription[:overlap_index] + text
-                                print(f"overlap made: {merged_text}")
-                                query = merged_text
-                            else:
-                                # No overlap, combine both texts
-                                print(f"no overlap: {self.prev_transcription} {text}")
-                                query = self.prev_transcription + " " + text
-                            self.prev_transcription = text
-
-                        # Perform auto-search with the transcribed text
-                        
-                        print(f"🔍 Looking up verse for query: {query}")
-                        
-                        query = self.normalize_text(query)
-                        
-                        #classifier the text
-                        label, confidence = self.classifier.classify(query)
-                        print(f"Classification result: {label} (confidence: {confidence:.2f}%)")    
-                        keyword_pattern = r"\b(god|lord|jesus|christ|bible|heaven|hell)\b"
-                        contains_keyword = re.search(keyword_pattern, query, re.IGNORECASE) is not None
-                        if label == "non bible" and not contains_keyword:
-                            print('non bible and does not contain key words, skipping search')
-                            continue
-                            
-                        #classification is bible or contains key words, proceed with search
-                        # Perform the search
-                        results = self.perform_auto_search(query)
-                        
-                        # Emit the search results
-                        threshold = float(self.settings.value('bible_confidence') or 60)/100
-                        
-                        # Keep only results >= threshold
-                        filtered_results = []
-                        for r in results:
+                            # Keep the highest scoring version
                             score_raw = r.get("score", 0)
                             score_str = str(score_raw).replace("%", "")
                             try:
-                                score_val = float(score_str)
+                                current_score = float(score_str)
                             except ValueError:
-                                score_val = 0.0
-                            if score_val >= threshold:
-                                filtered_results.append(r)
-                        
-                        # Keep only the highest scoring version for each verse
-                        verse_map = {}
-                        for r in filtered_results:
-                            # Extract verse key (book:chapter:verse without translation)
-                            verse_key = f"{r['book']} {r['chapter']}:{r['verse']}"
+                                current_score = 0.0
                             
-                            if verse_key not in verse_map:
+                            existing_score_raw = verse_map[verse_key].get("score", 0)
+                            existing_score_str = str(existing_score_raw).replace("%", "")
+                            try:
+                                existing_score = float(existing_score_str)
+                            except ValueError:
+                                existing_score = 0.0
+                            
+                            if current_score > existing_score:
                                 verse_map[verse_key] = r
-                            else:
-                                # Keep the highest scoring version
-                                score_raw = r.get("score", 0)
-                                score_str = str(score_raw).replace("%", "")
-                                try:
-                                    current_score = float(score_str)
-                                except ValueError:
-                                    current_score = 0.0
-                                
-                                existing_score_raw = verse_map[verse_key].get("score", 0)
-                                existing_score_str = str(existing_score_raw).replace("%", "")
-                                try:
-                                    existing_score = float(existing_score_str)
-                                except ValueError:
-                                    existing_score = 0.0
-                                
-                                if current_score > existing_score:
-                                    verse_map[verse_key] = r
-                        
-                        deduped_results = list(verse_map.values())
-                                
-                        for result in deduped_results:
-                            print(f'results after applying threshold:{threshold}')
-                            print(f" {result['reference']} - Score: {result['score']}")
+                    
+                    deduped_results = list(verse_map.values())
                             
-                        if deduped_results:
-                            # Use bible_confidence from settings as default confidence score
-                            self.autoSearchResults.emit(deduped_results, query, threshold,  self.auto_search_size)
-                        else:
-                            print(" No search results found")
+                    for result in deduped_results:
+                        print(f'results after applying threshold:{threshold}')
+                        print(f" {result['reference']} - Score: {result['score']}")
+                        
+                    if deduped_results:
+                        # Use bible_confidence from settings as default confidence score
+                        self.autoSearchResults.emit(deduped_results, query, threshold,  self.auto_search_size)
+                    else:
+                        print(" No search results found")
 
-                        # Clear queue if we're falling behind
-                        if self.transcription_queue.qsize() > 3:
-                            print(f" Transcription backlog: {self.transcription_queue.qsize()} tasks")
+                    # Clear queue if we're falling behind
+                    if self.transcription_queue.qsize() > 3:
+                        print(f" Transcription backlog: {self.transcription_queue.qsize()} tasks")
+                        
 
                 except queue.Empty:
                     continue
@@ -696,11 +692,11 @@ class TranscriptionWorker(QThread):
         if new_value:
             self.pause_event.clear()
             self.statusUpdate.emit("paused")
-            print('⏸️  Paused transcription')
+            print('Paused transcription')
         else:
             self.pause_event.set()
             self.statusUpdate.emit("listening")
-            print('▶️  Resumed transcription')
+            print('Resumed transcription')
             
         return new_value
         
@@ -715,7 +711,7 @@ class TranscriptionWorker(QThread):
         try:
             # Load models on thread start (not in __init__)
             if not self.models_loaded:
-                print("📦 Loading Whisper and VAD models...")
+                print("Loading Whisper and VAD models...")
                 self.whisper, self.vad = self.load_transcription_model()
                 self.models_loaded = True
                 
@@ -746,4 +742,5 @@ class TranscriptionWorker(QThread):
         finally:
             self.running = False
             self._stop = True
+            self.classifier.offload_classifier() # Offload classifier to free GPU memory
             self.finished.emit()
