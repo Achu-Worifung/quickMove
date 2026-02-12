@@ -18,7 +18,7 @@ from scipy.special import expit
 import unicodedata
 from util.classifier import Classifier
 from util.biblesearch import BibleSearch
-
+from rapidfuzz import fuzz
 
 class AudioProcessor:
     """Simple audio processor for normalization"""
@@ -90,6 +90,7 @@ class TranscriptionWorker(QThread):
         self.classifier = Classifier()
         self.transcribed_chunks = [] #stores 2 transcribed chunks for context
         self.classification_chunks = [] #stores the classification
+        self.verse_buffer = {} #stores recent verses for context in search
         
         self._pause = False
         self.pause_event = threading.Event()
@@ -226,6 +227,16 @@ class TranscriptionWorker(QThread):
             self.vad = None
             
         return self.whisper, self.vad
+
+    def _clear_queue(self, q: queue.Queue):
+        """
+        Safely drain a queue.Queue instance without relying on module-level functions.
+        """
+        try:
+            while True:
+                q.get_nowait()
+        except queue.Empty:
+            return
     
     def audio_callback(self, indata, frames, time_info, status):
         """
@@ -309,12 +320,8 @@ class TranscriptionWorker(QThread):
                         self.statusUpdate.emit("processing")
                     except queue.Full:
                         # Clear pending items to recover from backlog
-                        try:
-                            while True:
-                                self.transcription_queue.get_nowait()
-                        except queue.Empty:
-                            pass
-                        queue.clear()  # Clear any remaining items just in case
+                        # Drain the transcription queue to recover from backlog
+                        self._clear_queue(self.transcription_queue)
                         print("Transcription queue full, cleared backlog")
                     
                     # Keep only last 1 chunk for overlap
@@ -348,8 +355,8 @@ class TranscriptionWorker(QThread):
                                 })
                                 self.statusUpdate.emit("processing")
                             except queue.Full:
-                                queue.clear()  # Clear any pending items to recover from backlog
-                                print(" Transcription queue full, skipping final transcription")
+                                self._clear_queue(self.transcription_queue)
+                                print("Transcription queue full, skipping final transcription")
                     
                     # Reset for next utterance
                     self.accumulated_audio = []
@@ -607,31 +614,73 @@ class TranscriptionWorker(QThread):
                     # ---- Classification/search ----
                     # Use only the last unclassified chunk for classification to prevent bleed
                     chunk_to_classify = self.classification_chunks[-1]
-                    label, confidence = self.classifier.classify(chunk_to_classify)
+                    #checking if this is a continuation of the previous chunk or a new phrase to classify
+                    is_continuation = False
+                    print(f"Chunk to classify: {chunk_to_classify}")
+                    print(f"Verse buffer for context: {list(self.verse_buffer.keys())}")
+                    if merged_text and self.verse_buffer:
+                        try:                       
+                            for key, verse_data in self.verse_buffer.items():
+                                # verse_data should be a dict with 'text' and other fields
+                                if isinstance(verse_data, dict):
+                                    verse_text = verse_data.get('text', '').lower()
+                                    reference = verse_data.get('reference', key)
+                                else:
+                                    # Fallback if verse_data is just a string
+                                    verse_text = str(verse_data).lower()
+                                    reference = key
+                                
+                                score = fuzz.partial_ratio(merged_text.lower(), verse_text)                                
+                                if score > 85:
+                                    print(f"Fuzzy Continuation: {score}% match with {reference}")
+                                    is_continuation = True
+                                    break                                                                   
+                        except Exception as e:
+                            print(f'Error with fuzzy search: {e}')
+
+                    if is_continuation:
+                        # Skip search/classification 
+                        continue
+                        
+                    
+                    label, confidence = self.classifier.classify(merged_text)
                     print(f"Classification result: label -> {label} confidence -> {confidence:.2%}")
 
                     # Keyword fallback
                     keyword_pattern = r"\b(god|lord|jesus|christ|bible|heaven|hell)\b"
-                    contains_keyword = re.search(keyword_pattern, chunk_to_classify, re.IGNORECASE) is not None
+                    contains_keyword = re.search(keyword_pattern, merged_text, re.IGNORECASE) is not None
 
                     if label == "non bible" and not contains_keyword:
                         print("Non-bible and does not contain key words, skipping search")
+                        #clearing the verse buffer since we likely have a new topic and the old verses won't be relevant anymore
+                        self.verse_buffer = {}
                         continue  # skip search for non-Bible content
                     self.classification_chunks = []  # Clear classification buffer after use
                     # ---- Perform search ----
                     query = merged_text if len(self.classification_chunks) > 0 else chunk_to_classify
                     results = self.perform_auto_search(query)
+                    
+                    
 
                     # Filter by threshold
                     threshold = float(self.settings.value("bible_confidence") or 60) / 100
                     filtered_results = []
                     for r in results:
                         score_str = str(r.get("score", 0)).replace("%", "")
+                        #adding the verses to the verse buffer for context in future searches
                         try:
                             score_val = float(score_str)
                         except ValueError:
                             score_val = 0.0
+                            print(f"Invalid score value: {score_str} in result {r['reference']}")
                         if score_val >= threshold:
+                            # Store the full result dict, not just text
+                            self.verse_buffer[r['reference']] = {
+                                'text': self.normalize_text(r['text']),
+                                'reference': r['reference'],
+                                'score': score_val,
+                                'version': r.get('version', '')
+                            }
                             filtered_results.append(r)
 
                     # Deduplicate highest-scoring verses
@@ -644,9 +693,7 @@ class TranscriptionWorker(QThread):
                             verse_map[verse_key] = r
 
                     deduped_results = list(verse_map.values())
-                    for result in deduped_results:
-                        print(f"results after applying threshold:{threshold}")
-                        print(f" {result['reference']} - Score: {result['score']}")
+                    print(f"Search results for '{query}': {deduped_results}")
 
                     if deduped_results:
                         self.autoSearchResults.emit(deduped_results, query, threshold, self.auto_search_size)

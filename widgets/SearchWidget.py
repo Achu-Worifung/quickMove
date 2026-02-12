@@ -405,7 +405,7 @@ class SearchWidget(QDialog):
 
     def add_auto_search_results(self, results, query, confidence=None, max_results=10):
         
-        results.sort(key=lambda x: x.get('score', 0), reverse=True)
+        results.sort(key=lambda x: x.get('score', 0), reverse=False)
 
         count = 0
         for result in results:
@@ -416,6 +416,7 @@ class SearchWidget(QDialog):
 
             if reference in self.displayed_verse:
                 # Remove it and add it to the top
+                print(f'Removing {reference} from displayed_verse to re-add at top with confidence {confidence}')
                 widget_to_remove = self.old_widget[self.displayed_verse.index(reference)]
                 if widget_to_remove:
                     self.searchPane.removeWidget(widget_to_remove)
