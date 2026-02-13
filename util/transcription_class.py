@@ -614,7 +614,6 @@ class TranscriptionWorker(QThread):
                     # Use only the last unclassified chunk for classification to prevent bleed
                     chunk_to_classify = self.classification_chunks[-1]
                     #checking if this is a continuation of the previous chunk or a new phrase to classify
-                    is_continuation = False
                     print(f"Chunk to classify: {chunk_to_classify}")
                     print(f"Verse buffer for context: {list(self.verse_buffer.keys())}")
                     if chunk_to_classify and self.verse_buffer:
@@ -637,19 +636,29 @@ class TranscriptionWorker(QThread):
                                     'end': alignment.dest_end
                                 }
 
-                        if best_score > 80:
-                            is_continuation = True
-                            
+                        if best_score > 70:                            
                             # Use best_match_info specifically to avoid "last item in loop" bugs
                             target_text = best_match_info['text']
                             target_ref = best_match_info['data'].get('reference', 'Unknown')
+                            target_book = best_match_info['data'].get('book', '')
+                            target_chapter = best_match_info['data'].get('chapter', '')
+                            target_verse = best_match_info['data'].get('verse', '')
                             
                             continuation_result = [{
                                 'reference': target_ref,
+                                'book': target_book,
+                                'chapter': target_chapter,
+                                'verse': target_verse,
                                 'text': target_text, 
-                                'score': f"{best_score:.0f}%",
+                                'score': f"{1.0:.0f}%",
                                 'is_continuation': True 
                             }]
+                            
+                            # print(f"found continuation match: @ reference -> {target_ref} with score -> {best_score:.0f}% ")
+                            
+                            
+                            print(f'continuation match found @ book {target_book} chapter {target_chapter} verse {target_verse} with score -> {best_score:.0f}% ')
+                            
                             
                             # Emitting the "matched portion" of the verse as the query
                             matched_chunk = target_text[:best_match_info['end']]
@@ -657,6 +666,8 @@ class TranscriptionWorker(QThread):
                             self.autoSearchResults.emit(continuation_result, matched_chunk, threshold, self.auto_search_size)
                             print(f'continuiting found: @ reference -> {target_ref} with score -> {best_score:.0f}% skipping the search ')
                             continue 
+                        else:
+                                print(f"No good continuation match found (best score: {best_score:.0f}%), for {best_match_info} \n proceeding with classification and search")
                                                                                
                     
                     label, confidence = self.classifier.classify(merged_text)
@@ -695,7 +706,10 @@ class TranscriptionWorker(QThread):
                                 'text': self.normalize_text(r['text']),
                                 'reference': r['reference'],
                                 'score': score_val,
-                                'version': r.get('version', '')
+                                'version': r.get('version', ''),
+                                'book': r.get('book', ''),
+                                'chapter': r.get('chapter', ''),
+                                'verse': r.get('verse', '')
                             }
                             filtered_results.append(r)
 
