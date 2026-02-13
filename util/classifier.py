@@ -20,8 +20,12 @@ class Classifier:
         if self.tokenizer_loaded is None or self.model_loaded is None:
             raise Exception("Classifier not loaded. Call load_classifier() first.")
         
+        # Handle both single text and batch (list of texts)
+        is_batch = isinstance(text, list)
+        texts = text if is_batch else [text]
+        
         inputs = self.tokenizer_loaded(
-            text,
+            texts,
             return_tensors="pt",
             truncation=True,
             padding=True,
@@ -37,10 +41,15 @@ class Classifier:
         # Apply softmax to get probabilities
         probabilities = torch.nn.functional.softmax(logits, dim=-1)
         
-        predicted_class_id = torch.argmax(logits, dim=1).item()
-        confidence = probabilities[0, predicted_class_id].item()
+        predicted_class_ids = torch.argmax(logits, dim=1)
+        confidences = probabilities[torch.arange(len(texts)), predicted_class_ids]
         
-        return self.labled_map[predicted_class_id], confidence
+        # Return in same format as input
+        if is_batch:
+            return [(self.labled_map[cid.item()], conf.item()) 
+                    for cid, conf in zip(predicted_class_ids, confidences)]
+        else:
+            return self.labled_map[predicted_class_ids[0].item()], confidences[0].item()
     
     def offload_classifier(self):
         if self.model_loaded is not None:

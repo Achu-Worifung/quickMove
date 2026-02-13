@@ -613,18 +613,23 @@ class TranscriptionWorker(QThread):
                     self.guitextReady.emit(merged_text)
                     
                     #check if reference exist in transcription 
-                    spoken_references = extract_bible_reference(merged_text)
-                    if spoken_references:
-                        fst_reference = spoken_references[0]['full']
-                        references_dict = [{
-                            'reference': fst_reference,
-                            'text':"",
-                            'score':1.0
-                        }]
-
+                    # spoken_references = extract_bible_reference(merged_text)
+                    # reference_dict = []
+                    # if spoken_references:
+                    #     for ref in spoken_references:
+                    #         print(f"Found spoken reference: {ref['full']} in transcription, skipping search and emitting directly")
+                            
+                    #         reference_dict.append({
+                    #             'reference': ref['full'],
+                    #             'book': ref.get('book', ''),
+                    #             'chapter': ref.get('chapter', ''),
+                    #             'verse': ref.get('verse', ''),
+                    #             'text':"",
+                    #             'score':1.0
+                    #         })                            
                         
-                        self.autoSearchResults.emit(references_dict, "", 0.00, self.auto_search_size)
-                        continue #skipping search entirely
+                    #     self.autoSearchResults.emit(reference_dict, "", 0.00, self.auto_search_size)
+                    #     continue #skipping search entirely
                         
                             
                     # Use only the last unclassified chunk for classification to prevent bleed
@@ -686,21 +691,24 @@ class TranscriptionWorker(QThread):
                                 print(f"No good continuation match found (best score: {best_score:.0f}%), for {best_match_info} \n proceeding with classification and search")
                                                                                
                     
-                    label, confidence = self.classifier.classify(merged_text)
-                    print(f"Classification result: label -> {label} confidence -> {confidence:.2%}")
+                    results = self.classifier.classify([merged_text, chunk_to_classify])
+                    label_merged, confidence_merged = results[0]
+                    label_chunk, confidence_chunk = results[1]
+                    
+                    print(f"Classification result: merged -> {label_merged} ({confidence_merged:.2%}), chunk -> {label_chunk} ({confidence_chunk:.2%})")
 
                     # Keyword fallback
                     keyword_pattern = r"\b(god|lord|jesus|christ|bible|heaven|hell)\b"
                     contains_keyword = re.search(keyword_pattern, merged_text, re.IGNORECASE) is not None
 
-                    if label == "non bible" and not contains_keyword:
+                    if label_merged == "non bible" and label_chunk == "non bible" and not contains_keyword:
                         print("Non-bible and does not contain key words, skipping search")
                         #clearing the verse buffer since we likely have a new topic and the old verses won't be relevant anymore
                         self.verse_buffer = {}
                         continue  # skip search for non-Bible content
                     self.classification_chunks = []  # Clear classification buffer after use
                     # ---- Perform search ----
-                    query = merged_text if len(self.classification_chunks) > 0 else chunk_to_classify
+                    query = chunk_to_classify if label_merged == 'non bible' else merged_text #search for the chunk if the entire text is non-bible
                     results = self.perform_auto_search(query)
                     
                     
@@ -732,7 +740,7 @@ class TranscriptionWorker(QThread):
                     # Deduplicate highest-scoring verses
                     verse_map = {}
                     for r in filtered_results:
-                        verse_key = f"{r['book']} {r['chapter']}:{r['verse']}"
+                        verse_key = f"{r['book'].lower()} {r['chapter']}:{r['verse']}"
                         current_score = float(str(r.get("score", 0)).replace("%", ""))
                         existing_score = float(str(verse_map.get(verse_key, {}).get("score", 0)).replace("%", ""))
                         if verse_key not in verse_map or current_score > existing_score:
@@ -753,8 +761,18 @@ class TranscriptionWorker(QThread):
                 except queue.Empty:
 
                     continue
+                    
+                except Exception as e:
+                    import traceback
+                    print(f"Error processing transcription task: {e}")
+                    traceback.print_exc()
+                    # Continue to next task instead of crashing the loop
+                    continue
         except Exception as e:
+            import traceback
             print(f"Error in transcription loop: {e}")
+            traceback.print_exc()
+            
             
     def pause_transcription(self):
         """

@@ -1,10 +1,13 @@
 import re 
 
 def extract_bible_reference(text):
-    word_pattern =     text = re.sub(r'chapter\s+(\d+)\s+verse\s+(\d+)', r'\1:\2', text)
-    pattern = r'\b(?:[1-4]\s+)?[a-z]+\s+\d+:\d+(?:-\d+)?\b'
+    # Normalize "chapter X verse Y" format to "X:Y"
+    text = re.sub(r'chapter\s+(\d+)\s+verse\s+(\d+)', r'\1:\2', text, flags=re.IGNORECASE)
     
-    matches = re.finditer(pattern, word_pattern)
+    # Match patterns like "1 john 1:9" OR "1 john 1 9" (with space instead of colon)
+    pattern = r'\b(?:[1-4]\s+)?[a-z]+\s+\d+(?:[:\/\s]\d+(?:[-:\/\s]\d+)?)?\b'
+    
+    matches = re.finditer(pattern, text, re.IGNORECASE)
     
     results = []
     

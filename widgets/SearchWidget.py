@@ -412,7 +412,7 @@ class SearchWidget(QDialog):
             if count >= max_results:
                 break
 
-            reference = result.get('book', '') + ' ' + str(result.get('chapter', '')) + ':' + str(result.get('verse', '')) 
+            reference = result.get('book', '').lower() + ' ' + str(result.get('chapter', '')) + ':' + str(result.get('verse', '')) 
 
             if reference in self.displayed_verse:
                 # Remove it and add it to the top
@@ -424,6 +424,15 @@ class SearchWidget(QDialog):
                     widget_to_remove.deleteLater()
                 self.displayed_verse.remove(reference)
                 self.old_widget.remove(widget_to_remove)
+                
+            #clearing the set if too much verses
+            if len(self.displayed_verse) > 15:
+                self.displayed_verse.pop()
+                widget_to_remove = self.old_widget.pop()
+                if widget_to_remove:
+                    self.searchPane.removeWidget(widget_to_remove)
+                    widget_to_remove.setParent(None)
+                    widget_to_remove.deleteLater()
 
             self.displayed_verse.append(reference)
             self.add_verse_widget(query, reference=reference, result=result, confidence=result['score'])
