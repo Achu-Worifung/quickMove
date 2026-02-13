@@ -608,40 +608,56 @@ class TranscriptionWorker(QThread):
                         merged_text = prev_chunk + " " + curr_chunk
                         print(f"no overlap: {merged_text}")
 
-                    # Emit verified text to UI
+                    # Emit verified text to ui
                     self.guitextReady.emit(merged_text)
 
-                    # ---- Classification/search ----
                     # Use only the last unclassified chunk for classification to prevent bleed
                     chunk_to_classify = self.classification_chunks[-1]
                     #checking if this is a continuation of the previous chunk or a new phrase to classify
                     is_continuation = False
                     print(f"Chunk to classify: {chunk_to_classify}")
                     print(f"Verse buffer for context: {list(self.verse_buffer.keys())}")
-                    if merged_text and self.verse_buffer:
-                        try:                       
-                            for key, verse_data in self.verse_buffer.items():
-                                # verse_data should be a dict with 'text' and other fields
-                                if isinstance(verse_data, dict):
-                                    verse_text = verse_data.get('text', '').lower()
-                                    reference = verse_data.get('reference', key)
-                                else:
-                                    # Fallback if verse_data is just a string
-                                    verse_text = str(verse_data).lower()
-                                    reference = key
-                                
-                                score = fuzz.partial_ratio(merged_text.lower(), verse_text)                                
-                                if score > 85:
-                                    print(f"Fuzzy Continuation: {score}% match with {reference}")
-                                    is_continuation = True
-                                    break                                                                   
-                        except Exception as e:
-                            print(f'Error with fuzzy search: {e}')
+                    if chunk_to_classify and self.verse_buffer:
+                        best_score = 0
+                        best_match_info = None
 
-                    if is_continuation:
-                        # Skip search/classification 
-                        continue
-                        
+                        for key, verse_data in self.verse_buffer.items():
+                            # Get text safely
+                            v_text = verse_data.get('text', '') if isinstance(verse_data, dict) else str(verse_data)
+                            
+                            # Calculate alignment
+                            alignment = fuzz.partial_ratio_alignment(merged_text.lower(), v_text.lower())
+                            
+                            if alignment.score > best_score:
+                                best_score = alignment.score
+                                best_match_info = {
+                                    'data': verse_data,
+                                    'text': v_text, 
+                                    'start': alignment.dest_start,
+                                    'end': alignment.dest_end
+                                }
+
+                        if best_score > 80:
+                            is_continuation = True
+                            
+                            # Use best_match_info specifically to avoid "last item in loop" bugs
+                            target_text = best_match_info['text']
+                            target_ref = best_match_info['data'].get('reference', 'Unknown')
+                            
+                            continuation_result = [{
+                                'reference': target_ref,
+                                'text': target_text, 
+                                'score': f"{best_score:.0f}%",
+                                'is_continuation': True 
+                            }]
+                            
+                            # Emitting the "matched portion" of the verse as the query
+                            matched_chunk = target_text[:best_match_info['end']]
+                            
+                            self.autoSearchResults.emit(continuation_result, matched_chunk, threshold, self.auto_search_size)
+                            print(f'continuiting found: @ reference -> {target_ref} with score -> {best_score:.0f}% skipping the search ')
+                            continue 
+                                                                               
                     
                     label, confidence = self.classifier.classify(merged_text)
                     print(f"Classification result: label -> {label} confidence -> {confidence:.2%}")
