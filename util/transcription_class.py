@@ -19,6 +19,7 @@ import unicodedata
 from util.classifier import Classifier
 from util.biblesearch import BibleSearch
 from rapidfuzz import fuzz
+from util.extract_verse import extract_bible_reference
 
 class AudioProcessor:
     """Simple audio processor for normalization"""
@@ -610,7 +611,22 @@ class TranscriptionWorker(QThread):
 
                     # Emit verified text to ui
                     self.guitextReady.emit(merged_text)
+                    
+                    #check if reference exist in transcription 
+                    spoken_references = extract_bible_reference(merged_text)
+                    if spoken_references:
+                        fst_reference = spoken_references[0]['full']
+                        references_dict = [{
+                            'reference': fst_reference,
+                            'text':"",
+                            'score':1.0
+                        }]
 
+                        
+                        self.autoSearchResults.emit(references_dict, "", 0.00, self.auto_search_size)
+                        continue #skipping search entirely
+                        
+                            
                     # Use only the last unclassified chunk for classification to prevent bleed
                     chunk_to_classify = self.classification_chunks[-1]
                     #checking if this is a continuation of the previous chunk or a new phrase to classify
