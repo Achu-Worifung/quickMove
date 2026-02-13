@@ -402,6 +402,13 @@ class SearchWidget(QDialog):
             print('here is the result in update', reference)
             self.displayed_verse.append(reference)
             self.add_verse_widget(query=query, reference=reference[0], result=None)
+    def remove_widget(self, widget):
+        if not widget:
+            return
+
+        self.searchPane.removeWidget(widget)
+        widget.setParent(None)
+        widget.deleteLater()
 
     def add_auto_search_results(self, results, query, confidence=None, max_results=10):
         
@@ -415,24 +422,20 @@ class SearchWidget(QDialog):
             reference = result.get('book', '').lower() + ' ' + str(result.get('chapter', '')) + ':' + str(result.get('verse', '')) 
 
             if reference in self.displayed_verse:
-                # Remove it and add it to the top
-                print(f'Removing {reference} from displayed_verse to re-add at top with confidence {confidence}')
-                widget_to_remove = self.old_widget[self.displayed_verse.index(reference)]
-                if widget_to_remove:
-                    self.searchPane.removeWidget(widget_to_remove)
-                    widget_to_remove.setParent(None)
-                    widget_to_remove.deleteLater()
-                self.displayed_verse.remove(reference)
-                self.old_widget.remove(widget_to_remove)
+                index = self.displayed_verse.index(reference)
+
+                self.displayed_verse.pop(index)
+                widget_to_remove = self.old_widget.pop(index)
+
+                self.remove_widget(widget_to_remove)
                 
             #clearing the set if too much verses
-            if len(self.displayed_verse) > 15:
-                self.displayed_verse.pop()
-                widget_to_remove = self.old_widget.pop()
-                if widget_to_remove:
-                    self.searchPane.removeWidget(widget_to_remove)
-                    widget_to_remove.setParent(None)
-                    widget_to_remove.deleteLater()
+            while len(self.displayed_verse) > 15:
+                self.displayed_verse.pop(0)       
+                widget_to_remove = self.old_widget.pop(0)
+
+                self.remove_widget(widget_to_remove)
+
 
             self.displayed_verse.append(reference)
             self.add_verse_widget(query, reference=reference, result=result, confidence=result['score'])
