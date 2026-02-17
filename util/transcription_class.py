@@ -613,23 +613,23 @@ class TranscriptionWorker(QThread):
                     self.guitextReady.emit(merged_text)
                     
                     #check if reference exist in transcription 
-                    # spoken_references = extract_bible_reference(merged_text)
-                    # reference_dict = []
-                    # if spoken_references:
-                    #     for ref in spoken_references:
-                    #         print(f"Found spoken reference: {ref['full']} in transcription, skipping search and emitting directly")
-                            
-                    #         reference_dict.append({
-                    #             'reference': ref['full'],
-                    #             'book': ref.get('book', ''),
-                    #             'chapter': ref.get('chapter', ''),
-                    #             'verse': ref.get('verse', ''),
-                    #             'text':"",
-                    #             'score':1.0
-                    #         })                            
+                    spoken_references = extract_bible_reference(merged_text)
+                    reference_dict = []
+                    if spoken_references:
+                        for ref in spoken_references:
+                            print(f"Found spoken reference: {ref['full']} in transcription, skipping search and emitting directly")
                         
-                    #     self.autoSearchResults.emit(reference_dict, "", 0.00, self.auto_search_size)
-                    #     continue #skipping search entirely
+                            reference_dict.append({
+                                'reference': ref['full'],
+                                'book': ref.get('book', ''),
+                            'chapter': ref.get('chapter', ''),
+                                'verse': ref.get('verse', ''),
+                                'text':"",
+                                'score':1.0
+                            })                            
+                    
+                        self.autoSearchResults.emit(reference_dict, "", 0.00, self.auto_search_size)
+                        continue #skipping search entirely
                         
                             
                     # Use only the last unclassified chunk for classification to prevent bleed
