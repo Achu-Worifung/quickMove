@@ -1,0 +1,7 @@
+from text2digits import text2digits
+
+
+
+print(text2digits.Text2Digits().convert("two hundred and fifty six"))
+
+print(text2digits.Text2Digits().convert("lets go to 1st john chapter one verse nine"))
