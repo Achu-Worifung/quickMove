@@ -1,3 +1,6 @@
+import transformers
+# Force the lazy loader to resolve
+import transformers.modeling_utils
 import os
 
 from util.modelmanagement import list_downloaded_models

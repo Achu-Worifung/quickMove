@@ -22,7 +22,6 @@
 }
 
 QMainWindow#MainWindow {
-    border-radius: 10px;
     background-color: transparent;
 }
 
@@ -43,9 +42,9 @@ QScrollBar::handle:horizontal:hover {
 QWidget:#centralWidget{
    
 	border-color: rgb(0, 0, 0);
-border-width:10px;
-background-color:transparent;
-border-radius:10px
+	border-width:10px;
+	background-color:transparent;
+	border-radius:10px
 
 }
 QScrollArea#scrollArea_2 QScrollBar:vertical {
@@ -103,15 +102,14 @@ QScrollBar::sub-page:vertical {
      <widget class="QFrame" name="frame">
       <property name="styleSheet">
        <string notr="true">QFrame#frame{
-border-radius:10px;
-border: 2px solid black;
-background-color:rgb(255, 255, 255);
+	border: 1px solid black;
+	background-color: rgb(244, 247, 249);
 }
 
 QWidget
 {
 
-background-color:rgb(255, 255, 255);
+	background-color: rgb(244, 247, 249);
 }</string>
       </property>
       <property name="frameShape">
@@ -141,27 +139,30 @@ background-color:rgb(255, 255, 255);
          <property name="maximumSize">
           <size>
            <width>16777215</width>
-           <height>75</height>
+           <height>50</height>
           </size>
          </property>
          <property name="styleSheet">
           <string notr="true">QFrame#window_contro_button
 {
-border-radius:10px;
+	border-radius:10px;
 }
 QPushButton
 {
-
     border-style: none;
-
-
     border-color: none;
     padding: 4px;
-font:20px;
- border-radius: 5px;
+	font:20px;
+ 	border-radius: 5px;
 }
 
-background-color:rgb(255, 255, 255);</string>
+QWidget
+{
+
+	background-color: rgb(236, 239, 241);
+	color: rgb(38, 50, 56);
+}
+</string>
          </property>
          <layout class="QHBoxLayout" name="horizontalLayout">
           <property name="spacing">
@@ -182,7 +183,7 @@ background-color:rgb(255, 255, 255);</string>
           <item alignment="Qt::AlignLeft">
            <widget class="QWidget" name="widget" native="true">
             <property name="styleSheet">
-             <string notr="true">background-color:rgb(255, 255, 255);</string>
+             <string notr="true"/>
             </property>
             <layout class="QVBoxLayout" name="verticalLayout_2">
              <item>
@@ -223,7 +224,7 @@ background-color:rgb(255, 255, 255);</string>
           <item alignment="Qt::AlignLeft">
            <widget class="QWidget" name="title" native="true">
             <property name="styleSheet">
-             <string notr="true">background-color:rgb(255, 255, 255);</string>
+             <string notr="true"/>
             </property>
             <layout class="QHBoxLayout" name="horizontalLayout_3">
              <item>
@@ -264,8 +265,14 @@ background-color:rgb(255, 255, 255);</string>
             </layout>
            </widget>
           </item>
-          <item>
+          <item alignment="Qt::AlignRight">
            <widget class="QWidget" name="widget_4" native="true">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
             <property name="maximumSize">
              <size>
               <width>200</width>
@@ -273,17 +280,7 @@ background-color:rgb(255, 255, 255);</string>
              </size>
             </property>
             <property name="styleSheet">
-             <string notr="true">background-color:rgb(255, 255, 255);
-buttons{
-
-    border-style: outset;
-    border-width: 2px;
-    border-radius: 15px;
-    border-color: black;
-    padding: 4px;
-font:20px;
-max-width:80px
-}</string>
+             <string notr="true"/>
             </property>
             <layout class="QHBoxLayout" name="horizontalLayout_2">
              <item>
@@ -296,9 +293,12 @@ max-width:80px
                </property>
                <property name="maximumSize">
                 <size>
-                 <width>75</width>
+                 <width>50</width>
                  <height>16777215</height>
                 </size>
+               </property>
+               <property name="cursor">
+                <cursorShape>PointingHandCursor</cursorShape>
                </property>
                <property name="styleSheet">
                 <string notr="true">QPushButton:hover#minimize_button
@@ -332,9 +332,12 @@ max-width:80px
                </property>
                <property name="maximumSize">
                 <size>
-                 <width>75</width>
+                 <width>50</width>
                  <height>16777215</height>
                 </size>
+               </property>
+               <property name="cursor">
+                <cursorShape>PointingHandCursor</cursorShape>
                </property>
                <property name="styleSheet">
                 <string notr="true">QPushButton:hover#close_button
@@ -366,8 +369,23 @@ max-width:80px
        <item>
         <widget class="QWidget" name="mainContent" native="true">
          <layout class="QHBoxLayout" name="horizontalLayout_4">
+          <property name="leftMargin">
+           <number>0</number>
+          </property>
+          <property name="topMargin">
+           <number>0</number>
+          </property>
+          <property name="bottomMargin">
+           <number>0</number>
+          </property>
           <item>
            <widget class="QWidget" name="functions" native="true">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="MinimumExpanding">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
             <property name="minimumSize">
              <size>
               <width>200</width>
@@ -377,30 +395,49 @@ max-width:80px
             <property name="maximumSize">
              <size>
               <width>175</width>
-              <height>700</height>
+              <height>16777215</height>
              </size>
             </property>
             <property name="styleSheet">
              <string notr="true">QPushButton
 {
-
     border-style: outlet;
-
-
     border-color: none;
     padding: 4px;
-font:20px;
-border-radius:10px;
+	font:20px;
 }
 
 QPushButton:hover
 {
-background-color: rgb(139, 139, 139);
 
+	color: rgb(247, 209, 160);
+	background-color: rgb(55, 71, 79);
+}
+
+QWidget
+{
+
+	background-color: rgb(38, 50, 56);
+	color: rgb(236, 239, 241);
 }
 </string>
             </property>
             <layout class="QVBoxLayout" name="verticalLayout_3">
+             <property name="spacing">
+              <number>0</number>
+             </property>
+             <property name="leftMargin">
+              <number>0</number>
+             </property>
+             <property name="topMargin">
+              <number>0</number>
+             </property>
+             <property name="rightMargin">
+              <number>0</number>
+             </property>
+             <property name="bottomMargin">
+              <number>0</number>
+             </property>
              <item>
               <widget class="QPushButton" name="home">
                <property name="sizePolicy">
@@ -408,6 +445,9 @@ background-color: rgb(139, 139, 139);
                  <horstretch>0</horstretch>
                  <verstretch>0</verstretch>
                 </sizepolicy>
+               </property>
+               <property name="cursor">
+                <cursorShape>PointingHandCursor</cursorShape>
                </property>
                <property name="styleSheet">
                 <string notr="true"/>
@@ -435,6 +475,9 @@ background-color: rgb(139, 139, 139);
                  <verstretch>0</verstretch>
                 </sizepolicy>
                </property>
+               <property name="cursor">
+                <cursorShape>PointingHandCursor</cursorShape>
+               </property>
                <property name="styleSheet">
                 <string notr="true"/>
                </property>
@@ -460,6 +503,9 @@ background-color: rgb(139, 139, 139);
                  <horstretch>0</horstretch>
                  <verstretch>0</verstretch>
                 </sizepolicy>
+               </property>
+               <property name="cursor">
+                <cursorShape>PointingHandCursor</cursorShape>
                </property>
                <property name="styleSheet">
                 <string notr="true">font:18px</string>
@@ -487,6 +533,9 @@ background-color: rgb(139, 139, 139);
                  <verstretch>0</verstretch>
                 </sizepolicy>
                </property>
+               <property name="cursor">
+                <cursorShape>PointingHandCursor</cursorShape>
+               </property>
                <property name="styleSheet">
                 <string notr="true"/>
                </property>
@@ -511,7 +560,7 @@ background-color: rgb(139, 139, 139);
           <item>
            <widget class="QStackedWidget" name="stackedWidget">
             <property name="currentIndex">
-             <number>6</number>
+             <number>1</number>
             </property>
             <widget class="QWidget" name="select_autos">
              <layout class="QVBoxLayout" name="verticalLayout_12">
@@ -519,7 +568,7 @@ background-color: rgb(139, 139, 139);
                <widget class="QScrollArea" name="scrollArea_4">
                 <property name="styleSheet">
                  <string notr="true">border:none;
-background-color:rgb(255, 255, 255);</string>
+</string>
                 </property>
                 <property name="widgetResizable">
                  <bool>true</bool>
@@ -532,8 +581,8 @@ background-color:rgb(255, 255, 255);</string>
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>226</width>
-                   <height>147</height>
+                   <width>528</width>
+                   <height>737</height>
                   </rect>
                  </property>
                  <layout class="QVBoxLayout" name="verticalLayout_9">
@@ -660,8 +709,8 @@ QScrollBar::sub-page:vertical {
                         <rect>
                          <x>0</x>
                          <y>0</y>
-                         <width>100</width>
-                         <height>30</height>
+                         <width>508</width>
+                         <height>664</height>
                         </rect>
                        </property>
                        <layout class="QVBoxLayout" name="verticalLayout_4"/>
@@ -692,7 +741,7 @@ QScrollBar::sub-page:vertical {
                    </size>
                   </property>
                   <property name="styleSheet">
-                   <string notr="true">background-color:rgb(255, 255, 255);</string>
+                   <string notr="true"/>
                   </property>
                   <layout class="QVBoxLayout" name="verticalLayout_24">
                    <property name="spacing">
@@ -798,6 +847,9 @@ font:20px
                             <height>16777215</height>
                            </size>
                           </property>
+                          <property name="cursor">
+                           <cursorShape>PointingHandCursor</cursorShape>
+                          </property>
                           <property name="styleSheet">
                            <string notr="true">
 
@@ -876,7 +928,7 @@ font:20px
                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;hello there&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                   </property>
                   <property name="styleSheet">
-                   <string notr="true">background-color:rgb(255, 255, 255);</string>
+                   <string notr="true"/>
                   </property>
                   <property name="verticalScrollBarPolicy">
                    <enum>Qt::ScrollBarAlwaysOff</enum>
@@ -1186,8 +1238,8 @@ QScrollBar::sub-page:vertical {
                        <rect>
                         <x>0</x>
                         <y>0</y>
-                        <width>158</width>
-                        <height>58</height>
+                        <width>506</width>
+                        <height>499</height>
                        </rect>
                       </property>
                       <property name="focusPolicy">
@@ -1265,8 +1317,8 @@ border:none</string>
                      <rect>
                       <x>0</x>
                       <y>0</y>
-                      <width>412</width>
-                      <height>290</height>
+                      <width>515</width>
+                      <height>719</height>
                      </rect>
                     </property>
                     <property name="styleSheet">
@@ -1434,7 +1486,7 @@ border:none</string>
                    <x>0</x>
                    <y>0</y>
                    <width>571</width>
-                   <height>609</height>
+                   <height>727</height>
                   </rect>
                  </property>
                  <property name="styleSheet">
@@ -2380,8 +2432,8 @@ QScrollBar::sub-page:vertical {
                  <property name="geometry">
                   <rect>
                    <x>0</x>
-                   <y>-617</y>
-                   <width>516</width>
+                   <y>0</y>
+                   <width>518</width>
                    <height>1679</height>
                   </rect>
                  </property>
