@@ -564,7 +564,7 @@ QWidget
           <item>
            <widget class="QStackedWidget" name="stackedWidget">
             <property name="currentIndex">
-             <number>0</number>
+             <number>4</number>
             </property>
             <widget class="QWidget" name="select_autos">
              <layout class="QVBoxLayout" name="verticalLayout_12">
@@ -585,8 +585,8 @@ QWidget
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>692</width>
-                   <height>755</height>
+                   <width>226</width>
+                   <height>147</height>
                   </rect>
                  </property>
                  <layout class="QVBoxLayout" name="verticalLayout_9">
@@ -713,8 +713,8 @@ QScrollBar::sub-page:vertical {
                         <rect>
                          <x>0</x>
                          <y>0</y>
-                         <width>672</width>
-                         <height>682</height>
+                         <width>100</width>
+                         <height>30</height>
                         </rect>
                        </property>
                        <layout class="QVBoxLayout" name="verticalLayout_4"/>
@@ -1304,7 +1304,7 @@ QScrollBar::sub-page:vertical {
                        <enum>Qt::WheelFocus</enum>
                       </property>
                       <property name="styleSheet">
-                       <string notr="true">border-radius:20px</string>
+                       <string notr="true"/>
                       </property>
                       <layout class="QVBoxLayout" name="verticalLayout_13">
                        <item>
@@ -1586,8 +1586,15 @@ QHeaderView::section {
 	border:1px solid white;
     font: bold 14px;                
 };
+
+QTableWidget {
+
+	color: rgb(255, 255, 255);
+};
 color: rgb(0, 0, 0);
-background-color:rgb(47, 59, 66);</string>
+background-color:rgb(47, 59, 66);
+
+</string>
                       </property>
                       <property name="sizeAdjustPolicy">
                        <enum>QAbstractScrollArea::AdjustToContents</enum>
@@ -2247,9 +2254,7 @@ p, li { white-space: pre-wrap; }
                     </size>
                    </property>
                    <property name="styleSheet">
-                    <string notr="true">
-
-</string>
+                    <string notr="true"/>
                    </property>
                    <property name="text">
                     <string>SHOW AREA</string>
@@ -2595,7 +2600,7 @@ QScrollBar::sub-page:vertical {
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>682</width>
+                   <width>501</width>
                    <height>1679</height>
                   </rect>
                  </property>

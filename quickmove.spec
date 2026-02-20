@@ -43,6 +43,25 @@ hiddenimports += [
     "optimum.exporters",
     "optimum.exporters.onnx",
 ]
+hiddenimports += [
+    "av",
+    "av.audio",
+    "av.audio.codeccontext",
+    "av.audio.format",
+    "av.audio.fifo",
+    "av.audio.resampler",
+    "av.video",
+    "av.video.format",
+    "av.video.codeccontext",
+    "av.container",
+    "av.stream",
+    "av.packet",
+    "av.error",
+    "av.format",
+    "av.codec",
+    "av.codec.context",
+    "av.utils",
+]
 
 
 # -------------------------------

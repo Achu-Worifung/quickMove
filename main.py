@@ -3,6 +3,8 @@ import transformers
 import transformers.modeling_utils
 import os
 import resources_rc
+from PyQt5.QtGui import QCursor
+from PyQt5.QtCore import QEvent
 
 
 from util.modelmanagement import list_downloaded_models
@@ -55,39 +57,7 @@ def get_settings():
     return _Settings
 
 resize = False
-class CustomSizeGrip(QSizeGrip):
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        # Make the size grip larger
-        self.setMinimumSize(20, 20)
-        self.setCursor(Qt.SizeAllCursor)
-        # Set a stylesheet to make it visible
-        self.setStyleSheet("""
-                QSizeGrip {
-                    background-color: #e0e0e0;
-                    border: 1px solid #b0b0b0;
-                    border-radius: 4px;
-                }
-                QSizeGrip:hover {
-                    background-color: #c0c0c0;
-                }
-            """)
-    def mousePressEvent(self, event):
-        # print("Size grip pressed")
-        global resize 
-        resize = True
-        super().mousePressEvent(event)
-        
-    def mouseReleaseEvent(self, event):
-        # print("Size grip released")
-        global resize 
-        resize = False
-        super().mouseReleaseEvent(event)
-        
-    def mouseMoveEvent(self, event):
-        # print("Size grip being dragged")
-        super().mouseMoveEvent(event)
-        
+    
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -96,6 +66,15 @@ class MainWindow(QMainWindow):
         ui_path = resource_path('./ui/MainWindow.ui')
         assert os.path.exists(ui_path), f"UI file not found: {ui_path}"
         loadUi(ui_path, self)
+        
+        #starting the widget resize 
+        self._resize_margin = 8  # pixels from edge that trigger resize
+        self._resizing = False
+        self._resize_direction = None
+        self._resize_start_pos = None
+        self._resize_start_geometry = None
+        self.setMouseTracking(True)
+        QApplication.instance().installEventFilter(self)
 
         # Set app icon and remove window controls
         icon_path = resource_path("logo.ico")
@@ -105,12 +84,6 @@ class MainWindow(QMainWindow):
         t = threading.Thread(target=get_settings, daemon=True)
         t.start()
 
-         # Replace the regular QSizeGrip with CustomSizeGrip
-        sizegrip = CustomSizeGrip(self)
-        sizegrip.setVisible(True)
-        sizegrip.setObjectName("size_grip")
-        sizegrip.setCursor(Qt.SizeAllCursor)
-        self.mainContent.layout().addWidget(sizegrip, 0, Qt.AlignBottom | Qt.AlignRight)
 
         # Initialize settings
         self.settings = QSettings("MyApp", "AutomataSimulator")
@@ -137,7 +110,121 @@ class MainWindow(QMainWindow):
        
         # Load automata list
         self.MainPage()
+    def eventFilter(self, obj, event):
+        if event.type() == QEvent.MouseMove:
+            # map position to main window coordinates
+            pos = self.mapFromGlobal(QCursor.pos())
+            
+            if self._resizing:
+                self._do_resize(QCursor.pos())
+                return False
+            
+            direction = self._get_resize_direction(pos)
+            if direction:
+                self.setCursor(self._get_cursor_for_direction(direction))
+            else:
+                self.unsetCursor()
 
+        elif event.type() == QEvent.MouseButtonPress:
+            pos = self.mapFromGlobal(QCursor.pos())
+            if event.button() == Qt.LeftButton:
+                direction = self._get_resize_direction(pos)
+                if direction:
+                    self._resizing = True
+                    self._resize_direction = direction
+                    self._resize_start_pos = QCursor.pos()
+                    self._resize_start_geometry = self.geometry()
+                    return True  # consume the event
+
+        elif event.type() == QEvent.MouseButtonRelease:
+            if self._resizing:
+                self._resizing = False
+                self._resize_direction = None
+                return True
+
+        return False
+    def _get_resize_direction(self, pos):
+        """Determine resize direction based on cursor position."""
+        x, y = pos.x(), pos.y()
+        w, h = self.width(), self.height()
+        m = self._resize_margin
+
+        left   = x < m
+        right  = x > w - m
+        top    = y < m
+        bottom = y > h - m
+
+        if top and left:     return 'top-left'
+        if top and right:    return 'top-right'
+        if bottom and left:  return 'bottom-left'
+        if bottom and right: return 'bottom-right'
+        if left:             return 'left'
+        if right:            return 'right'
+        if top:              return 'top'
+        if bottom:           return 'bottom'
+        return None
+    def _get_cursor_for_direction(self, direction):
+        cursors = {
+            'left':         Qt.SizeHorCursor,
+            'right':        Qt.SizeHorCursor,
+            'top':          Qt.SizeVerCursor,
+            'bottom':       Qt.SizeVerCursor,
+            'top-left':     Qt.SizeFDiagCursor,
+            'bottom-right': Qt.SizeFDiagCursor,
+            'top-right':    Qt.SizeBDiagCursor,
+            'bottom-left':  Qt.SizeBDiagCursor,
+        }
+        return cursors.get(direction, Qt.ArrowCursor)
+    
+    def mousePressEvent(self, event):
+        if event.button() == Qt.LeftButton:
+            direction = self._get_resize_direction(event.pos())
+            if direction:
+                self._resizing = True
+                self._resize_direction = direction
+                self._resize_start_pos = event.globalPos()
+                self._resize_start_geometry = self.geometry()
+                event.accept()
+                return
+        super().mousePressEvent(event)
+
+    def mouseReleaseEvent(self, event):
+        self._resizing = False
+        self._resize_direction = None
+        super().mouseReleaseEvent(event)
+
+    def mouseMoveEvent(self, event):
+        if self._resizing:
+            self._do_resize(event.globalPos())
+            event.accept()
+            return
+        # Update cursor based on hover position
+        direction = self._get_resize_direction(event.pos())
+        if direction:
+            self.setCursor(self._get_cursor_for_direction(direction))
+        else:
+            self.unsetCursor()
+
+        super().mouseMoveEvent(event)
+    def _do_resize(self, global_pos):
+        delta = global_pos - self._resize_start_pos
+        geo = self._resize_start_geometry
+        dx, dy = delta.x(), delta.y()
+        min_w, min_h = self.minimumWidth(), self.minimumHeight()
+
+        x, y, w, h = geo.x(), geo.y(), geo.width(), geo.height()
+        d = self._resize_direction
+
+        if 'right'  in d: w = max(min_w, geo.width()  + dx)
+        if 'bottom' in d: h = max(min_h, geo.height() + dy)
+        if 'left'   in d:
+            w = max(min_w, geo.width()  - dx)
+            x = geo.x() + geo.width()  - w
+        if 'top'    in d:
+            h = max(min_h, geo.height() - dy)
+            y = geo.y() + geo.height() - h
+
+        self.setGeometry(x, y, w, h)
     def restore_previous_geometry(self):
         geometry = self.settings.value("geometry")
         if geometry:

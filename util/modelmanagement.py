@@ -1,10 +1,8 @@
 import os
-from PyQt5 import QtWidgets
 from pyqttoast import Toast, ToastPreset
 from util.util import resource_path
 from faster_whisper.utils import download_model as fw_download_model
-import threading
-import time
+
 
 WHISPER_MODEL_INFO = {
     # Original OpenAI Models
