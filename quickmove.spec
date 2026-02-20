@@ -350,7 +350,7 @@ exe = EXE(
     [],
     exclude_binaries=True,
     name="QuickMove",
-    console=True,
+    console=False,
     icon="logo.ico",
 )
 

@@ -492,12 +492,15 @@ class ModelManagerDialog(QDialog):
                 border: 1px solid #bbb;
                 border-radius: 4px;
             }
-            QPushButton {
-                padding: 6px 18px;
-                border: 1px solid #888;
-                border-radius: 4px;
-                background-color: #f0f0f0;
-            }
+            QPushButton
+                {   
+                border-style: outset;
+                    border-width: 1px;
+                    border-color: rgb(255, 255, 255);
+                    padding: 4px;
+                    font:20px;
+                border-radius:0px;
+                }
             QPushButton:hover {
                 background-color: #e0e0e0;
             }
