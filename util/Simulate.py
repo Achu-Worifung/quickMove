@@ -118,6 +118,7 @@ def present_prev_verse(name = None, data = None, prev_verse_text = None):
             simPaste(prev_verse_text, True)
         elif action['action'] == 'select all':
             simSelectAll(True)
+            time.sleep(.1)  # Small delay to ensure the previous action is registered
 
 def reset_keys():
     """Release commonly used keys using the KeyboardController."""
