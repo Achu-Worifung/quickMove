@@ -567,7 +567,7 @@ QWidget
           <item>
            <widget class="QStackedWidget" name="stackedWidget">
             <property name="currentIndex">
-             <number>4</number>
+             <number>2</number>
             </property>
             <widget class="QWidget" name="select_autos">
              <layout class="QVBoxLayout" name="verticalLayout_12">
@@ -1000,11 +1000,10 @@ padding-bottom:25px</string>
 ========================= */
 QComboBox
 {
-    border: 1px solid #cfcfcf;
+    border: 1px solid white;
     padding: 6px 10px;
     font-size: 16px;
-background-color: rgb(224, 224, 224);
-
+	background-color: rgb(224, 224, 224);
     color: black;
 }
 
@@ -1051,9 +1050,7 @@ QComboBox::down-arrow
 QComboBox QAbstractItemView
 {
     border: 1px solid #cccccc;
-    border-radius: 8px;
-    padding: 4px;
-    background-color: white;
+    background-color: rgb(30, 39, 44);
     selection-background-color: #0078d7;
     selection-color: white;
 }
@@ -1386,8 +1383,8 @@ QScrollBar::sub-page:vertical {
                      <rect>
                       <x>0</x>
                       <y>0</y>
-                      <width>688</width>
-                      <height>737</height>
+                      <width>412</width>
+                      <height>290</height>
                      </rect>
                     </property>
                     <property name="styleSheet">
@@ -2613,7 +2610,7 @@ QScrollBar::sub-page:vertical {
                  <property name="geometry">
                   <rect>
                    <x>0</x>
-                   <y>-924</y>
+                   <y>0</y>
                    <width>691</width>
                    <height>1679</height>
                   </rect>
