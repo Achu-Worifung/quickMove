@@ -423,15 +423,16 @@ class ModelManagerDialog(QDialog):
             row_layout.addWidget(btn)
             btn.setStyleSheet(
                 """
-                QPushButton {
-                    padding: 4px 12px;
-                    border: 1px solid #888;
-                    border-radius: 4px;
-                    background-color: #f1f1f1;
+                QPushButton
+                {   
+                border-style: outset;
+                    border-width: 1px;
+                    border-color: rgb(255, 255, 255);
+                    padding: 4px;
+                    font:20px;
+                border-radius:0px;
                 }
-                QPushButton:hover {
-                    background-color: #e1e1e1;
-                }"""
+                """
             )
 
             available_layout.addWidget(row)

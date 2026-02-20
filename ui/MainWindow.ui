@@ -379,6 +379,9 @@ QWidget
           <property name="topMargin">
            <number>0</number>
           </property>
+          <property name="rightMargin">
+           <number>0</number>
+          </property>
           <property name="bottomMargin">
            <number>0</number>
           </property>
@@ -564,7 +567,7 @@ QWidget
           <item>
            <widget class="QStackedWidget" name="stackedWidget">
             <property name="currentIndex">
-             <number>2</number>
+             <number>6</number>
             </property>
             <widget class="QWidget" name="select_autos">
              <layout class="QVBoxLayout" name="verticalLayout_12">
@@ -1383,8 +1386,8 @@ QScrollBar::sub-page:vertical {
                      <rect>
                       <x>0</x>
                       <y>0</y>
-                      <width>412</width>
-                      <height>290</height>
+                      <width>679</width>
+                      <height>737</height>
                      </rect>
                     </property>
                     <property name="styleSheet">
@@ -2610,8 +2613,8 @@ QScrollBar::sub-page:vertical {
                  <property name="geometry">
                   <rect>
                    <x>0</x>
-                   <y>0</y>
-                   <width>682</width>
+                   <y>-924</y>
+                   <width>691</width>
                    <height>1679</height>
                   </rect>
                  </property>
@@ -2656,6 +2659,9 @@ QScrollBar::sub-page:vertical {
                      </size>
                     </property>
                     <layout class="QGridLayout" name="gridLayout_2">
+                     <property name="verticalSpacing">
+                      <number>0</number>
+                     </property>
                      <item row="0" column="0">
                       <widget class="QWidget" name="widget_37" native="true">
                        <layout class="QHBoxLayout" name="horizontalLayout_34">
@@ -3219,8 +3225,8 @@ QCheckBox::indicator {
                     </property>
                    </widget>
                   </item>
-                  <item alignment="Qt::AlignHCenter">
-                   <widget class="QFrame" name="manage_model_widget">
+                  <item>
+                   <widget class="QWidget" name="manage_model_widget" native="true">
                     <property name="sizePolicy">
                      <sizepolicy hsizetype="Preferred" vsizetype="MinimumExpanding">
                       <horstretch>0</horstretch>
@@ -3236,13 +3242,10 @@ QCheckBox::indicator {
                     <property name="styleSheet">
                      <string notr="true"/>
                     </property>
-                    <property name="frameShape">
-                     <enum>QFrame::StyledPanel</enum>
-                    </property>
-                    <property name="frameShadow">
-                     <enum>QFrame::Raised</enum>
-                    </property>
                     <layout class="QVBoxLayout" name="verticalLayout_11">
+                     <property name="spacing">
+                      <number>0</number>
+                     </property>
                      <item>
                       <widget class="QWidget" name="widget_10" native="true">
                        <layout class="QHBoxLayout" name="horizontalLayout_12">
@@ -3327,21 +3330,6 @@ QCheckBox::indicator {
                            <iconset>
                             <normaloff>../Icons/48792_player_record_icon.ico</normaloff>../Icons/48792_player_record_icon.ico</iconset>
                           </property>
-                          <item>
-                           <property name="text">
-                            <string>CPU</string>
-                           </property>
-                          </item>
-                          <item>
-                           <property name="text">
-                            <string>gpu</string>
-                           </property>
-                          </item>
-                          <item>
-                           <property name="text">
-                            <string>npu</string>
-                           </property>
-                          </item>
                          </widget>
                         </item>
                        </layout>
@@ -3779,29 +3767,15 @@ QCheckBox::indicator {
                         </size>
                        </property>
                        <property name="styleSheet">
-                        <string notr="true">
-
-QPushButton
-{
-
-    border-style: outlet;
-
-
-
-    border-color: none;
+                        <string notr="true">QPushButton
+{   
+ border-style: outset;
+    border-width: 1px;
+    border-color: rgb(255, 255, 255);
     padding: 4px;
-font:20px;
-border-radius:10px;
-height:25px;
-border:1px solid black;
-}
-
-QPushButton:hover
-{
-background-color: rgb(139, 139, 139);
-
-}
-</string>
+	font:20px;
+border-radius:0px;
+}</string>
                        </property>
                        <property name="frameShape">
                         <enum>QFrame::StyledPanel</enum>
@@ -3894,6 +3868,9 @@ height:25px;
                      <enum>QFrame::Raised</enum>
                     </property>
                     <layout class="QGridLayout" name="gridLayout_6">
+                     <property name="verticalSpacing">
+                      <number>0</number>
+                     </property>
                      <item row="3" column="0">
                       <widget class="QWidget" name="widget_7" native="true">
                        <layout class="QHBoxLayout" name="horizontalLayout_9">
@@ -4295,29 +4272,15 @@ margin:0px</string>
                         </size>
                        </property>
                        <property name="styleSheet">
-                        <string notr="true">
-
-QPushButton
-{
-
-    border-style: outlet;
-
-
-
-    border-color: none;
+                        <string notr="true">QPushButton
+{   
+ border-style: outset;
+    border-width: 1px;
+    border-color: rgb(255, 255, 255);
     padding: 4px;
-font:20px;
-border-radius:10px;
-height:25px;
-border:1px solid black;
-}
-
-QPushButton:hover
-{
-background-color: rgb(139, 139, 139);
-
-}
-</string>
+	font:20px;
+border-radius:0px;
+}</string>
                        </property>
                        <property name="frameShape">
                         <enum>QFrame::StyledPanel</enum>
