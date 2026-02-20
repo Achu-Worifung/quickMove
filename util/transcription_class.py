@@ -812,7 +812,6 @@ class TranscriptionWorker(QThread):
                 self.models_loaded = True
                 
                 # Emit loading status complete after models are loaded
-                self.loadingStatus.emit()
             
             # Create three threads:
             # 1. Audio recording (fast, handles audio callback)
@@ -832,6 +831,8 @@ class TranscriptionWorker(QThread):
             self.recording_thread.join()
             self.processing_thread.join()
             self.transcription_thread.join()
+            self.loadingStatus.emit() # Signal that loading is complete (in case it was waiting)
+
             
         except Exception as e:
             print(f"Error in transcription worker: {e}")
