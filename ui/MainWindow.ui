@@ -564,7 +564,7 @@ QWidget
           <item>
            <widget class="QStackedWidget" name="stackedWidget">
             <property name="currentIndex">
-             <number>4</number>
+             <number>2</number>
             </property>
             <widget class="QWidget" name="select_autos">
              <layout class="QVBoxLayout" name="verticalLayout_12">
@@ -585,8 +585,8 @@ QWidget
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>226</width>
-                   <height>147</height>
+                   <width>692</width>
+                   <height>755</height>
                   </rect>
                  </property>
                  <layout class="QVBoxLayout" name="verticalLayout_9">
@@ -713,8 +713,8 @@ QScrollBar::sub-page:vertical {
                         <rect>
                          <x>0</x>
                          <y>0</y>
-                         <width>100</width>
-                         <height>30</height>
+                         <width>672</width>
+                         <height>682</height>
                         </rect>
                        </property>
                        <layout class="QVBoxLayout" name="verticalLayout_4"/>
@@ -961,7 +961,7 @@ QScrollBar::sub-page:vertical {
                      <property name="minimumSize">
                       <size>
                        <width>0</width>
-                       <height>115</height>
+                       <height>100</height>
                       </size>
                      </property>
                      <property name="mouseTracking">
@@ -1285,8 +1285,17 @@ QScrollBar::down-arrow:vertical {
 QScrollBar::add-page:vertical,
 QScrollBar::sub-page:vertical {
     background: none;
-}
+};
+
+
+
 </string>
+                     </property>
+                     <property name="frameShadow">
+                      <enum>QFrame::Raised</enum>
+                     </property>
+                     <property name="lineWidth">
+                      <number>0</number>
                      </property>
                      <property name="widgetResizable">
                       <bool>true</bool>
@@ -1297,14 +1306,14 @@ QScrollBar::sub-page:vertical {
                         <x>0</x>
                         <y>0</y>
                         <width>670</width>
-                        <height>515</height>
+                        <height>530</height>
                        </rect>
                       </property>
                       <property name="focusPolicy">
                        <enum>Qt::WheelFocus</enum>
                       </property>
                       <property name="styleSheet">
-                       <string notr="true"/>
+                       <string notr="true">border:none</string>
                       </property>
                       <layout class="QVBoxLayout" name="verticalLayout_13">
                        <item>
@@ -1374,8 +1383,8 @@ QScrollBar::sub-page:vertical {
                      <rect>
                       <x>0</x>
                       <y>0</y>
-                      <width>679</width>
-                      <height>737</height>
+                      <width>412</width>
+                      <height>290</height>
                      </rect>
                     </property>
                     <property name="styleSheet">
@@ -1578,23 +1587,25 @@ font:20px</string>
                        </font>
                       </property>
                       <property name="styleSheet">
-                       <string notr="true">
-
+                       <string notr="true">/* Header styling */
 QHeaderView::section {
-    
-	background-color: rgb(44, 58, 64);
-	border:1px solid white;
-    font: bold 14px;                
-};
+    background-color: rgb(44, 58, 64);
+    border: 1px solid white;
+    font-weight: bold;
+    font-size: 14px;
+}
 
 QTableWidget {
+    color: rgb(255, 255, 255);
+    background-color: rgb(47, 59, 66);
+    gridline-color: white;
+}
 
-	color: rgb(255, 255, 255);
-};
-color: rgb(0, 0, 0);
-background-color:rgb(47, 59, 66);
-
-</string>
+/* Styling for the items inside the table specifically */
+QTableWidget QTableCornerButton::section {
+    background-color: rgb(44, 58, 64);
+    border: 1px solid white;
+}</string>
                       </property>
                       <property name="sizeAdjustPolicy">
                        <enum>QAbstractScrollArea::AdjustToContents</enum>
@@ -2600,7 +2611,7 @@ QScrollBar::sub-page:vertical {
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>501</width>
+                   <width>682</width>
                    <height>1679</height>
                   </rect>
                  </property>

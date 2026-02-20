@@ -7,7 +7,6 @@ from util.util import resource_path
 from util import Message as msg
 import os
 import mss 
-import mss.tools
 
 # lightweight modules we keep top-level:
 # QSettings is cheap so we keep it
@@ -19,13 +18,6 @@ _np = None
 
 _import_lock = threading.Lock()
 
-def get_pyautogui():
-    global _pyautogui
-    if _pyautogui is None:
-        with _import_lock:
-            if _pyautogui is None:
-                _pyautogui = importlib.import_module("pyautogui")
-    return _pyautogui
 
 def get_numpy():
     global _np
@@ -81,7 +73,6 @@ def findPrevDisplayedVerse() -> Optional[str]:
         if img_area and isinstance(img_area, (list, tuple)):
             img_area = tuple(img_area)
 
-            pyautogui = get_pyautogui()
             np = get_numpy()
             cv2 = get_cv2()
             pytesseract = get_pytesseract()
@@ -125,7 +116,6 @@ def preload_ocr_modules_async(warm_cuda: bool = False):
     """
     def _job():
         try:
-            get_pyautogui()
             get_numpy()
             get_cv2()
             get_pytesseract()

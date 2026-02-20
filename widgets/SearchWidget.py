@@ -17,6 +17,7 @@ import string
 import util.pyaudioandWhisper as transcriber
 import json
 from util.findVerseBox import findPrevDisplayedVerse
+import time
 import util.Message as msg
 from util.util import resource_path
 from util.transcription_class import TranscriptionWorker
@@ -585,10 +586,10 @@ class SearchWidget(QDialog):
                 button = action['button']
                 Simulate.simClick(x_coord, y_coord, button)
             elif action['action'] == 'paste':
-                print('pasting')
                 Simulate.simPaste(title, True)
             elif action['action'] == 'select all':
                 Simulate.simSelectAll(True)
+                time.sleep(0.1)
         self.updateHistoryLabel()
 
     def _refresh_saved_bodies(self):
