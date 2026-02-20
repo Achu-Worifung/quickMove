@@ -3,4 +3,53 @@
     <file>Icons/up arrow.ico</file>
     <file>Icons/arrow.ico</file>
   </qresource>
+  <qresource prefix="newPrefix">
+    <file>Icons/48792_player_record_icon.ico</file>
+    <file>Icons/100166_configure_icon.ico</file>
+    <file>Icons/103341_run_server_icon.ico</file>
+    <file>Icons/103500_cancel_document_sans_icon.ico</file>
+    <file>Icons/185038_home_house_icon.ico</file>
+    <file>Icons/211679_information_circled_icon.ico</file>
+    <file>Icons/211904_social_github_icon.ico</file>
+    <file>Icons/326655_history_icon.ico</file>
+    <file>Icons/1167975_launch_run_start_starting_play_icon.ico</file>
+    <file>Icons/1291779_microphone_music_radio show_sing_speak_icon.ico</file>
+    <file>Icons/1564529_mechanism_options_settings_configuration_setting_icon.ico</file>
+    <file>Icons/2639772_automation_icon.ico</file>
+    <file>Icons/3586361_location_map_navigation_pointer_icon.ico</file>
+    <file>Icons/3643764_back_backward_left_reply_turn_icon.ico</file>
+    <file>Icons/3802018_data_detail_info_resource_service_icon.ico</file>
+    <file>Icons/3994354_arrow_download_downloading_interface_save_icon.ico</file>
+    <file>Icons/4313141_mass_media_microphone_mobile_phone_icon.ico</file>
+    <file>Icons/4470663_description_about_app_web_info_icon.ico</file>
+    <file>Icons/4733215_basic_change_outline_subtitute_ui_icon.ico</file>
+    <file>Icons/4781855_alert_attention_caution_danger_error_icon.ico</file>
+    <file>Icons/6908869_audio_button_back_rewind_media_icon.ico</file>
+    <file>Icons/7549035_user_interface_zoom_out_minimize_icon.ico</file>
+    <file>Icons/8155537_download_arrow_down_direction_save_icon.ico</file>
+    <file>Icons/8468013_cyborg_halloween_machine_robot_teen_icon.ico</file>
+    <file>Icons/8541835_history_time_icon.ico</file>
+    <file>Icons/8664908_window_restore_application_icon.ico</file>
+    <file>Icons/8664917_window_minimize_icon.ico</file>
+    <file>Icons/8664918_circle_stop_icon.ico</file>
+    <file>Icons/8664938_trash_can_delete_remove_icon.ico</file>
+    <file>Icons/8665067_bars_staggered_icon.ico</file>
+    <file>Icons/8673396_ic_fluent_expand_up_right_icon.ico</file>
+    <file>Icons/8726183_setting_icon.ico</file>
+    <file>Icons/9043683_status_change_icon.ico</file>
+    <file>Icons/9044602_insert_page_icon.ico</file>
+    <file>Icons/9057175_play_button_r_icon.ico</file>
+    <file>Icons/9068701_change_icon.ico</file>
+    <file>Icons/9069819_modify_icon.ico</file>
+    <file>Icons/9104212_plus_add_document_create_page_icon.ico</file>
+    <file>Icons/10163303_bookmark_favourite_book_saved_restore_icon.ico</file>
+    <file>Icons/11244080_x_twitter_elon musk_twitter new logo_icon.ico</file>
+    <file>Icons/arrow.ico</file>
+    <file>Icons/close.ico</file>
+    <file>Icons/help.ico</file>
+    <file>Icons/loading.ico</file>
+    <file>Icons/open.ico</file>
+    <file>Icons/up arrow.ico</file>
+    <file>Icons/up_arrow.ico</file>
+  </qresource>
 </RCC>

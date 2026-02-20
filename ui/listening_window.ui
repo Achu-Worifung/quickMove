@@ -14,19 +14,22 @@
    <string>Frame</string>
   </property>
   <property name="styleSheet">
-   <string notr="true">/* Corrected stylesheet */
+   <string notr="true">QPushButton{
+    border-style: outset;
+    border-width: 1px;
+    border-radius: 0px;
+    border-color: white;
+    padding: 4px;
+font:20px;
+
+}
 QFrame#Frame {
     border: 1px solid black; 
-    border-radius: 5px;
-    background-color: rgb(255, 255, 255); /* Or use #ffffff */
+    color:white;
+background-color:rgb(47, 59, 66);
 }
 
-QPushButton {
-    padding: 4px 12px;
-    border: 1px solid #888;
-    border-radius: 4px;
-    background-color: #f1f1f1;
-}</string>
+</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_2">
    <property name="spacing">
@@ -64,12 +67,11 @@ QPushButton {
         </size>
        </property>
        <property name="styleSheet">
-        <string notr="true">QPushButton {
-                    padding: 4px 12px;
-                    border: 1px solid #888;
-                    border-radius: 4px;
-                    background-color: #f1f1f1;
-                }</string>
+        <string notr="true">QWidget#widget_4
+{
+    color:white;
+background-color:rgb(47, 59, 66);
+}</string>
        </property>
        <layout class="QHBoxLayout" name="horizontalLayout">
         <item>
@@ -81,6 +83,9 @@ QPushButton {
             <weight>75</weight>
             <bold>true</bold>
            </font>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">color: rgb(255, 255, 255);</string>
           </property>
           <property name="text">
            <string>TextLabel</string>
@@ -109,9 +114,7 @@ QPushButton {
            </size>
           </property>
           <property name="styleSheet">
-           <string notr="true">QPushButton:hover#min{
-background-color: rgb(107, 123, 148);
-}</string>
+           <string notr="true"/>
           </property>
           <property name="text">
            <string/>
@@ -137,13 +140,7 @@ background-color: rgb(107, 123, 148);
            </size>
           </property>
           <property name="styleSheet">
-           <string notr="true">QPushButton:hover#close_button
-{
- background-color: rgb(255, 47, 50);
-}
-
-
-</string>
+           <string notr="true"/>
           </property>
           <property name="text">
            <string/>
@@ -169,7 +166,10 @@ background-color: rgb(107, 123, 148);
         <cursorShape>PointingHandCursor</cursorShape>
        </property>
        <property name="styleSheet">
-        <string notr="true">QCheckBox::indicator { width: 0px; height: 0px; }</string>
+        <string notr="true">QCheckBox::indicator { width: 0px; height: 0px; };
+background-color:rgb(47, 59, 66);
+color: rgb(255, 255, 255);
+</string>
        </property>
        <property name="text">
         <string/>
@@ -202,6 +202,9 @@ background-color: rgb(107, 123, 148);
          <bold>true</bold>
         </font>
        </property>
+       <property name="styleSheet">
+        <string notr="true">color: rgb(255, 255, 255);</string>
+       </property>
        <property name="text">
         <string>Listening</string>
        </property>
@@ -226,7 +229,8 @@ background-color: rgb(107, 123, 148);
        <property name="styleSheet">
         <string notr="true">border:none;
 border-radius:20px;
-background-color:transparent</string>
+background-color:transparent;
+color:white</string>
        </property>
       </widget>
      </item>

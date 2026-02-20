@@ -141,7 +141,7 @@ for pkg in ["optimum", "onnxruntime", "onnxruntime-gpu"]:
 
 
 # ---- local model folders ----
-for folder in ["finetuned_distilbert_bert", "bibles"]:
+for folder in ["classifier","search", "bibles", "artifacts"]:
     if os.path.exists(folder):
         for f in glob.glob(f"{folder}/**/*", recursive=True):
             if os.path.isfile(f):
@@ -331,7 +331,7 @@ exe = EXE(
     [],
     exclude_binaries=True,
     name="QuickMove",
-    console=False,
+    console=True,
     icon="logo.ico",
 )
 

@@ -2,6 +2,8 @@ import transformers
 # Force the lazy loader to resolve
 import transformers.modeling_utils
 import os
+import resources_rc
+
 
 from util.modelmanagement import list_downloaded_models
 os.environ['QT_ENABLE_HIGHDPI_SCALING'] = '1'

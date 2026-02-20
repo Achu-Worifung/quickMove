@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>790</width>
+    <width>945</width>
     <height>843</height>
    </rect>
   </property>
@@ -34,6 +34,7 @@ QScrollBar::handle:horizontal {
 QScrollBar::handle:horizontal:hover {
     background: #a8a8a8;
 }
+
 </string>
   </property>
   <widget class="QWidget" name="centralwidget">
@@ -104,13 +105,16 @@ QScrollBar::sub-page:vertical {
        <string notr="true">QFrame#frame{
 	border: 1px solid black;
 	background-color: rgb(244, 247, 249);
+	color: rgb(255, 255, 255);
+
 }
 
 QWidget
 {
-
-	background-color: rgb(244, 247, 249);
-}</string>
+background-color: rgb(30, 39, 44);
+	color: rgb(255, 255, 255);
+}
+</string>
       </property>
       <property name="frameShape">
        <enum>QFrame::StyledPanel</enum>
@@ -159,8 +163,9 @@ QPushButton
 QWidget
 {
 
-	background-color: rgb(236, 239, 241);
 	color: rgb(38, 50, 56);
+	background-color: rgb(38, 50, 56);
+
 }
 </string>
          </property>
@@ -201,7 +206,7 @@ QWidget
                 </size>
                </property>
                <property name="styleSheet">
-                <string notr="true"/>
+                <string notr="true">color: rgb(255, 255, 255);</string>
                </property>
                <property name="text">
                 <string>MENU</string>
@@ -257,6 +262,9 @@ QWidget
                  <bold>true</bold>
                 </font>
                </property>
+               <property name="styleSheet">
+                <string notr="true">color: rgb(255, 255, 255);</string>
+               </property>
                <property name="text">
                 <string>QUICK MOVE</string>
                </property>
@@ -301,11 +309,7 @@ QWidget
                 <cursorShape>PointingHandCursor</cursorShape>
                </property>
                <property name="styleSheet">
-                <string notr="true">QPushButton:hover#minimize_button
-{
- background-color: #c0c0c0;
-
-}</string>
+                <string notr="true"/>
                </property>
                <property name="text">
                 <string/>
@@ -560,7 +564,7 @@ QWidget
           <item>
            <widget class="QStackedWidget" name="stackedWidget">
             <property name="currentIndex">
-             <number>1</number>
+             <number>0</number>
             </property>
             <widget class="QWidget" name="select_autos">
              <layout class="QVBoxLayout" name="verticalLayout_12">
@@ -581,8 +585,8 @@ QWidget
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>528</width>
-                   <height>737</height>
+                   <width>692</width>
+                   <height>755</height>
                   </rect>
                  </property>
                  <layout class="QVBoxLayout" name="verticalLayout_9">
@@ -709,8 +713,8 @@ QScrollBar::sub-page:vertical {
                         <rect>
                          <x>0</x>
                          <y>0</y>
-                         <width>508</width>
-                         <height>664</height>
+                         <width>672</width>
+                         <height>682</height>
                         </rect>
                        </property>
                        <layout class="QVBoxLayout" name="verticalLayout_4"/>
@@ -787,6 +791,16 @@ QScrollBar::sub-page:vertical {
                    </item>
                    <item>
                     <widget class="QWidget" name="widget_26" native="true">
+                     <property name="styleSheet">
+                      <string notr="true">QPushButton
+{   
+ border-style: outset;
+    border-width: 1px;
+    border-color: rgb(255, 255, 255);
+    padding: 4px;
+	font:20px
+}</string>
+                     </property>
                      <layout class="QHBoxLayout" name="horizontalLayout_21">
                       <item>
                        <layout class="QHBoxLayout" name="horizontalLayout_22">
@@ -808,15 +822,7 @@ QScrollBar::sub-page:vertical {
                            <cursorShape>PointingHandCursor</cursorShape>
                           </property>
                           <property name="styleSheet">
-                           <string notr="true">
-
-    border-style: outset;
-    border-width: 2px;
-    border-radius: 15px;
-    border-color: black;
-    padding: 4px;
-font:20px
-</string>
+                           <string notr="true"/>
                           </property>
                           <property name="text">
                            <string>RECORD</string>
@@ -851,15 +857,7 @@ font:20px
                            <cursorShape>PointingHandCursor</cursorShape>
                           </property>
                           <property name="styleSheet">
-                           <string notr="true">
-
-    border-style: outset;
-    border-width: 2px;
-    border-radius: 15px;
-    border-color: black;
-    padding: 4px;
-font:20px
-</string>
+                           <string notr="true"/>
                           </property>
                           <property name="text">
                            <string>STOP</string>
@@ -894,7 +892,7 @@ font:20px
                    </font>
                   </property>
                   <property name="styleSheet">
-                   <string notr="true">background-color: rgb(255, 255, 255);</string>
+                   <string notr="true"/>
                   </property>
                   <property name="text">
                    <string>RECORDED ACTIONS</string>
@@ -928,7 +926,7 @@ font:20px
                    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p align=&quot;center&quot;&gt;hello there&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                   </property>
                   <property name="styleSheet">
-                   <string notr="true"/>
+                   <string notr="true">border:none</string>
                   </property>
                   <property name="verticalScrollBarPolicy">
                    <enum>Qt::ScrollBarAlwaysOff</enum>
@@ -974,6 +972,9 @@ font:20px
 padding-bottom:25px</string>
                      </property>
                      <layout class="QHBoxLayout" name="horizontalLayout_16">
+                      <property name="spacing">
+                       <number>0</number>
+                      </property>
                       <item alignment="Qt::AlignTop">
                        <widget class="QComboBox" name="version_3">
                         <property name="enabled">
@@ -988,19 +989,71 @@ padding-bottom:25px</string>
                         <property name="font">
                          <font>
                           <pointsize>-1</pointsize>
-                          <weight>50</weight>
-                          <italic>false</italic>
-                          <bold>false</bold>
                          </font>
                         </property>
                         <property name="styleSheet">
-                         <string notr="true">    border-width: 2px 0 2px 0;
-    border-radius: 15px 0 15px 0;
-    border-color: black;
-    padding: 4px;
-font:20px;
-background-color: rgb(220, 220, 220);
+                         <string notr="true">/* =========================
+   Base ComboBox
+========================= */
+QComboBox
+{
+    border: 1px solid #cfcfcf;
+    padding: 6px 10px;
+    font-size: 16px;
+background-color: rgb(224, 224, 224);
 
+    color: black;
+}
+
+/* =========================
+   Hover effect
+========================= */
+QComboBox:hover
+{
+    border: 2px solid #9ecbff;
+}
+
+/* =========================
+   Focus effect (clicked / tabbed)
+========================= */
+QComboBox:focus
+{
+    border: 2px solid #0078d7;
+    background-color: #f5faff;
+    outline: none;
+}
+
+/* =========================
+   Dropdown button
+========================= */
+QComboBox::drop-down
+{
+    border: none;
+    width: 30px;
+}
+
+/* =========================
+   Arrow icon area
+========================= */
+QComboBox::down-arrow
+{
+    image: url(:/icons/Icons/arrow.ico);
+    width: 40px;
+    height: 40px;
+}
+
+/* =========================
+   Dropdown list
+========================= */
+QComboBox QAbstractItemView
+{
+    border: 1px solid #cccccc;
+    border-radius: 8px;
+    padding: 4px;
+    background-color: white;
+    selection-background-color: #0078d7;
+    selection-color: white;
+}
 </string>
                         </property>
                         <property name="editable">
@@ -1035,14 +1088,11 @@ background-color: rgb(220, 220, 220);
                          <cursorShape>PointingHandCursor</cursorShape>
                         </property>
                         <property name="styleSheet">
-                         <string notr="true">
-
-    border-style: outset;
-    border-width: 2px;
-    border-radius: 10px;
-    border-color: black;
+                         <string notr="true">    border-style: outset;
+    border-width: 1px;
+    border-color: rgb(255, 255, 255);
     padding: 4px;
-font:20px
+	font:20px
 </string>
                         </property>
                         <property name="text">
@@ -1077,27 +1127,34 @@ font:20px
                        <height>30</height>
                       </size>
                      </property>
+                     <property name="cursor">
+                      <cursorShape>IBeamCursor</cursorShape>
+                     </property>
                      <property name="focusPolicy">
                       <enum>Qt::StrongFocus</enum>
                      </property>
                      <property name="styleSheet">
-                      <string notr="true">border-width:2px;
-border-color: rgb(27, 188, 155);
-background-color:  rgb(220, 220, 220);
+                      <string notr="true">
+border-width:2px;
+background-color: rgb(224, 224, 224);
+border:2px solid rgb(207, 216, 220);
 </string>
                      </property>
                      <layout class="QHBoxLayout" name="horizontalLayout_17">
-                      <property name="leftMargin">
+                      <property name="spacing">
                        <number>0</number>
+                      </property>
+                      <property name="leftMargin">
+                       <number>1</number>
                       </property>
                       <property name="topMargin">
-                       <number>0</number>
+                       <number>1</number>
                       </property>
                       <property name="rightMargin">
-                       <number>0</number>
+                       <number>1</number>
                       </property>
                       <property name="bottomMargin">
-                       <number>0</number>
+                       <number>1</number>
                       </property>
                       <item>
                        <widget class="QLineEdit" name="lineEdit_3">
@@ -1118,7 +1175,8 @@ background-color:  rgb(220, 220, 220);
                         </property>
                         <property name="styleSheet">
                          <string notr="true">
-border:none</string>
+border:none;
+color: rgb(38, 50, 56);</string>
                         </property>
                         <property name="placeholderText">
                          <string>Search Bible verse</string>
@@ -1131,7 +1189,7 @@ border:none</string>
                          <cursorShape>PointingHandCursor</cursorShape>
                         </property>
                         <property name="styleSheet">
-                         <string notr="true">border-radius: 25px</string>
+                         <string notr="true">border:none</string>
                         </property>
                         <property name="text">
                          <string/>
@@ -1238,8 +1296,8 @@ QScrollBar::sub-page:vertical {
                        <rect>
                         <x>0</x>
                         <y>0</y>
-                        <width>506</width>
-                        <height>499</height>
+                        <width>670</width>
+                        <height>515</height>
                        </rect>
                       </property>
                       <property name="focusPolicy">
@@ -1306,8 +1364,7 @@ QScrollBar::sub-page:vertical {
                  <item>
                   <widget class="QScrollArea" name="scrollArea_6">
                    <property name="styleSheet">
-                    <string notr="true">background-color:rgb(255, 255, 255);
-border:none</string>
+                    <string notr="true">border:none</string>
                    </property>
                    <property name="widgetResizable">
                     <bool>true</bool>
@@ -1317,8 +1374,8 @@ border:none</string>
                      <rect>
                       <x>0</x>
                       <y>0</y>
-                      <width>515</width>
-                      <height>719</height>
+                      <width>679</width>
+                      <height>737</height>
                      </rect>
                     </property>
                     <property name="styleSheet">
@@ -1474,8 +1531,7 @@ font:20px</string>
               <item>
                <widget class="QScrollArea" name="scrollArea_7">
                 <property name="styleSheet">
-                 <string notr="true">background-color:rgb(255, 255, 255);
-border:none</string>
+                 <string notr="true">border:none</string>
                 </property>
                 <property name="widgetResizable">
                  <bool>true</bool>
@@ -1485,8 +1541,8 @@ border:none</string>
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>571</width>
-                   <height>727</height>
+                   <width>692</width>
+                   <height>755</height>
                   </rect>
                  </property>
                  <property name="styleSheet">
@@ -1520,6 +1576,18 @@ border:none</string>
                         <family>MS Shell Dlg 2</family>
                         <pointsize>14</pointsize>
                        </font>
+                      </property>
+                      <property name="styleSheet">
+                       <string notr="true">
+
+QHeaderView::section {
+    
+	background-color: rgb(44, 58, 64);
+	border:1px solid white;
+    font: bold 14px;                
+};
+color: rgb(0, 0, 0);
+background-color:rgb(47, 59, 66);</string>
                       </property>
                       <property name="sizeAdjustPolicy">
                        <enum>QAbstractScrollArea::AdjustToContents</enum>
@@ -1584,6 +1652,16 @@ border:none</string>
                         <height>570</height>
                        </size>
                       </property>
+                      <property name="styleSheet">
+                       <string notr="true">QPushButton
+{   
+ border-style: outset;
+    border-width: 1px;
+    border-color: rgb(255, 255, 255);
+    padding: 4px;
+	font:20px
+}</string>
+                      </property>
                       <layout class="QGridLayout" name="gridLayout_8">
                        <item row="8" column="0">
                         <widget class="QPushButton" name="saveButton">
@@ -1609,15 +1687,7 @@ border:none</string>
                           <cursorShape>PointingHandCursor</cursorShape>
                          </property>
                          <property name="styleSheet">
-                          <string notr="true">
-
-    border-style: outset;
-    border-width: 2px;
-    border-radius: 10px;
-    border-color: black;
-    padding: 4px;
-font:20px
-</string>
+                          <string notr="true"/>
                          </property>
                          <property name="text">
                           <string>Save</string>
@@ -1658,15 +1728,7 @@ font:20px
                           <cursorShape>PointingHandCursor</cursorShape>
                          </property>
                          <property name="styleSheet">
-                          <string notr="true">
-
-    border-style: outset;
-    border-width: 2px;
-    border-radius: 10px;
-    border-color: black;
-    padding: 4px;
-font:20px
-</string>
+                          <string notr="true"/>
                          </property>
                          <property name="text">
                           <string>Delete</string>
@@ -1695,12 +1757,7 @@ font:20px
                           <cursorShape>PointingHandCursor</cursorShape>
                          </property>
                          <property name="styleSheet">
-                          <string notr="true">    border-style: outset;
-    border-width: 2px;
-    border-radius: 10px;
-    border-color: black;
-    padding: 4px;
-font:20px</string>
+                          <string notr="true"/>
                          </property>
                          <property name="text">
                           <string>Cancel</string>
@@ -1749,15 +1806,7 @@ font:20px</string>
                           <cursorShape>PointingHandCursor</cursorShape>
                          </property>
                          <property name="styleSheet">
-                          <string notr="true">
-
-    border-style: outset;
-    border-width: 2px;
-    border-radius: 10px;
-    border-color: black;
-    padding: 4px;
-font:20px
-</string>
+                          <string notr="true"/>
                          </property>
                          <property name="text">
                           <string>Run</string>
@@ -1798,13 +1847,7 @@ font:20px
                           <cursorShape>PointingHandCursor</cursorShape>
                          </property>
                          <property name="styleSheet">
-                          <string notr="true">    border-style: outset;
-    border-width: 2px;
-    border-radius: 10px;
-    border-color: black;
-    padding: 4px;
-font:20px
-</string>
+                          <string notr="true"/>
                          </property>
                          <property name="text">
                           <string>Edit</string>
@@ -1845,12 +1888,7 @@ font:20px
                           <cursorShape>PointingHandCursor</cursorShape>
                          </property>
                          <property name="styleSheet">
-                          <string notr="true">    border-style: outset;
-    border-width: 2px;
-    border-radius: 10px;
-    border-color: black;
-    padding: 4px;
-font:20px</string>
+                          <string notr="true"/>
                          </property>
                          <property name="text">
                           <string>Simulate</string>
@@ -1879,13 +1917,7 @@ font:20px</string>
                           <cursorShape>PointingHandCursor</cursorShape>
                          </property>
                          <property name="styleSheet">
-                          <string notr="true">    border-style: outset;
-    border-width: 2px;
-    border-radius: 10px;
-    border-color: black;
-    padding: 4px;
-font:20px
-</string>
+                          <string notr="true"/>
                          </property>
                          <property name="text">
                           <string>insert below</string>
@@ -1908,15 +1940,7 @@ font:20px
                           <cursorShape>OpenHandCursor</cursorShape>
                          </property>
                          <property name="styleSheet">
-                          <string notr="true">
-
-    border-style: outset;
-    border-width: 2px;
-    border-radius: 10px;
-    border-color: black;
-    padding: 4px;
-font:20px
-</string>
+                          <string notr="true"/>
                          </property>
                          <property name="text">
                           <string>Set Bar Location</string>
@@ -1962,6 +1986,9 @@ font:20px
                          <weight>75</weight>
                          <bold>true</bold>
                         </font>
+                       </property>
+                       <property name="styleSheet">
+                        <string notr="true">color:rgb(255, 255, 255)</string>
                        </property>
                        <property name="text">
                         <string/>
@@ -2200,6 +2227,16 @@ p, li { white-space: pre-wrap; }
                   <height>150</height>
                  </size>
                 </property>
+                <property name="styleSheet">
+                 <string notr="true">QPushButton
+{   
+ border-style: outset;
+    border-width: 1px;
+    border-color: rgb(255, 255, 255);
+    padding: 4px;
+	font:20px
+}</string>
+                </property>
                 <layout class="QHBoxLayout" name="horizontalLayout_5">
                  <item>
                   <widget class="QPushButton" name="show_area">
@@ -2212,12 +2249,6 @@ p, li { white-space: pre-wrap; }
                    <property name="styleSheet">
                     <string notr="true">
 
-    border-style: outset;
-    border-width: 2px;
-    border-radius: 10px;
-    border-color: black;
-    padding: 4px;
-font:20px
 </string>
                    </property>
                    <property name="text">
@@ -2254,15 +2285,7 @@ font:20px
                     </font>
                    </property>
                    <property name="styleSheet">
-                    <string notr="true">
-
-    border-style: outset;
-    border-width: 2px;
-    border-radius: 10px;
-    border-color: black;
-    padding: 4px;
-font:20px
-</string>
+                    <string notr="true"/>
                    </property>
                    <property name="text">
                     <string>CONFIGURE</string>
@@ -2278,6 +2301,145 @@ font:20px
              </layout>
             </widget>
             <widget class="QWidget" name="settngs">
+             <property name="styleSheet">
+              <string notr="true">
+
+QPushButton:pressed
+{
+    background-color: #1565C0;
+}
+QLineEdit, QTextEdit, QPlainTextEdit
+{
+    background-color: #2C3A40;
+    border: 2px solid #546E7A;
+    border-radius: 8px;
+    padding: 6px;
+    color: rgb(0, 0, 0);
+}
+QLineEdit:hover, QTextEdit:hover, QPlainTextEdit:hover
+{
+    border: 2px solid #78909C;
+}
+
+QLineEdit:focus, QTextEdit:focus, QPlainTextEdit:focus
+{
+    border: 2px solid #42A5F5;
+    background-color: #2F3F46;
+}
+
+QComboBox
+{
+    color: rgb(0, 0, 0);
+    background-color: #2C3A40;
+    border: 2px solid #546E7A;
+    border-radius: 8px;
+    padding: 6px 10px;
+}
+
+QComboBox:hover
+{
+    border: 2px solid #78909C;
+}
+
+QComboBox:focus
+{
+    border: 2px solid #42A5F5;
+    background-color: #2F3F46;
+}
+
+/* dropdown button */
+QComboBox::drop-down
+{
+    border: none;
+    width: 24px;
+}
+
+/* dropdown list */
+QComboBox QAbstractItemView
+{
+    background-color: #37474F;
+    border: 1px solid #455A64;
+    border-radius: 6px;
+    selection-background-color: #1976D2;
+    selection-color: white;
+}
+
+QMenu
+{
+color: rgb(0, 0, 0);
+    background-color: #37474F;
+    border: 1px solid #455A64;
+}
+
+QMenu::item
+{
+    padding: 6px 20px;
+}
+
+QMenu::item:selected
+{
+    background-color: #1976D2;
+}
+
+QComboBox::down-arrow
+{
+    image: url(:/icons/Icons/arrow.ico);
+    width: 25px;
+    height: 25px;
+}
+
+QSpinBox, QDoubleSpinBox
+{
+color: rgb(0, 0, 0);
+    background-color: #2C3A40;
+    border: 2px solid #546E7A;
+    border-radius: 8px;
+    padding: 10px
+}
+
+/* arrows */
+QSpinBox::up-arrow, QDoubleSpinBox::up-arrow
+{
+    image:url(:/icons/Icons/up arrow.ico);
+    width: 20px;
+    height: 20px;
+}
+
+QSpinBox::down-arrow, QDoubleSpinBox::down-arrow
+{
+    image:url(:/icons/Icons/arrow.ico);
+    width: 20px;
+    height: 20px;
+}
+
+/* buttons */
+QSpinBox::up-button, QDoubleSpinBox::up-button
+{
+    border-top-right-radius: 6px;
+    width: 20px;
+}
+
+QSpinBox::down-button, QDoubleSpinBox::down-button
+{
+    border-bottom-right-radius: 6px;
+    width: 20px;
+}
+
+QComboBox QAbstractItemView
+{
+    background-color: #37474F;      /* dropdown background */
+    border: 1px solid #455A64;      /* border */
+    padding: 4px;                    /* padding around the whole list */
+    selection-background-color: #1976D2;
+    selection-color: white;
+    outline: 0;
+
+    /* THIS is the key for vertical spacing */
+    spacing: 16px;                    /* space between items */
+}
+
+</string>
+             </property>
              <layout class="QVBoxLayout" name="verticalLayout_7">
               <item>
                <widget class="QScrollArea" name="scrollArea_2">
@@ -2433,7 +2595,7 @@ QScrollBar::sub-page:vertical {
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>518</width>
+                   <width>682</width>
                    <height>1679</height>
                   </rect>
                  </property>
@@ -3154,6 +3316,16 @@ QCheckBox::indicator {
                             <string>CPU</string>
                            </property>
                           </item>
+                          <item>
+                           <property name="text">
+                            <string>gpu</string>
+                           </property>
+                          </item>
+                          <item>
+                           <property name="text">
+                            <string>npu</string>
+                           </property>
+                          </item>
                          </widget>
                         </item>
                        </layout>
@@ -3218,6 +3390,9 @@ QCheckBox::indicator {
                             <width>200</width>
                             <height>31</height>
                            </size>
+                          </property>
+                          <property name="styleSheet">
+                           <string notr="true"/>
                           </property>
                          </widget>
                         </item>
