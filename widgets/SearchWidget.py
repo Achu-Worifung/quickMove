@@ -223,7 +223,7 @@ class SearchWidget(QDialog):
         self.record = self.search_page.findChild(QPushButton, 'listen')
         # ensure version items exist once
         if self.version.count() == 0:
-            self.version.addItems(['ESV','KJV', 'NIV', 'ASV', 'NLT'])
+            self.version.addItems(['NLT','KJV', 'NIV', 'ASV', 'ESV'])
 
         print('listen button', self.record)
 

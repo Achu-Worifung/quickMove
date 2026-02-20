@@ -104,6 +104,7 @@ class SoundWaveLabel(QLabel):
                                       font-weight: bold;
                                       font-family: Arial;
                                       text-align: center;
+                                      background-color: rgb(38, 50, 56);
                                       
                                    """)
 

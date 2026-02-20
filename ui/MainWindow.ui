@@ -567,7 +567,7 @@ QWidget
           <item>
            <widget class="QStackedWidget" name="stackedWidget">
             <property name="currentIndex">
-             <number>6</number>
+             <number>4</number>
             </property>
             <widget class="QWidget" name="select_autos">
              <layout class="QVBoxLayout" name="verticalLayout_12">
@@ -588,7 +588,7 @@ QWidget
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>692</width>
+                   <width>701</width>
                    <height>755</height>
                   </rect>
                  </property>
@@ -716,7 +716,7 @@ QScrollBar::sub-page:vertical {
                         <rect>
                          <x>0</x>
                          <y>0</y>
-                         <width>672</width>
+                         <width>681</width>
                          <height>682</height>
                         </rect>
                        </property>
@@ -1308,7 +1308,7 @@ QScrollBar::sub-page:vertical {
                        <rect>
                         <x>0</x>
                         <y>0</y>
-                        <width>670</width>
+                        <width>679</width>
                         <height>530</height>
                        </rect>
                       </property>
@@ -1386,7 +1386,7 @@ QScrollBar::sub-page:vertical {
                      <rect>
                       <x>0</x>
                       <y>0</y>
-                      <width>679</width>
+                      <width>688</width>
                       <height>737</height>
                      </rect>
                     </property>
@@ -1553,7 +1553,7 @@ font:20px</string>
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>692</width>
+                   <width>701</width>
                    <height>755</height>
                   </rect>
                  </property>

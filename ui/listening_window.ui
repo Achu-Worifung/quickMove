@@ -14,7 +14,11 @@
    <string>Frame</string>
   </property>
   <property name="styleSheet">
-   <string notr="true">QPushButton{
+   <string notr="true">QFrame#Frame
+{
+border: 1px solid white;
+};
+QPushButton:{
     border-style: outset;
     border-width: 1px;
     border-radius: 0px;
@@ -23,12 +27,6 @@
 font:20px;
 
 }
-QFrame#Frame {
-    border: 1px solid black; 
-    color:white;
-background-color:rgb(47, 59, 66);
-}
-
 </string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -67,11 +65,7 @@ background-color:rgb(47, 59, 66);
         </size>
        </property>
        <property name="styleSheet">
-        <string notr="true">QWidget#widget_4
-{
-    color:white;
-background-color:rgb(47, 59, 66);
-}</string>
+        <string notr="true"/>
        </property>
        <layout class="QHBoxLayout" name="horizontalLayout">
         <item>
@@ -167,8 +161,10 @@ background-color:rgb(47, 59, 66);
        </property>
        <property name="styleSheet">
         <string notr="true">QCheckBox::indicator { width: 0px; height: 0px; };
-background-color:rgb(47, 59, 66);
+QCheckBox{
 color: rgb(255, 255, 255);
+background-color:transparent;
+}
 </string>
        </property>
        <property name="text">
