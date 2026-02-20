@@ -517,7 +517,7 @@ class SearchWidget(QDialog):
 
         def mouse_click(event, verse_key):
             QTimer.singleShot(0, lambda: self.present(verse_key, self.data))
-            self.history.setText(f'Prev Displayed Verse: {self.prev_verse_text}')
+            self.history.setText(f'Prev Displayed Verse: {verse_key}')
 
         single_result.title.mousePressEvent = partial(mouse_click, verse_key=reference)
         single_result.body.mousePressEvent = partial(mouse_click, verse_key=reference)
@@ -649,6 +649,10 @@ class WhisperWindow(QFrame):
         self.lineEdit.setAlignment(Qt.AlignCenter | Qt.AlignVCenter)
         self.title.setText('')
         
+        #show the window first to avoid "QWidget::repaint: Recursive repaint detected" error from the long model loading time in TranscriptionWorker
+        self.show()
+        QApplication.processEvents()
+        
         
         self.is_minimized = False
         
@@ -660,7 +664,7 @@ class WhisperWindow(QFrame):
         self.transcription_thread.guitextReady.connect(self.update_transcription_text)
         self.transcription_thread.loadingStatus.connect(self.updateLoadingStatus)
 
-        self.transcription_thread.start()
+        QTimer.singleShot(100, self.start_transcription_worker)
 
         # Create the soundwave label
         from util import soundwave
@@ -683,7 +687,9 @@ class WhisperWindow(QFrame):
         if self.checkBox.isChecked():
             print("Checkbox is checked, starting visualization automatically")
             QTimer.singleShot(100, self.soundwave_label.start_recording_visualization)
-            
+    def start_transcription_worker(self):
+        """Starts the worker after the UI has had a chance to paint."""
+        self.transcription_thread.start()     
     @pyqtSlot()
     def updateLoadingStatus(self):
         self.lineEdit.setText('')

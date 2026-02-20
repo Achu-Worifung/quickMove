@@ -88,7 +88,7 @@ class TranscriptionWorker(QThread):
         super().__init__(parent)
         self.record_page = parent
         self.search_page = search_page
-        self.classifier = Classifier()
+        self.classifier = None
         self.transcribed_chunks = [] #stores 2 transcribed chunks for context
         self.classification_chunks = [] #stores the classification
         self.verse_buffer = {} #stores recent verses for context in search
@@ -146,11 +146,7 @@ class TranscriptionWorker(QThread):
         
         # Mark that models haven't been loaded yet
         self.models_loaded = False
-        #loading the classifier model 
-        self.classifier.load_classifier()
-        
-        #loading the search models 
-        self.initialize_bible_search()
+       
         
         # Initialize global variables to None (will be loaded in run())
         self.whisper = None
@@ -801,7 +797,13 @@ class TranscriptionWorker(QThread):
         Main thread loop - coordinates the three worker threads
         """
         print("Starting transcription worker...")
+        self.classifier = Classifier()
         
+         #loading the classifier model 
+        self.classifier.load_classifier()
+        
+        #loading the search models 
+        self.initialize_bible_search()
         try:
             # Load models on thread start (not in __init__)
             if not self.models_loaded:
