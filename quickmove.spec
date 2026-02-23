@@ -161,7 +161,7 @@ for pkg in ["optimum", "onnxruntime", "onnxruntime-gpu"]:
         datas += copy_metadata(pkg)
     except:
         pass
-
+datas.append(("settings.ini", "."))
 
 # ---- local model folders ----
 for folder in ["classifier","search", "bibles", "artifacts"]:

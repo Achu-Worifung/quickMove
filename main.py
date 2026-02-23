@@ -412,11 +412,21 @@ class MainWindow(QMainWindow):
  
     def setupInitialSettings(self):
         print('setting up initial settings')
+        # This works in development and when packaged
+        base_path = os.path.dirname(os.path.abspath(__file__))
+        defaults_file = os.path.join(base_path, "settings.ini")
+        
+        if not os.path.exists(defaults_file):
+            print(f"Error: Default settings file not found at {defaults_file}")
+            return
         import torch
         
-        defaults_file = "settings.ini"
         config = configparser.ConfigParser()
         config.read(defaults_file)
+        
+        if not config.has_section('general'):
+            print("Error: 'general' section not found in settings.ini")
+            return
         
         for key, value in config.items('general'):
             if self.settings.value(key) is None:
