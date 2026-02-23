@@ -1,16 +1,18 @@
-import transformers
-# Force the lazy loader to resolve
-import transformers.modeling_utils
 import os
+# Force the lazy loader to resolve
+os.environ['QT_ENABLE_HIGHDPI_SCALING'] = '1'
+os.environ['QT_SCALE_FACTOR'] = '1'
+os.environ['QT_SCREEN_SCALE_FACTORS'] = '1'
+os.environ["HF_HUB_DISABLE_XET"] = "1"
+import transformers
+import transformers.modeling_utils
 import resources_rc
 from PyQt5.QtGui import QCursor
 from PyQt5.QtCore import QEvent
 
 
+
 from util.modelmanagement import list_downloaded_models
-os.environ['QT_ENABLE_HIGHDPI_SCALING'] = '1'
-os.environ['QT_SCALE_FACTOR'] = '1'
-os.environ['QT_SCREEN_SCALE_FACTORS'] = '1'
 from PyQt5 import QtCore
 QtCore.QCoreApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True)
 QtCore.QCoreApplication.setAttribute(QtCore.Qt.AA_UseHighDpiPixmaps, True)

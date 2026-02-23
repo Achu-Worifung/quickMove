@@ -43,6 +43,8 @@ hiddenimports += [
     "optimum.exporters",
     "optimum.exporters.onnx",
 ]
+hiddenimports+=['silero_vad', 'silero_vad.data']
+
 hiddenimports += [
     "av",
     "av.audio",
@@ -148,7 +150,9 @@ datas += copy_metadata('tokenizers')
 datas += copy_metadata('huggingface-hub')
 datas += copy_metadata('safetensors')
 datas += copy_metadata('pyyaml')
-
+datas += [
+    ('C:\\Users\\achuw\\OneDrive\\Desktop\\quick hsp\\.venv\\Lib\\site-packages\\silero_vad', 'silero_vad'),
+]
 
 
 # ---- metadata ----
@@ -350,7 +354,7 @@ exe = EXE(
     [],
     exclude_binaries=True,
     name="QuickMove",
-    console=False,
+    console=True,
     icon="logo.ico",
 )
 
