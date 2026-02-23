@@ -693,6 +693,7 @@ class WhisperWindow(QFrame):
     @pyqtSlot()
     def updateLoadingStatus(self):
         self.lineEdit.setText('')
+        print('all models loaded, ready to transcribe')
         self.lineEdit.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
         
     @pyqtSlot(str) 

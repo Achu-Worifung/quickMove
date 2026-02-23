@@ -817,7 +817,7 @@ class TranscriptionWorker(QThread):
             # 1. Audio recording (fast, handles audio callback)
             # 2. Audio processing (fast, handles VAD and accumulation)
             # 3. Transcription (slow, handles Whisper transcription)
-            
+            self.loadingStatus.emit() # Signal that loading is complete (in case it was waiting)
             self.recording_thread = threading.Thread(target=self.record_audio, daemon=True, name="AudioRecording")
             self.processing_thread = threading.Thread(target=self.process_audio, daemon=True, name="AudioProcessing")
             self.transcription_thread = threading.Thread(target=self.transcribe_loop, daemon=True, name="Transcription")
@@ -831,7 +831,7 @@ class TranscriptionWorker(QThread):
             self.recording_thread.join()
             self.processing_thread.join()
             self.transcription_thread.join()
-            self.loadingStatus.emit() # Signal that loading is complete (in case it was waiting)
+           
 
             
         except Exception as e:

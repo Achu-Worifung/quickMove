@@ -93,6 +93,7 @@ class MainWindow(QMainWindow):
         
         # Only run initial setup if it hasn't been done before
         if not self.settings.value("default_settings", False, type=bool):
+            print('running initial setup')
             self.setupInitialSettings()
         # Store base directory
         self.settings.setValue("basedir", basedir)
