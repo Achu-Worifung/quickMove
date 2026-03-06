@@ -90,8 +90,11 @@ class TranscriptionWorker(QThread):
         self.search_page = search_page
         self.classifier = None
         self.transcribed_chunks = [] #stores 2 transcribed chunks for context
-        self.classification_chunks = [] #stores the classification
         self.verse_buffer = {} #stores recent verses for context in search
+        # Word-level sliding window for classification/search
+        self.word_buffer = []
+        self.WINDOW_SIZE = 12   # words per chunk
+        self.STRIDE = 6         # overlap
         
         self._pause = False
         self.pause_event = threading.Event()
@@ -173,7 +176,26 @@ class TranscriptionWorker(QThread):
             'avg_transcription_time': 0.0
         }
         
+    def get_sliding_window_chunk(self, text):
+        """
+        Builds stable chunks using a word-level sliding window.
+        Returns a chunk when enough words are accumulated.
+        """
 
+        words = text.split()
+
+        # Add words to buffer
+        self.word_buffer.extend(words)
+
+        if len(self.word_buffer) >= self.WINDOW_SIZE:
+            chunk = " ".join(self.word_buffer[:self.WINDOW_SIZE])
+
+            # Slide the window
+            self.word_buffer = self.word_buffer[self.STRIDE:]
+
+            return chunk
+
+        return None
     def stop(self):
         self._stop = True
         print('stopping transcription thread...')
@@ -362,7 +384,7 @@ class TranscriptionWorker(QThread):
                     self.statusUpdate.emit("listening")
     
     def transcribe_audio_chunk(self, audio_data, context=None):
-        """
+        """s
         Fast transcription with minimal parameters
         Runs in transcription thread - can be slow
         """
@@ -384,7 +406,9 @@ class TranscriptionWorker(QThread):
                 best_of=self.best_of,
                 temperature=self.temperature,
                 condition_on_previous_text=context is not None,
-                initial_prompt=context,
+                initial_prompt="""Christian church sermon discussing the Bible and theology. The speaker may quote scripture and reference books such as Genesis, Psalms, Isaiah, Matthew, John, Romans, Ephesians, and Revelation.
+                Common phrases include: Jesus Christ, the Lord, the Holy Spirit, the Gospel, salvation, grace, faith, disciples, and scripture.
+                Transcribe spoken words faithfully with punctuation and correctly format Bible references like "John 3:16" or "Romans 8:28".""",
                 vad_filter=False,
                 compression_ratio_threshold=2.4,
                 log_prob_threshold=-1.0,
@@ -534,7 +558,7 @@ class TranscriptionWorker(QThread):
         text = text.replace('\\', '')
         
         # Remove punctuation
-        text = re.sub(r'[^\w\s]', '', text)
+        text = re.sub(r'[^\w\s:]', '', text)
         
         # Clean up extra whitespace
         text = ' '.join(text.split())
@@ -576,15 +600,13 @@ class TranscriptionWorker(QThread):
 
                     # ---- Buffers ----
                     self.transcribed_chunks.append(text)     # for UI overlap
-                    self.classification_chunks.append(text)  # for classification/search
+                    chunk_to_classify = self.get_sliding_window_chunk(text)
 
-                    # Keep last 2 chunks for UI overlap
-                    if len(self.transcribed_chunks) > 2:
-                        self.transcribed_chunks = self.transcribed_chunks[-2:]
+                    if chunk_to_classify is None:
+                        # Not enough words yet
+                        continue
 
-                    # Keep last 2 chunks for classification
-                    if len(self.classification_chunks) > 2:
-                        self.classification_chunks = self.classification_chunks[-2:]
+
 
                     # ---- Overlap verification for UI ----
                     if len(self.transcribed_chunks) < 2:
@@ -629,7 +651,11 @@ class TranscriptionWorker(QThread):
                         
                             
                     # Use only the last unclassified chunk for classification to prevent bleed
-                    chunk_to_classify = self.classification_chunks[-1]
+                    chunk_to_classify = self.get_sliding_window_chunk(text)
+
+                    if chunk_to_classify is None:
+                        # not enough words yet
+                        continue
                     #checking if this is a continuation of the previous chunk or a new phrase to classify
                     print(f"Chunk to classify: {chunk_to_classify}")
                     print(f"Verse buffer for context: {list(self.verse_buffer.keys())}")
@@ -687,24 +713,24 @@ class TranscriptionWorker(QThread):
                                 print(f"No good continuation match found (best score: {best_score:.0f}%), for {best_match_info} \n proceeding with classification and search")
                                                                                
                     
-                    results = self.classifier.classify([merged_text, chunk_to_classify])
-                    label_merged, confidence_merged = results[0]
-                    label_chunk, confidence_chunk = results[1]
+                    results = self.classifier.classify([chunk_to_classify])
+                    label_chunk, confidence_chunk = results[0]
+
+                    print(f"Classification result: {label_chunk} ({confidence_chunk:.2%})")
                     
-                    print(f"Classification result: merged -> {label_merged} ({confidence_merged:.2%}), chunk -> {label_chunk} ({confidence_chunk:.2%})")
+                  
 
                     # Keyword fallback
                     keyword_pattern = r"\b(god|lord|jesus|christ|bible|heaven|hell)\b"
-                    contains_keyword = re.search(keyword_pattern, merged_text, re.IGNORECASE) is not None
+                    contains_keyword = re.search(keyword_pattern, chunk_to_classify, re.IGNORECASE) is not None
 
-                    if label_merged == "non bible" and label_chunk == "non bible" and not contains_keyword:
+                    if   label_chunk == "non bible" and not contains_keyword:
                         print("Non-bible and does not contain key words, skipping search")
                         #clearing the verse buffer since we likely have a new topic and the old verses won't be relevant anymore
                         self.verse_buffer = {}
                         continue  # skip search for non-Bible content
-                    self.classification_chunks = []  # Clear classification buffer after use
                     # ---- Perform search ----
-                    query = chunk_to_classify if label_merged == 'non bible' else merged_text #search for the chunk if the entire text is non-bible
+                    query = chunk_to_classify
                     results = self.perform_auto_search(query)
                     
                     
