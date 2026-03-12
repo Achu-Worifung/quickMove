@@ -20,6 +20,7 @@ from util.classifier import Classifier
 from util.biblesearch import BibleSearch
 from rapidfuzz import fuzz
 from util.extract_verse import extract_bible_reference
+from util.sermon_brain import SermonBrain
 
 class AudioProcessor:
     """Simple audio processor for normalization"""
@@ -86,11 +87,15 @@ class TranscriptionWorker(QThread):
     
     def __init__(self, parent=None, search_page=None):
         super().__init__(parent)
+        self.bible_search = BibleSearch()
+        self.sermon_brain = SermonBrain(use_ollama=False)
+
+        self.stream_matcher = self.bible_search.get_stream_matcher()
         self.record_page = parent
         self.search_page = search_page
-        self.classifier = None
+        # self.classifier = None
         self.transcribed_chunks = [] #stores 2 transcribed chunks for context
-        self.verse_buffer = {} #stores recent verses for context in search
+        # self.verse_buffer = {} #stores recent verses for context in search
         # Word-level sliding window for classification/search
         self.word_buffer = []
         self.WINDOW_SIZE = 12   # words per chunk
@@ -570,8 +575,18 @@ class TranscriptionWorker(QThread):
 
     def transcribe_loop(self):
         """
-        Transcription loop - runs in its own thread
-        This thread handles the slow transcription work
+        Transcription loop - runs in its own thread.
+        This thread handles the slow transcription work.
+
+        Pipeline change:
+            OLD: Whisper → normalize → classifier → BM25/FAISS → cross-encoder rerank
+            NEW: Whisper → normalize → BibleStreamMatcher (n-gram + phonetic + fuzzy)
+
+        The stream matcher handles:
+            - Verse detection (MATCH)
+            - Continuation detection (CONT) — replaces the old verse_buffer fuzzy loop
+            - Noise rejection — no classifier needed, overlap guard blocks false positives
+            - Spoken reference fast-path — unchanged, runs before stream matcher
         """
         print("Transcription loop started")
         try:
@@ -579,222 +594,157 @@ class TranscriptionWorker(QThread):
                 if self._pause:
                     time.sleep(1)
                     continue
-                
 
                 try:
-                    # Get next transcription task with timeout
+                    # ── Get next task ────────────────────────────────────────────
                     task = self.transcription_queue.get(timeout=0.1)
 
                     audio_data = task['audio']
-                    context = task['context']
-                    task_type = task['type']
+                    context    = task['context']
+                    task_type  = task['type']
 
-                    # Transcribe chunk
+                    # ── Transcribe ───────────────────────────────────────────────
                     text = self.transcribe_audio_chunk(audio_data, context)
                     if not text:
                         continue
 
-                    # Normalize & add to context
+                    # ── Normalize ────────────────────────────────────────────────
                     text = self.normalize_text(text)
+                    words = text.split()
+
+                    # ── Whisper dedup (word-level overlap strip) ─────────────────
+                    if self.word_buffer:
+                        overlap_len = 0
+                        for i in range(min(len(self.word_buffer), len(words)), 0, -1):
+                            if self.word_buffer[-i:] == words[:i]:
+                                overlap_len = i
+                                break
+                        words = words[overlap_len:]
+                        if not words:
+                            continue  # entire chunk was a duplicate
+
+                    text = " ".join(words)
+
+                    # Update rolling word buffer (bounded)
+                    self.word_buffer.extend(words)
+                    self.word_buffer = self.word_buffer[-50:]
+
+                    # ── Context manager ──────────────────────────────────────────
                     self.context_manager.add_text(text)
 
-                    # ---- Buffers ----
-                    self.transcribed_chunks.append(text)     # for UI overlap
+                    # ── Sliding window chunk (for spoken-ref check) ──────────────
+                    self.transcribed_chunks.append(text)
                     chunk_to_classify = self.get_sliding_window_chunk(text)
-
                     if chunk_to_classify is None:
-                        # Not enough words yet
                         continue
 
-
-
-                    # ---- Overlap verification for UI ----
+                    # ── UI overlap merge ─────────────────────────────────────────
                     if len(self.transcribed_chunks) < 2:
                         print("Not enough chunks for context, waiting for next...")
                         continue
 
                     prev_chunk, curr_chunk = self.transcribed_chunks[-2:]
-                    overlap_index = -1
-                    for i in range(len(prev_chunk)):
-                        if curr_chunk.startswith(prev_chunk[i:]):
-                            overlap_index = i
+                    prev_words = prev_chunk.split()
+                    curr_words = curr_chunk.split()
+
+                    overlap_len = 0
+                    for i in range(min(len(prev_words), len(curr_words)), 0, -1):
+                        if prev_words[-i:] == curr_words[:i]:
+                            overlap_len = i
                             break
 
-                    if overlap_index != -1:
-                        merged_text = prev_chunk[:overlap_index] + curr_chunk
+                    if overlap_len > 0:
+                        merged_text = " ".join(prev_words[:-overlap_len] + curr_words)
                         print(f"overlap made: {merged_text}")
                     else:
                         merged_text = prev_chunk + " " + curr_chunk
                         print(f"no overlap: {merged_text}")
 
-                    # Emit verified text to ui
+                    # Emit clean merged text to UI
                     self.guitextReady.emit(merged_text)
-                    
-                    #check if reference exist in transcription 
+
+                    # ── Spoken reference fast-path ───────────────────────────────
+                    # e.g. preacher says "John chapter 3 verse 16"
                     spoken_references = extract_bible_reference(merged_text)
-                    reference_dict = []
                     if spoken_references:
+                        reference_dict = []
                         for ref in spoken_references:
-                            print(f"Found spoken reference: {ref['full']} in transcription, skipping search and emitting directly")
-                        
+                            print(f"Found spoken reference: {ref['full']} — emitting directly")
                             reference_dict.append({
                                 'reference': ref['full'],
-                                'book': ref.get('book', ''),
-                            'chapter': ref.get('chapter', ''),
-                                'verse': ref.get('verse', ''),
-                                'text':"",
-                                'score':1.0
-                            })                            
-                    
-                        self.autoSearchResults.emit(reference_dict, "", 0.00, self.auto_search_size)
-                        continue #skipping search entirely
-                        
-                            
-                    # Use only the last unclassified chunk for classification to prevent bleed
-                    chunk_to_classify = self.get_sliding_window_chunk(text)
+                                'book':      ref.get('book', ''),
+                                'chapter':   ref.get('chapter', ''),
+                                'verse':     ref.get('verse', ''),
+                                'text':      '',
+                                'score':     1.0,
+                            })
+                            # Tell the stream matcher this ref is already emitted
+                            # so it won't double-fire if it also detects the quote
+                            self.stream_matcher.emitted.add(ref['full'])
 
-                    if chunk_to_classify is None:
-                        # not enough words yet
+                        self.autoSearchResults.emit(reference_dict, "", 0.0, self.auto_search_size)
+                        continue  # skip stream matching for this chunk
+
+                    # ── Stream match + SermonBrain ───────────────────────────────
+                    keyword_pattern = r"\b(god|lord|jesus|christ|holy|spirit|bible|scripture|verse|heaven|hell|pray|prayer|faith|grace|salvation|gospel|sin|righteousness|church|worship|blessed|eternal|amen|hallelujah|savior|saviour|repent|forgive|mercy|covenant|apostle|prophet|disciple)\b"
+                    contains_keyword = re.search(keyword_pattern, text, re.IGNORECASE) is not None
+                    has_active_candidates = len(self.stream_matcher.candidates) > 0
+
+                    if not contains_keyword and not has_active_candidates:
+                        self.stream_matcher.flush_candidates()
                         continue
-                    #checking if this is a continuation of the previous chunk or a new phrase to classify
-                    print(f"Chunk to classify: {chunk_to_classify}")
-                    print(f"Verse buffer for context: {list(self.verse_buffer.keys())}")
-                    if chunk_to_classify and self.verse_buffer:
-                        best_score = 0
-                        best_match_info = None
 
-                        for key, verse_data in self.verse_buffer.items():
-                            # Get text safely
-                            v_text = verse_data.get('text', '') if isinstance(verse_data, dict) else str(verse_data)
-                            
-                            # Calculate alignment
-                            alignment = fuzz.partial_ratio_alignment(merged_text.lower(), v_text.lower())
-                            
-                            if alignment.score > best_score:
-                                best_score = alignment.score
-                                best_match_info = {
-                                    'data': verse_data,
-                                    'text': v_text, 
-                                    'start': alignment.dest_start,
-                                    'end': alignment.dest_end
-                                }
+                    # Get raw candidates from stream matcher
+                    raw_results = list(self.stream_matcher.feed(text))
 
-                        if best_score > 70:                            
-                            # Use best_match_info specifically to avoid "last item in loop" bugs
-                            target_text = best_match_info['text']
-                            target_ref = best_match_info['data'].get('reference', 'Unknown')
-                            target_book = best_match_info['data'].get('book', '')
-                            target_chapter = best_match_info['data'].get('chapter', '')
-                            target_verse = best_match_info['data'].get('verse', '')
-                            
-                            continuation_result = [{
-                                'reference': target_ref,
-                                'book': target_book,
-                                'chapter': target_chapter,
-                                'verse': target_verse,
-                                'text': target_text, 
-                                'score': f"{1.0:.0f}%",
-                                'is_continuation': True 
-                            }]
-                            
-                            # print(f"found continuation match: @ reference -> {target_ref} with score -> {best_score:.0f}% ")
-                            
-                            
-                            print(f'continuation match found @ book {target_book} chapter {target_chapter} verse {target_verse} with score -> {best_score:.0f}% ')
-                            
-                            
-                            # Emitting the "matched portion" of the verse as the query
-                            matched_chunk = target_text[:best_match_info['end']]
-                            
-                            self.autoSearchResults.emit(continuation_result, matched_chunk, threshold, self.auto_search_size)
-                            print(f'continuiting found: @ reference -> {target_ref} with score -> {best_score:.0f}% skipping the search ')
-                            continue 
-                        else:
-                                print(f"No good continuation match found (best score: {best_score:.0f}%), for {best_match_info} \n proceeding with classification and search")
-                                                                               
-                    
-                    results = self.classifier.classify([chunk_to_classify])
-                    label_chunk, confidence_chunk = results[0]
+                    # Pass through SermonBrain for topic/arc/cluster adjustment
+                    # Falls back to raw_results if brain is unavailable
+                    try:
+                        brain_results = self.sermon_brain.process(text, raw_results)
+                    except Exception as e:
+                        print(f"SermonBrain error (passing through): {e}")
+                        brain_results = raw_results
 
-                    print(f"Classification result: {label_chunk} ({confidence_chunk:.2%})")
-                    
-                  
+                    match_found = False
+                    for result in brain_results:
+                        match_found = True
+                        tag = "CONTINUATION" if result['is_continuation'] else "MATCH"
+                        print(
+                            f"[{tag}] {result['reference']}  "
+                            f"score={result['score']:.2f}  "
+                            f"arc={result.get('_brain_arc', '?')}"
+                        )
+                        self.autoSearchResults.emit(
+                            [result],
+                            result['text'],
+                            result['score'],
+                            self.auto_search_size,
+                        )
 
-                    # Keyword fallback
-                    keyword_pattern = r"\b(god|lord|jesus|christ|bible|heaven|hell)\b"
-                    contains_keyword = re.search(keyword_pattern, chunk_to_classify, re.IGNORECASE) is not None
+                    # If a keyword chunk produced no match, flush after a delay
+                    # so partial candidates from that chunk don't linger.
+                    if not match_found and contains_keyword:
+                        # keyword present but nothing confirmed — let candidates
+                        # age naturally, don't force flush
+                        pass
 
-                    if   label_chunk == "non bible" and not contains_keyword:
-                        print("Non-bible and does not contain key words, skipping search")
-                        #clearing the verse buffer since we likely have a new topic and the old verses won't be relevant anymore
-                        self.verse_buffer = {}
-                        continue  # skip search for non-Bible content
-                    # ---- Perform search ----
-                    query = chunk_to_classify
-                    results = self.perform_auto_search(query)
-                    
-                    
-
-                    # Filter by threshold
-                    threshold = float(self.settings.value("bible_confidence") or 60) / 100
-                    filtered_results = []
-                    for r in results:
-                        score_str = str(r.get("score", 0)).replace("%", "")
-                        #adding the verses to the verse buffer for context in future searches
-                        try:
-                            score_val = float(score_str)
-                        except ValueError:
-                            score_val = 0.0
-                            print(f"Invalid score value: {score_str} in result {r['reference']}")
-                        if score_val >= threshold:
-                            # Store the full result dict, not just text
-                            self.verse_buffer[r['reference']] = {
-                                'text': self.normalize_text(r['text']),
-                                'reference': r['reference'],
-                                'score': score_val,
-                                'version': r.get('version', ''),
-                                'book': r.get('book', ''),
-                                'chapter': r.get('chapter', ''),
-                                'verse': r.get('verse', '')
-                            }
-                            filtered_results.append(r)
-
-                    # Deduplicate highest-scoring verses
-                    verse_map = {}
-                    for r in filtered_results:
-                        verse_key = f"{r['book'].lower()} {r['chapter']}:{r['verse']}"
-                        current_score = float(str(r.get("score", 0)).replace("%", ""))
-                        existing_score = float(str(verse_map.get(verse_key, {}).get("score", 0)).replace("%", ""))
-                        if verse_key not in verse_map or current_score > existing_score:
-                            verse_map[verse_key] = r
-
-                    deduped_results = list(verse_map.values())
-                    print(f"Search results for '{query}': {deduped_results}")
-
-                    if deduped_results:
-                        self.autoSearchResults.emit(deduped_results, query, threshold, self.auto_search_size)
-                    else:
-                        print("No search results found")
-
-                    # ---- Handle transcription backlog ----
+                    # ── Backlog warning ──────────────────────────────────────────
                     if self.transcription_queue.qsize() > 3:
                         print(f"Transcription backlog: {self.transcription_queue.qsize()} tasks")
 
                 except queue.Empty:
-
                     continue
-                    
+
                 except Exception as e:
                     import traceback
                     print(f"Error processing transcription task: {e}")
                     traceback.print_exc()
-                    # Continue to next task instead of crashing the loop
                     continue
+
         except Exception as e:
             import traceback
             print(f"Error in transcription loop: {e}")
             traceback.print_exc()
-            
             
     def pause_transcription(self):
         """
@@ -823,10 +773,10 @@ class TranscriptionWorker(QThread):
         Main thread loop - coordinates the three worker threads
         """
         print("Starting transcription worker...")
-        self.classifier = Classifier()
+        # self.classifier = Classifier()
         
          #loading the classifier model 
-        self.classifier.load_classifier()
+        # self.classifier.load_classifier()
         
         #loading the search models 
         self.initialize_bible_search()
@@ -865,5 +815,5 @@ class TranscriptionWorker(QThread):
         finally:
             self.running = False
             self._stop = True
-            self.classifier.offload_classifier() # Offload classifier to free GPU memory
+            # self.classifier.offload_classifier() # Offload classifier to free GPU memory
             self.finished.emit()
