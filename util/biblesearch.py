@@ -1,289 +1,373 @@
-from util.util import resource_path
 import os
 import json
-import re   
-import time 
+import re
+import time
 import numpy as np
-import torch
-from scipy.special import expit
 import faiss
-from transformers import AutoTokenizer, AutoModel
-from rank_bm25 import BM25Okapi
-from optimum.onnxruntime import ORTModelForSequenceClassification
+import torch
+from collections import defaultdict
+from concurrent.futures import ThreadPoolExecutor
+from transformers import AutoTokenizer
+from optimum.onnxruntime import ORTModelForFeatureExtraction, ORTModelForSequenceClassification
+
 
 class BibleSearch:
-    """Search functionality for Bible verses"""
-    
-    def __init__(self, device_type="cpu"):
-        
+    """High-precision Bible semantic search using hybrid sparse + dense + rerank pipeline"""
 
-        self.device_type = device_type
-        self.device = "cuda" if torch.cuda.is_available() and device_type == "cuda" else "cpu"
-        
-        # Configuration
-        self.DATA_FILE = resource_path("bibles/merged_bible.json")
-        self.ARTIFACT_DIR = resource_path("artifacts")
-        
-        # Ensure artifact directory exists
-        os.makedirs(self.ARTIFACT_DIR, exist_ok=True)
-        
-        # File paths
+    def __init__(self):
+        # =========================
+        # CONFIG
+        # =========================
+        self.DATA_FILE = "bibles/merged_cleaned.json"
+        self.ARTIFACT_DIR = "artifacts"
+
         self.EMBEDDINGS_FILE = f"{self.ARTIFACT_DIR}/embeddings.npy"
-        self.FAISS_FILE = f"{self.ARTIFACT_DIR}/faiss.index"
-        self.METADATA_FILE = f"{self.ARTIFACT_DIR}/metadata.json"
-        self.TEXTS_FILE = f"{self.ARTIFACT_DIR}/texts.json"
-        
-        # Model names
-        self.MODEL_NAME = 'all-mpnet-base-v2'
-        self.MODEL_PATH = resource_path(f"./search/{self.MODEL_NAME}")
-        self.RE_RANKER_MODEL = 'cross-encoder_ms-marco-MiniLM-L6-v2'
-        self.ONNX_MODEL_DIR = resource_path(f"./search/{self.RE_RANKER_MODEL.replace('/', '_')}_onnx")
-        
-        # Search parameters
-        self.BM25_TOP_K = 5000
-        self.SEMANTIC_TOP_K = 100
+        self.FAISS_FILE = f"{self.ARTIFACT_DIR}/faiss_hnsw.index"
+        self.ONNX_EMBED_DIR = f"{self.ARTIFACT_DIR}/onnx_embedder"
+        self.ONNX_RERANK_DIR = f"{self.ARTIFACT_DIR}/onnx_reranker"
+        self.EMBED_TOKENIZER = f"{self.ARTIFACT_DIR}/embed_tokenizer"
+        self.INVERTED_INDEX_FILE = f"{self.ARTIFACT_DIR}/inverted_index.json"
+
+        # Local model paths (run download_models.py once to populate these)
+        self.RERANKER_MODEL = "search/ms-marco-MiniLM-L4-v2"
+        self.SEMANTIC_MODEL = "search/multi-qa-MiniLM-L6-cos-v1"
+
+        self.SEMANTIC_TOP_K = 20
+        self.KEYWORD_MERGE_K = 30
         self.FINAL_TOP_K = 10
         self.BATCH_SIZE = 32
-        
-        # Initialize components
-        self.texts = None
-        self.metadata = None
-        self.bm25 = None
-        self.embeddings = None
-        self.faiss_index = None
-        self.model = None
-        self.tokenizer = None
-        self.onnx_reranker = None
+        self.KEYWORD_ONLY_MAX = 3
+
+        self.DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+        os.makedirs(self.ARTIFACT_DIR, exist_ok=True)
+
+        # Internal state
+        self.texts = []
+        self.metadata = []
+        self.inverted_index = {}
+        self.embed_tokenizer = None
+        self.embed_model = None
+        self.index = None
         self.reranker_tokenizer = None
-        
-        # Load data and models
-        self.load_data_and_models()
-    
-    def tokenize(self, text):
-        """Tokenize text for BM25"""
+        self.onnx_model = None
+
+        # Boot up
+        self._load_data()
+        self._load_inverted_index()
+        self._load_embedder()
+        self._load_faiss()
+        self._load_reranker()
+        self._warmup()
+
+    # =========================
+    # UTILS
+    # =========================
+
+    def _tokenize(self, text):
         return re.findall(r"\b\w+\b", text.lower())
-    
-    def load_data_and_models(self):
-        """Load all data and models for search"""
-        print("📖 Loading Bible search data...")
-        
-        # Load Bible data
+
+    def _safe_indices(self, indices):
+        """Filter out any indices that are out of bounds for self.texts"""
+        max_idx = len(self.texts)
+        valid = [int(i) for i in indices if 0 <= int(i) < max_idx]
+        filtered = len(indices) - len(valid)
+        if filtered > 0:
+            print(f"  ⚠️  Filtered {filtered} out-of-range indices (texts={max_idx})")
+        return valid
+
+    # =========================
+    # LOAD DATA
+    # =========================
+
+    def _load_data(self):
+        print("Loading Bible data...")
         with open(self.DATA_FILE, "r", encoding="utf-8") as f:
             data = json.load(f)
-        
+
+        data = [v for v in data if v["text"].strip()]
         self.texts = [v["text"] for v in data]
         self.metadata = [
             {"book": v["book"], "chapter": v["chapter"], "verse": v["verse"], "version": v["version"]}
             for v in data
         ]
-        
-        # Build BM25 index
-        print("⚙️ Building BM25 index...")
-        tokenized_texts = [self.tokenize(t) for t in self.texts]
-        self.bm25 = BM25Okapi(tokenized_texts)
-        
-        # Load embedding model
-        print(f"Using device: {self.device}")
-        model_path = self.MODEL_PATH
-        
-        try:
-            if os.path.exists(model_path):
-                print(f" Loading cached embedding model from {model_path}...")
-                self.model = AutoModel.from_pretrained(model_path, trust_remote_code=True)
-            else:
-                print(f"⬇️ Downloading embedding model {self.MODEL_NAME}...")
-                self.model = AutoModel.from_pretrained(self.MODEL_NAME, trust_remote_code=True)
-                os.makedirs(model_path, exist_ok=True)
-                self.model.save_pretrained(model_path)
-        except Exception as e:
-            print(f" Failed to load embedding model: {e}")
-            raise
-        
-        
-        self.tokenizer = AutoTokenizer.from_pretrained(f"sentence-transformers/{self.MODEL_NAME}")
-        self.model.to(self.device)
-        self.model.eval()
-        
-        # Load ONNX reranker
-        self.load_onnx_reranker()
-        
-        # Load or build embeddings and FAISS index
-        self.load_or_build_embeddings()
-        
-        print("✅ Bible search initialized successfully!")
-    
-    def load_onnx_reranker(self):
-        """Load or convert cross-encoder to ONNX format"""
-        print("📥 Loading or converting ONNX reranker model...")
-        if os.path.exists(self.ONNX_MODEL_DIR):
-            print(f"✅ Loading ONNX reranker from {self.ONNX_MODEL_DIR}...")
-            self.onnx_reranker = ORTModelForSequenceClassification.from_pretrained(
-                self.ONNX_MODEL_DIR,
-                provider="CPUExecutionProvider" if self.device == "cpu" else "CUDAExecutionProvider"
-            )
-            self.reranker_tokenizer = AutoTokenizer.from_pretrained(self.ONNX_MODEL_DIR)
-        else:
-            print(f"⚙️ Converting {self.RE_RANKER_MODEL} to ONNX (one-time setup)...")
-            self.onnx_reranker = ORTModelForSequenceClassification.from_pretrained(
-                resource_path(self.RE_RANKER_MODEL),
-                export=True,
-                provider="CPUExecutionProvider" if self.device == "cpu" else "CUDAExecutionProvider"
-            )
-            self.reranker_tokenizer = AutoTokenizer.from_pretrained(resource_path(self.RE_RANKER_MODEL))
-            
-            os.makedirs(self.ONNX_MODEL_DIR, exist_ok=True)
-            self.onnx_reranker.save_pretrained(self.ONNX_MODEL_DIR)
-            self.reranker_tokenizer.save_pretrained(self.ONNX_MODEL_DIR)
-            print(f"✅ Saved ONNX model to {self.ONNX_MODEL_DIR}")
-    
-    def load_or_build_embeddings(self):
-        print("📥 Loading or building embeddings and FAISS index...")
-        """Load embeddings and FAISS index from disk or build them"""
-        if os.path.exists(self.EMBEDDINGS_FILE) and os.path.exists(self.FAISS_FILE):
-            print("✅ Loading embeddings and FAISS index from disk...")
-            self.embeddings = np.load(self.EMBEDDINGS_FILE)
-            self.faiss_index = faiss.read_index(self.FAISS_FILE)
-            
-            with open(self.METADATA_FILE, "r", encoding="utf-8") as f:
-                self.metadata = json.load(f)
-            
-            with open(self.TEXTS_FILE, "r", encoding="utf-8") as f:
-                self.texts = json.load(f)
-        else:
-            print("⚙️ Building embeddings and FAISS index (one-time)...")
-            self.embeddings = self.get_embeddings(self.texts, batch_size=self.BATCH_SIZE).astype("float32")
-            
-            dim = self.embeddings.shape[1]
-            self.faiss_index = faiss.IndexFlatIP(dim)
-            faiss.normalize_L2(self.embeddings)
-            self.faiss_index.add(self.embeddings)
-            
-            # Save to disk
-            np.save(self.EMBEDDINGS_FILE, self.embeddings)
-            faiss.write_index(self.faiss_index, self.FAISS_FILE)
-            
-            with open(self.METADATA_FILE, "w", encoding="utf-8") as f:
-                json.dump(self.metadata, f, indent=2)
-            
-            with open(self.TEXTS_FILE, "w", encoding="utf-8") as f:
-                json.dump(self.texts, f)
-            
-            print("✅ Saved embeddings and FAISS index")
-    
-    def get_embeddings(self, texts, batch_size=32):
-        """Get embeddings for a list of texts"""
-        all_embs = []
-        for i in range(0, len(texts), batch_size):
-            batch = texts[i:i+batch_size]
-            inputs = self.tokenizer(batch, padding=True, truncation=True, return_tensors="pt").to(self.device)
-            with torch.no_grad():
-                out = self.model(**inputs)
-                emb = out.last_hidden_state[:, 0, :].cpu().numpy()
-                all_embs.append(emb)
-        return np.vstack(all_embs)
-    
-    def bm25_recall(self, query, top_k=5000):
-        """BM25 keyword recall stage"""
-        start = time.time()
-        tokens = self.tokenize(query)
-        scores = self.bm25.get_scores(tokens)
-        top_idx = np.argsort(scores)[::-1][:top_k]
-        end = time.time()
-        print(f"  BM25 recall: {end - start:.4f}s")
-        return top_idx, scores[top_idx]
-    
-    def semantic_rerank(self, query, candidate_indices, top_k=100):
-        """Semantic reranking stage using embeddings"""
-        start = time.time()
-        q_emb = self.get_embeddings([query])
-        faiss.normalize_L2(q_emb)
-        
-        candidate_embs = self.embeddings[candidate_indices]
-        faiss.normalize_L2(candidate_embs)
-        
-        scores = candidate_embs @ q_emb.T
-        scores = scores.squeeze()
-        
-        top = np.argsort(scores)[::-1][:top_k]
-        top_indices = candidate_indices[top]
-        
-        end = time.time()
-        print(f"  Semantic rerank: {end - start:.4f}s")
-        return top_indices
+        print(f"Loaded {len(self.texts)} verses after filtering empty entries")
 
-    
-    def rerank_with_crossencoder(self, query, candidate_indices, top_k=10):
-        """Final reranking with cross-encoder"""
-        start = time.time()
-        
-        if len(candidate_indices) == 0:
-            return []
-        
-        candidate_texts = [self.texts[idx] for idx in candidate_indices]
-        
-        # Tokenize inputs for ONNX model
-        inputs = self.reranker_tokenizer(
-            [query] * len(candidate_texts),
-            candidate_texts,
-            padding=True,
-            truncation=True,
-            max_length=512,
-            return_tensors="pt"
-        )
-        
-        # Move to device if using GPU
-        if self.device == "cuda":
-            inputs = {k: v.to(self.device) for k, v in inputs.items()}
-        
-        # Get scores from ONNX model
-        with torch.no_grad():
-            outputs = self.onnx_reranker(**inputs)
-            scores = outputs.logits.squeeze(-1).cpu().numpy()
-            scores = expit(scores)  # Apply sigmoid to convert logits to probabilities
-        
-        # Get top-k results
-        top = np.argsort(scores)[::-1][:top_k]
-        
+    # =========================
+    # INVERTED INDEX
+    # =========================
+
+    def _load_inverted_index(self):
+        if os.path.exists(self.INVERTED_INDEX_FILE):
+            print("Loading cached inverted index...")
+            with open(self.INVERTED_INDEX_FILE, "r", encoding="utf-8") as f:
+                self.inverted_index = {k: set(v) for k, v in json.load(f).items()}
+        else:
+            print("Building inverted index...")
+            index = defaultdict(set)
+            for i, text in enumerate(self.texts):
+                for token in set(self._tokenize(text)):
+                    index[token].add(i)
+            self.inverted_index = dict(index)
+            with open(self.INVERTED_INDEX_FILE, "w", encoding="utf-8") as f:
+                json.dump({k: list(v) for k, v in self.inverted_index.items()}, f, indent=2)
+
+        print(f"Inverted index ready: {len(self.inverted_index)} unique tokens")
+
+    def _keyword_recall(self, query):
+        tokens = self._tokenize(query)
+        if not tokens:
+            return np.array([], dtype=np.int64)
+        candidates = self.inverted_index.get(tokens[0], set()).copy()
+        for t in tokens[1:]:
+            candidates &= self.inverted_index.get(t, set())
+            if not candidates:
+                break
+        return np.array(list(candidates), dtype=np.int64)
+
+    # =========================
+    # EMBEDDING MODEL
+    # =========================
+
+    def _load_embedder(self):
+        print("Loading ONNX embedding model...")
+
+        if os.path.exists(self.EMBED_TOKENIZER):
+            print("  Loading cached embed tokenizer...")
+            self.embed_tokenizer = AutoTokenizer.from_pretrained(self.EMBED_TOKENIZER)
+        else:
+            print("  Saving embed tokenizer from local model (one-time)...")
+            self.embed_tokenizer = AutoTokenizer.from_pretrained(self.SEMANTIC_MODEL)
+            self.embed_tokenizer.save_pretrained(self.EMBED_TOKENIZER)
+            print(f"  Saved to {self.EMBED_TOKENIZER}")
+
+        if os.path.exists(self.ONNX_EMBED_DIR):
+            print("  Loading cached ONNX embedder...")
+            self.embed_model = ORTModelForFeatureExtraction.from_pretrained(
+                self.ONNX_EMBED_DIR,
+                provider="CPUExecutionProvider"
+            )
+        else:
+            print("  Exporting embedder to ONNX (one-time)...")
+            self.embed_model = ORTModelForFeatureExtraction.from_pretrained(
+                self.SEMANTIC_MODEL,
+                export=True,
+                provider="CPUExecutionProvider"
+            )
+            self.embed_model.save_pretrained(self.ONNX_EMBED_DIR)
+            print(f"  Saved to {self.ONNX_EMBED_DIR}")
+
+    def _get_embeddings(self, texts_batch):
+        all_embs = []
+        for i in range(0, len(texts_batch), self.BATCH_SIZE):
+            batch = texts_batch[i:i + self.BATCH_SIZE]
+            inputs = self.embed_tokenizer(
+                batch, padding=True, truncation=True, return_tensors="pt"
+            ).to(self.DEVICE)
+            with torch.no_grad():
+                outputs = self.embed_model(**inputs)
+                emb = outputs.last_hidden_state[:, 0, :]
+                emb = emb / emb.norm(dim=1, keepdim=True)
+                all_embs.append(emb)
+        return torch.cat(all_embs, dim=0)
+
+    # =========================
+    # FAISS HNSW INDEX
+    # =========================
+
+    def _load_faiss(self):
+        if os.path.exists(self.EMBEDDINGS_FILE) and os.path.exists(self.FAISS_FILE):
+            print("Loading embeddings + FAISS index...")
+            self.index = faiss.read_index(self.FAISS_FILE)
+            faiss_size = self.index.ntotal
+            texts_size = len(self.texts)
+            if faiss_size != texts_size:
+                print(f"  ⚠️  FAISS index size ({faiss_size}) != texts size ({texts_size})")
+                print("  Rebuilding index to match current dataset...")
+                self._build_faiss()
+            else:
+                print(f"  FAISS index verified: {faiss_size} vectors")
+        else:
+            self._build_faiss()
+
+    def _build_faiss(self):
+        print("Building embeddings + HNSW index (one-time)...")
+        embeddings_cpu = self._get_embeddings(self.texts).cpu().numpy()
+        dim = embeddings_cpu.shape[1]
+
+        self.index = faiss.IndexHNSWFlat(dim, 32)
+        self.index.hnsw.efConstruction = 200
+        self.index.hnsw.efSearch = 32
+        self.index.add(embeddings_cpu)
+
+        np.save(self.EMBEDDINGS_FILE, embeddings_cpu)
+        faiss.write_index(self.index, self.FAISS_FILE)
+        print(f"Index built and saved ({len(self.texts)} vectors).")
+
+    # =========================
+    # RERANKER
+    # =========================
+
+    def _load_reranker(self):
+        print("Loading ONNX reranker...")
+        self.reranker_tokenizer = AutoTokenizer.from_pretrained(self.RERANKER_MODEL)
+
+        if os.path.exists(self.ONNX_RERANK_DIR):
+            print("  Loading cached ONNX reranker...")
+            self.onnx_model = self._load_ort_model(self.ONNX_RERANK_DIR)
+        else:
+            print("  Exporting reranker to ONNX (one-time)...")
+            self.onnx_model = self._load_ort_model(self.RERANKER_MODEL, export=True)
+            self.onnx_model.save_pretrained(self.ONNX_RERANK_DIR)
+            print(f"  Saved to {self.ONNX_RERANK_DIR}")
+
+        self.onnx_model.use_io_binding = False  # safe on Windows
+
+    def _load_ort_model(self, model_id, export=False):
+        try:
+            print("  Trying CUDAExecutionProvider...")
+            model = ORTModelForSequenceClassification.from_pretrained(
+                model_id, export=export, provider="CUDAExecutionProvider"
+            )
+            print("  Reranker loaded on CUDA.")
+            return model
+        except Exception as e:
+            print(f"  CUDA failed ({e}), falling back to CPU...")
+            model = ORTModelForSequenceClassification.from_pretrained(
+                model_id, export=export, provider="CPUExecutionProvider"
+            )
+            print("  Reranker loaded on CPU.")
+            return model
+
+    # =========================
+    # WARMUP
+    # =========================
+
+    def _warmup(self):
+        print("Warming up models...")
+        self._get_embeddings(["warmup"])
+        _wr = self.reranker_tokenizer(
+            ["warmup"], ["warmup"], return_tensors="pt", padding=True, truncation=True
+        ).to(self.DEVICE)
+        self.onnx_model(**_wr)
+        print("Ready!\n")
+
+    # =========================
+    # PIPELINE
+    # =========================
+
+    def _semantic_search(self, query):
+        q_emb = self._get_embeddings([query]).cpu().numpy()
+        D, I = self.index.search(q_emb, self.SEMANTIC_TOP_K)
+        return I[0]
+
+    def _format_results(self, indices, scores=None):
+        seen_refs = set()
         results = []
-        for i in top:
-            idx = candidate_indices[i]
+        for rank, idx in enumerate(indices):
             meta = self.metadata[idx]
+            ref_key = f"{meta['book']} {meta['chapter']}:{meta['verse']}"
+            display_ref = f"{ref_key} [{meta['version']}]"
+            if ref_key in seen_refs:
+                continue
+            seen_refs.add(ref_key)
             results.append({
-                "score": float(scores[i]),
-                "ref": f"{meta['book']} {meta['chapter']}:{meta['verse']} ({meta['version']})",
+                "score": float(scores[rank]) if scores is not None else 1.0,
+                "ref": display_ref,
                 "text": self.texts[idx],
                 "book": meta["book"],
                 "chapter": meta["chapter"],
                 "verse": meta["verse"],
                 "version": meta["version"]
             })
-        
-        end = time.time()
-        print(f"  Cross-encoder ONNX: {end - start:.4f}s")
-        
+            if len(results) >= self.FINAL_TOP_K:
+                break
         return results
-    
-    def search(self, query, bm25_top_k=None, semantic_top_k=None, final_top_k=None):
-        """Main search pipeline"""
-        print(f"\n🔍 Searching for: '{query}'")
-        start_total = time.time()
+
+    def _rerank(self, query, candidate_indices):
+        # Guard: filter out any stale/out-of-range indices before touching self.texts
+        candidate_indices = self._safe_indices(candidate_indices)
+        if not candidate_indices:
+            return []
+
+        candidate_texts = [self.texts[i] for i in candidate_indices]
+        inputs = self.reranker_tokenizer(
+            [query] * len(candidate_texts), candidate_texts,
+            padding=True, truncation=True, max_length=64, return_tensors="pt"
+        )
+        outputs = self.onnx_model(**inputs)
+        scores = torch.sigmoid(outputs.logits.squeeze(-1)).cpu().numpy()
+        top = np.argsort(scores)[::-1]
+        ranked_indices = [candidate_indices[i] for i in top]
+        ranked_scores = scores[top]
+        return self._format_results(ranked_indices, ranked_scores)
+
+    def search(self, query, final_top_k=10):
+        """Main search entry point. Returns list of ranked verse results."""
+        start = time.time()
+
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            kw_future = executor.submit(self._keyword_recall, query)
+            sem_future = executor.submit(self._semantic_search, query)
+            keyword_candidates = kw_future.result()
+            semantic_candidates = sem_future.result()
+
+        t_parallel = time.time()
+
+        # Guard: sanitize all candidates before any index access
+        keyword_candidates = self._safe_indices(keyword_candidates)
+        semantic_candidates = self._safe_indices(semantic_candidates)
         
-        # Use provided parameters or defaults
-        bm25_top_k = bm25_top_k or self.BM25_TOP_K
-        semantic_top_k = semantic_top_k or self.SEMANTIC_TOP_K
-        final_top_k = final_top_k or self.FINAL_TOP_K
+        # this is for testing only remove latter on ok 
+        kw_dict = self._format_results(keyword_candidates)
+        print("===" * 50)
+        for kw in kw_dict:
+            print(kw)
+        print("===" * 50)
+        sm_dict = self._format_results(semantic_candidates)
+        for sm in sm_dict:
+            print(sm)
+
         
-        # Stage 1: BM25 keyword recall
-        candidate_idx, _ = self.bm25_recall(query, top_k=bm25_top_k)
-        
-        # Stage 2: Semantic rerank
-        semantic_top_indices = self.semantic_rerank(query, candidate_idx, top_k=semantic_top_k)
-        
-        
-        # Stage 3: Cross-encoder final rerank
-        final_results = self.rerank_with_crossencoder(query, semantic_top_indices, top_k=final_top_k)
-        
-        total_time = time.time() - start_total
-        
-        
-        return final_results
+        if 0 < len(keyword_candidates) <= self.KEYWORD_ONLY_MAX:
+            results = self._format_results(keyword_candidates)
+            path = f"keyword-only ({len(keyword_candidates)} hits)"
+            t_end = time.time()
+        else:
+            merged = list(dict.fromkeys(
+                list(semantic_candidates) + list(keyword_candidates[:self.KEYWORD_MERGE_K])
+            ))
+            results = self._rerank(query, merged)
+            t_end = time.time()
+            path = (
+                f"semantic+rerank (merged={len(merged)}, "
+                f"keyword={len(keyword_candidates)}, "
+                f"semantic={len(semantic_candidates)})"
+            )
+
+        total = t_end - start
+        print(
+            f"\n⚡ Recall: {(t_parallel - start) * 1000:.1f}ms | "
+            f"Rerank: {(t_end - t_parallel) * 1000:.1f}ms | "
+            f"Total: {total * 1000:.1f}ms | Path: {path}"
+        )
+        return results
+
+
+# =========================
+# MAIN LOOP
+# =========================
+
+if __name__ == "__main__":
+    searcher = BibleSearch()
+    while True:
+        q = input("\nEnter query (or 'exit'): ")
+        if q.lower() == "exit":
+            break
+        results = searcher.search(q)
+        print("\nResults:")
+        print("-" * 60)
+        for i, r in enumerate(results, 1):
+            print(f"\n{i}. {r['ref']} (score={r['score']:.3f})")
+            print(f"   {r['text']}")
+        print("-" * 60)

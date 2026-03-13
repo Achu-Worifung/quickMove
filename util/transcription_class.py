@@ -204,7 +204,7 @@ class TranscriptionWorker(QThread):
         """Initialize Bible search in background thread"""
         try:
             print("Initializing Bible search engine...")
-            self.bible_search = BibleSearch(device_type=self.device_type)
+            self.bible_search = BibleSearch()
             print("Bible search engine ready!")
         except Exception as e:
             print(f"Failed to initialize Bible search: {e}")
@@ -502,33 +502,11 @@ class TranscriptionWorker(QThread):
             return []
         
         try:
-            # Perform the search using the BibleSearch class
-            # Increase final_top_k to get multiple translations per verse
-            results = self.bible_search.search(
-                query=query,
-                bm25_top_k=self.BM25_TOP_K,
-                semantic_top_k=self.semantic_topk,
-                final_top_k=self.auto_topk * 2  # Allow multiple translations per verse
-            )
+            results = self.bible_search.search(query)
             
-            # Sort results by score in DESCENDING order (highest first)
-            results = sorted(results, key=lambda x: x['score'], reverse=True)
+        
             
-            # Format results for the UI with Bible version
-            formatted_results = []
-            for result in results:
-                formatted_results.append(
-                    {"reference": result['ref'],
-                    "text": result['text'],
-                    "score": f"{result['score']:.2f}%",
-                    "book": result['book'],
-                    "chapter": result['chapter'],
-                    "verse": result['verse'],
-                    "version": result['version']}
-                    
-                )
-            
-            return formatted_results
+            return results
             
         except Exception as e:
             print(f" Error in auto-search: {e}")
@@ -741,6 +719,7 @@ class TranscriptionWorker(QThread):
                     for r in results:
                         score_str = str(r.get("score", 0)).replace("%", "")
                         #adding the verses to the verse buffer for context in future searches
+                        reference = r.get('book', '') + ' ' + str(r.get('chapter', '')) + ':' + str(r.get('verse', ''))
                         try:
                             score_val = float(score_str)
                         except ValueError:
@@ -748,9 +727,9 @@ class TranscriptionWorker(QThread):
                             print(f"Invalid score value: {score_str} in result {r['reference']}")
                         if score_val >= threshold:
                             # Store the full result dict, not just text
-                            self.verse_buffer[r['reference']] = {
+                            
+                            self.verse_buffer[reference] = {
                                 'text': self.normalize_text(r['text']),
-                                'reference': r['reference'],
                                 'score': score_val,
                                 'version': r.get('version', ''),
                                 'book': r.get('book', ''),
