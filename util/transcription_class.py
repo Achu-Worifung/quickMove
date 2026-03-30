@@ -75,7 +75,8 @@ class TranscriptionWorker(QThread):
     # ------------------------------------------------------------------
 
     def stop(self):
-        self._stop = True
+        with self.state_lock:
+            self._stop = True
         print('Stopping transcription thread...')
 
     def pause_transcription(self):
@@ -113,6 +114,44 @@ class TranscriptionWorker(QThread):
         finally:
             self.classifier.offload_classifier()
             self.finished.emit()
+    
+    def _extract_bible_segment(self, text: str) -> str:
+        """
+        Generate all sliding windows across the text, classify them in a
+        single batched call, then return the text from the first Bible
+        window onward.
+        """
+        words  = text.split()
+        WINDOW = 6
+        STEP   = 2
+
+        if len(words) <= WINDOW:
+            return text  # too short to slice — use as-is
+
+        # Build all windows at once
+        windows = []
+        indices = []
+        for i in range(0, max(1, len(words) - WINDOW + 1), STEP):
+            window_text = re.sub(r'[^\w\s]', '', ' '.join(words[i:i + WINDOW]).lower()).strip()
+            if window_text:
+                windows.append(window_text)
+                indices.append(i)
+
+        if not windows:
+            return text
+
+        # Single batched inference call — all windows at once
+        results = self.classifier.classify(windows)
+
+        # Find the first window classified as Bible
+        for result, start_idx in zip(results, indices):
+            label, confidence = result
+            if label != "non bible":
+                segment = ' '.join(words[start_idx:]).strip()
+                print(f"Bible segment starts at word {start_idx}: '{segment}'")
+                return segment
+
+        return text 
 
     # ------------------------------------------------------------------
     # Initialisation helpers
@@ -211,12 +250,30 @@ class TranscriptionWorker(QThread):
         client.connect(StreamingParameters(
             sample_rate=16000,
             speech_model=self.speech_model,
+            max_turn_silence=900,
+            end_of_turn_confidence_threshold=0.5,
         ))
 
+        # Create the microphone stream
+        mic_stream = aai.extras.MicrophoneStream(sample_rate=16000)
+
+        def stream_generator():
+            """Yields audio chunks only as long as self._stop is False."""
+            for chunk in mic_stream:
+                if self._stop:
+                    break
+                # Respect the pause flag here to save processing/API costs
+                if not self._pause:
+                    yield chunk
+
         try:
-            client.stream(aai.extras.MicrophoneStream(sample_rate=16000))
+            # Pass our generator instead of the raw mic_stream
+            client.stream(stream_generator())
         finally:
+            print("Cleaning up AssemblyAI client...")
+            # This ensures the 'Termination' event is actually sent to the server
             client.disconnect(terminate=True)
+            mic_stream.close()
 
     # ------------------------------------------------------------------
     # Turn processing pipeline
@@ -324,12 +381,12 @@ class TranscriptionWorker(QThread):
     def _is_bible_content(self, chunk: str) -> bool:
         """Classify chunk. Returns True if Bible-related content."""
         normalized = self.normalize_text(chunk)
-        no_stop = " ".join([w for w in normalized.split() if w not in self.stop_words])  # remove stopwords
-        print('Classifying chunk:', no_stop)
-        if not no_stop.strip():
+       
+        print('Classifying chunk:', normalized)
+        if not normalized.strip():
             print("Chunk is empty after removing stopwords — treating as non-Bible")
             return False
-        label, confidence = self.classifier.classify([no_stop])[0]
+        label, confidence = self.classifier.classify([normalized])[0]
         print(f"Classification: {label} ({confidence:.2%})")
 
         if label != "non bible":

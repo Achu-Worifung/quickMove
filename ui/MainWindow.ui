@@ -567,7 +567,7 @@ QWidget
           <item>
            <widget class="QStackedWidget" name="stackedWidget">
             <property name="currentIndex">
-             <number>6</number>
+             <number>2</number>
             </property>
             <widget class="QWidget" name="select_autos">
              <layout class="QVBoxLayout" name="verticalLayout_12">
@@ -588,8 +588,8 @@ QWidget
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>217</width>
-                   <height>147</height>
+                   <width>701</width>
+                   <height>755</height>
                   </rect>
                  </property>
                  <layout class="QVBoxLayout" name="verticalLayout_9">
@@ -716,8 +716,8 @@ QScrollBar::sub-page:vertical {
                         <rect>
                          <x>0</x>
                          <y>0</y>
-                         <width>100</width>
-                         <height>30</height>
+                         <width>681</width>
+                         <height>682</height>
                         </rect>
                        </property>
                        <layout class="QVBoxLayout" name="verticalLayout_4"/>
@@ -974,28 +974,64 @@ QScrollBar::sub-page:vertical {
                       <string notr="true">
 padding-bottom:25px</string>
                      </property>
-                     <layout class="QHBoxLayout" name="horizontalLayout_16">
-                      <property name="spacing">
-                       <number>0</number>
-                      </property>
-                      <item alignment="Qt::AlignTop">
-                       <widget class="QComboBox" name="version_3">
-                        <property name="enabled">
-                         <bool>true</bool>
+                     <layout class="QVBoxLayout" name="verticalLayout_27">
+                      <item alignment="Qt::AlignVCenter">
+                       <widget class="QLineEdit" name="history">
+                        <property name="sizePolicy">
+                         <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+                          <horstretch>0</horstretch>
+                          <verstretch>0</verstretch>
+                         </sizepolicy>
                         </property>
-                        <property name="maximumSize">
+                        <property name="minimumSize">
                          <size>
-                          <width>200</width>
-                          <height>16777215</height>
+                          <width>0</width>
+                          <height>12</height>
                          </size>
                         </property>
                         <property name="font">
                          <font>
-                          <pointsize>-1</pointsize>
+                          <pointsize>12</pointsize>
                          </font>
                         </property>
                         <property name="styleSheet">
-                         <string notr="true">/* =========================
+                         <string notr="true">background-color:transparent;
+border:none;
+outline:none;
+text-alignment:center</string>
+                        </property>
+                        <property name="alignment">
+                         <set>Qt::AlignCenter</set>
+                        </property>
+                       </widget>
+                      </item>
+                      <item>
+                       <widget class="QWidget" name="widget_32" native="true">
+                        <property name="sizePolicy">
+                         <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                          <horstretch>0</horstretch>
+                          <verstretch>0</verstretch>
+                         </sizepolicy>
+                        </property>
+                        <layout class="QGridLayout" name="gridLayout_9">
+                         <item row="1" column="0">
+                          <widget class="QComboBox" name="version_3">
+                           <property name="enabled">
+                            <bool>true</bool>
+                           </property>
+                           <property name="maximumSize">
+                            <size>
+                             <width>200</width>
+                             <height>16777215</height>
+                            </size>
+                           </property>
+                           <property name="font">
+                            <font>
+                             <pointsize>-1</pointsize>
+                            </font>
+                           </property>
+                           <property name="styleSheet">
+                            <string notr="true">/* =========================
    Base ComboBox
 ========================= */
 QComboBox
@@ -1055,62 +1091,89 @@ QComboBox QAbstractItemView
     selection-color: white;
 }
 </string>
-                        </property>
-                        <property name="editable">
-                         <bool>false</bool>
-                        </property>
-                        <property name="currentText">
-                         <string/>
-                        </property>
-                        <property name="iconSize">
-                         <size>
-                          <width>16</width>
-                          <height>16</height>
-                         </size>
-                        </property>
-                       </widget>
-                      </item>
-                      <item alignment="Qt::AlignTop">
-                       <widget class="QPushButton" name="prev_verse_3">
-                        <property name="sizePolicy">
-                         <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
-                          <horstretch>0</horstretch>
-                          <verstretch>0</verstretch>
-                         </sizepolicy>
-                        </property>
-                        <property name="maximumSize">
-                         <size>
-                          <width>200</width>
-                          <height>34</height>
-                         </size>
-                        </property>
-                        <property name="cursor">
-                         <cursorShape>PointingHandCursor</cursorShape>
-                        </property>
-                        <property name="styleSheet">
-                         <string notr="true">    border-style: outset;
+                           </property>
+                           <property name="editable">
+                            <bool>false</bool>
+                           </property>
+                           <property name="currentText">
+                            <string/>
+                           </property>
+                           <property name="iconSize">
+                            <size>
+                             <width>16</width>
+                             <height>16</height>
+                            </size>
+                           </property>
+                          </widget>
+                         </item>
+                         <item row="1" column="1">
+                          <widget class="QPushButton" name="prev_verse_3">
+                           <property name="sizePolicy">
+                            <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+                             <horstretch>0</horstretch>
+                             <verstretch>0</verstretch>
+                            </sizepolicy>
+                           </property>
+                           <property name="maximumSize">
+                            <size>
+                             <width>200</width>
+                             <height>34</height>
+                            </size>
+                           </property>
+                           <property name="cursor">
+                            <cursorShape>PointingHandCursor</cursorShape>
+                           </property>
+                           <property name="styleSheet">
+                            <string notr="true">    border-style: outset;
     border-width: 1px;
     border-color: rgb(255, 255, 255);
     padding: 4px;
 	font:20px
 </string>
-                        </property>
-                        <property name="text">
-                         <string>Prev Verse</string>
-                        </property>
-                        <property name="icon">
-                         <iconset>
-                          <normaloff>../Icons/3643764_back_backward_left_reply_turn_icon.ico</normaloff>../Icons/3643764_back_backward_left_reply_turn_icon.ico</iconset>
-                        </property>
-                        <property name="iconSize">
+                           </property>
+                           <property name="text">
+                            <string>Prev Verse</string>
+                           </property>
+                           <property name="icon">
+                            <iconset>
+                             <normaloff>../Icons/3643764_back_backward_left_reply_turn_icon.ico</normaloff>../Icons/3643764_back_backward_left_reply_turn_icon.ico</iconset>
+                           </property>
+                           <property name="iconSize">
+                            <size>
+                             <width>30</width>
+                             <height>30</height>
+                            </size>
+                           </property>
+                          </widget>
+                         </item>
+                        </layout>
+                       </widget>
+                      </item>
+                      <item>
+                       <widget class="QLineEdit" name="lineEdit">
+                        <property name="minimumSize">
                          <size>
-                          <width>30</width>
-                          <height>30</height>
+                          <width>0</width>
+                          <height>41</height>
                          </size>
+                        </property>
+                        <property name="font">
+                         <font>
+                          <pointsize>11</pointsize>
+                         </font>
+                        </property>
+                        <property name="styleSheet">
+                         <string notr="true">border:none;
+border-radius:20px;
+background-color:transparent;
+color:white</string>
                         </property>
                        </widget>
                       </item>
                      </layout>
+                     <zorder>widget_32</zorder>
+                     <zorder>lineEdit</zorder>
+                     <zorder>history</zorder>
                     </widget>
                    </item>
                    <item row="1" column="0">
@@ -1209,26 +1272,6 @@ color: rgb(38, 50, 56);</string>
                      </layout>
                     </widget>
                    </item>
-                   <item row="3" column="0">
-                    <widget class="QLineEdit" name="history">
-                     <property name="minimumSize">
-                      <size>
-                       <width>0</width>
-                       <height>25</height>
-                      </size>
-                     </property>
-                     <property name="font">
-                      <font>
-                       <pointsize>12</pointsize>
-                      </font>
-                     </property>
-                     <property name="styleSheet">
-                      <string notr="true">background-color:transparent;
-border:none;
-outline:none</string>
-                     </property>
-                    </widget>
-                   </item>
                    <item row="0" column="0">
                     <layout class="QHBoxLayout" name="horizontalLayout_15"/>
                    </item>
@@ -1306,7 +1349,7 @@ QScrollBar::sub-page:vertical {
                         <x>0</x>
                         <y>0</y>
                         <width>679</width>
-                        <height>530</height>
+                        <height>487</height>
                        </rect>
                       </property>
                       <property name="focusPolicy">
@@ -1383,8 +1426,8 @@ QScrollBar::sub-page:vertical {
                      <rect>
                       <x>0</x>
                       <y>0</y>
-                      <width>688</width>
-                      <height>737</height>
+                      <width>412</width>
+                      <height>290</height>
                      </rect>
                     </property>
                     <property name="styleSheet">
@@ -1458,10 +1501,10 @@ font:20px</string>
                            <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:7.875pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
 &lt;p align=&quot;center&quot; style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:18pt; font-weight:600;&quot;&gt;This app was designed by&lt;/span&gt;&lt;/p&gt;
 &lt;p align=&quot;center&quot; style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:18pt; font-weight:600;&quot;&gt;ACHU WORIFUNG&lt;/span&gt;&lt;/p&gt;
-&lt;p align=&quot;center&quot; style=&quot;-qt-paragraph-type:empty; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-size:8.25pt;&quot;&gt;&lt;br /&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+&lt;p align=&quot;center&quot; style=&quot;-qt-paragraph-type:empty; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;br /&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
                           </property>
                          </widget>
                         </item>
@@ -1550,8 +1593,8 @@ font:20px</string>
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>701</width>
-                   <height>755</height>
+                   <width>571</width>
+                   <height>593</height>
                   </rect>
                  </property>
                  <property name="styleSheet">
@@ -2219,7 +2262,7 @@ QScrollBar::sub-page:vertical {
                  <string>&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0//EN&quot; &quot;http://www.w3.org/TR/REC-html40/strict.dtd&quot;&gt;
 &lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
-&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:7.875pt; font-weight:400; font-style:normal;&quot;&gt;
+&lt;/style&gt;&lt;/head&gt;&lt;body style=&quot; font-family:'MS Shell Dlg 2'; font-size:8.25pt; font-weight:400; font-style:normal;&quot;&gt;
 &lt;p align=&quot;center&quot; style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:18pt; font-weight:600;&quot;&gt;Configure the Search Area&lt;/span&gt;&lt;/p&gt;
 &lt;p style=&quot; margin-top:12px; margin-bottom:12px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;&lt;span style=&quot; font-size:16pt;&quot;&gt;The &lt;/span&gt;&lt;span style=&quot; font-size:16pt; font-weight:600;&quot;&gt;search area&lt;/span&gt;&lt;span style=&quot; font-size:16pt;&quot;&gt; is a section of the screen that you define, from which the app will extract the currently displayed verse.&lt;/span&gt;&lt;/p&gt;
 &lt;ol style=&quot;margin-top: 0px; margin-bottom: 0px; margin-left: 0px; margin-right: 0px; -qt-list-indent: 1;&quot;&gt;&lt;li style=&quot; font-size:16pt;&quot; style=&quot; margin-top:12px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;&quot;&gt;Click &lt;span style=&quot; font-weight:600;&quot;&gt;OK&lt;/span&gt; to begin.&lt;/li&gt;
