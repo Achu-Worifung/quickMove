@@ -56,12 +56,26 @@ def normalize_text(text: str) -> str:
     return text
 
 def find_book_in_parts(parts: list[str]) -> tuple[str | None, int]:
+    # Try two-word book first (e.g. "1 John", "1 Corinthians")
     if len(parts) >= 2:
         candidate = f"{parts[0]} {parts[1]}".lower()
         if candidate in BIBLE_BOOKS:
             return candidate.title(), 2
+
+    # Try single-word book
     if parts[0].lower() in BIBLE_BOOKS:
         return parts[0].title(), 1
+
+    # First word wasn't a book — skip it and try the next word
+    # This handles cases like "about John 3:16" where a leading word sneaks in
+    if len(parts) >= 2 and parts[1].lower() in BIBLE_BOOKS:
+        return parts[1].title(), 2
+
+    if len(parts) >= 3:
+        candidate = f"{parts[1]} {parts[2]}".lower()
+        if candidate in BIBLE_BOOKS:
+            return candidate.title(), 3
+
     return None, 0
 
 def parse_reference_from_match(raw_match: str) -> dict | None:
@@ -79,15 +93,22 @@ def parse_reference_from_match(raw_match: str) -> dict | None:
     if not chapter or not chapter.isdigit():
         return None
 
+    # Reconstruct full from parsed parts, not raw, so leading words like
+   
+    full = f"{book} {chapter}"
+    if verse:
+        full += f":{verse}"
+
     return {
-        "full": raw_match.strip().title(),
-        "book": book,
+        "full":    full,
+        "book":    book,
         "chapter": chapter,
-        "verse": verse,
+        "verse":   verse,
     }
 
 def extract_bible_reference(text: str) -> list[dict]:
     text = normalize_text(text)
+    print('text from extract_bible_reference:', text)
 
     pattern = (
         r'\b'
@@ -105,6 +126,7 @@ def extract_bible_reference(text: str) -> list[dict]:
     for match in re.finditer(pattern, text, re.IGNORECASE):
         raw = match.group()
         parsed = parse_reference_from_match(raw)
+        print('match found:', raw, 'parsed as:', parsed)
         if parsed is None:
             continue
 
@@ -113,5 +135,7 @@ def extract_bible_reference(text: str) -> list[dict]:
             continue
         seen.add(key)
         results.append(parsed)
+
+    print('results from extract_bible_reference:', results)
 
     return results

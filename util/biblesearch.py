@@ -351,6 +351,10 @@ class BibleSearch:
             f"Rerank: {(t_end - t_parallel) * 1000:.1f}ms | "
             f"Total: {total * 1000:.1f}ms | Path: {path}"
         )
+        
+        for i, r in enumerate(results, 1):
+            print(f"\n{i}. {r['ref']} (score={r['score']:.3f})")
+            print(f"   {r['text']}")
         return results
 
 
