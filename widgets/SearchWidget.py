@@ -113,6 +113,8 @@ class SearchWidget(QDialog):
         self.savedVerse = {'savedVerses': []}
         self.Tracker = []
         self.pop = True
+        
+        self.prev_verses = list()
 
         # basic UI defaults
         self.version.setCurrentIndex(0)
@@ -323,10 +325,11 @@ class SearchWidget(QDialog):
     # ------------------------------------------------------------------
 
     def displayPrevVerse(self):
-        holder = findPrevDisplayedVerse()
-        print(f'prev verse {self.prev_verse_text} holder is {holder}')
+        # holder = findPrevDisplayedVerse()
+        # print(f'prev verse {self.prev_verse_text} holder is {holder}')
         Simulate.present_prev_verse(self.name, self.data, self.prev_verse_text)
-        self.prev_verse_text = holder
+        # self.prev_verse_text = holder
+        self.prev_verses.pop()
         self.updateHistoryLabel()
 
     def refresh_search_widget(self):
@@ -380,7 +383,7 @@ class SearchWidget(QDialog):
         self.updateHistoryLabel()
 
     def updateHistoryLabel(self):
-        self.history.setText(f'Press Prev verse to Return to: {self.prev_verse_text}')
+        self.history.setText(f'Press Prev verse to Return to: {self.prev_verses[-1] if self.prev_verses else ""}')
 
     def clear_layout(self, layout):
         if layout is None:
@@ -645,6 +648,7 @@ class SearchWidget(QDialog):
     def present(self, title, automata):
         self.settings.setValue("next_verse", title)
         self.prev_verse_text = findPrevDisplayedVerse()
+        self.prev_verses.append(self.prev_verse_text)
         for action in automata.get('actions', []):
             if action['action'] == 'click':
                 Simulate.simClick(action['location'][0], action['location'][1], action['button'])

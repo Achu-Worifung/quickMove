@@ -567,7 +567,7 @@ QWidget
           <item>
            <widget class="QStackedWidget" name="stackedWidget">
             <property name="currentIndex">
-             <number>2</number>
+             <number>6</number>
             </property>
             <widget class="QWidget" name="select_autos">
              <layout class="QVBoxLayout" name="verticalLayout_12">
@@ -1426,8 +1426,8 @@ QScrollBar::sub-page:vertical {
                      <rect>
                       <x>0</x>
                       <y>0</y>
-                      <width>412</width>
-                      <height>290</height>
+                      <width>688</width>
+                      <height>737</height>
                      </rect>
                     </property>
                     <property name="styleSheet">
@@ -1593,8 +1593,8 @@ font:20px</string>
                   <rect>
                    <x>0</x>
                    <y>0</y>
-                   <width>571</width>
-                   <height>593</height>
+                   <width>701</width>
+                   <height>755</height>
                   </rect>
                  </property>
                  <property name="styleSheet">
@@ -2653,7 +2653,7 @@ QScrollBar::sub-page:vertical {
                  <property name="geometry">
                   <rect>
                    <x>0</x>
-                   <y>0</y>
+                   <y>-680</y>
                    <width>691</width>
                    <height>1679</height>
                   </rect>
@@ -3944,6 +3944,9 @@ border-radius:0px;
                        <layout class="QGridLayout" name="gridLayout_3">
                         <item row="0" column="0" alignment="Qt::AlignRight">
                          <widget class="QPushButton" name="manage_model">
+                          <property name="enabled">
+                           <bool>false</bool>
+                          </property>
                           <property name="minimumSize">
                            <size>
                             <width>200</width>

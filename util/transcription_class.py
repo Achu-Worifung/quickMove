@@ -124,7 +124,7 @@ class TranscriptionWorker(QThread):
             if not text: return
 
             self.guitextReady.emit(text)
-            self.statusUpdate.emit("processing")
+            # self.statusUpdate.emit("processing")
             try:
                 self._process_turn(text)
             finally:

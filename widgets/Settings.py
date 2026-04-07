@@ -2,9 +2,9 @@ import configparser
 import os
 from PyQt5.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QListWidget, QListWidgetItem, QMessageBox, QDoubleSpinBox, QComboBox, QScrollArea, QWidget, QSizePolicy, QFrame, QGroupBox, QMessageBox, QSpinBox, QCheckBox
 from PyQt5.QtCore import QThread, pyqtSignal, Qt, QSettings
-from pyqttoast import  ToastPreset
+# from pyqttoast import  ToastPreset
 import torch
-from util.modelmanagement import WHISPER_MODEL_INFO, fw_download_model, list_downloaded_models, delete_model, get_total_models_size, displayToast
+# from util.modelmanagement import WHISPER_MODEL_INFO, fw_download_model, list_downloaded_models, delete_model, get_total_models_size, displayToast
 from widgets.SearchWidget import resource_path
 class Settings:
     def __init__(self, page_widget):
@@ -27,25 +27,25 @@ class Settings:
         
     def processing(self):
         print("Processing clicked")
-    def populate_models(self, from_manager=False):
-        print("Populating models")
-        #setting the the modesl 
-        self.models_dropdw = self.page_widget.findChild(QComboBox, "model")
+    # def populate_models(self, from_manager=False):
+    #     print("Populating models")
+    #     #setting the the modesl 
+    #     self.models_dropdw = self.page_widget.findChild(QComboBox, "model")
             
-        dw_models = list_downloaded_models()
-        if self.model_option:
-            if self.model_option == dw_models:
-                print("Model list unchanged, skipping update.")
-                return
-        self.model_option = dw_models
-        model_list = [model['name'] for model in dw_models]
-        self.models_dropdw.clear()
-        if model_list:
-            self.models_dropdw.addItems(model_list)
-            if from_manager:
-                self.models_dropdw.setCurrentIndex(len(model_list)-1)  
-        else:
-            self.models_dropdw.addItem("No models downloaded")
+    #     dw_models = list_downloaded_models()
+    #     if self.model_option:
+    #         if self.model_option == dw_models:
+    #             print("Model list unchanged, skipping update.")
+    #             return
+    #     self.model_option = dw_models
+    #     model_list = [model['name'] for model in dw_models]
+    #     self.models_dropdw.clear()
+    #     if model_list:
+    #         self.models_dropdw.addItems(model_list)
+    #         if from_manager:
+    #             self.models_dropdw.setCurrentIndex(len(model_list)-1)  
+    #     else:
+    #         self.models_dropdw.addItem("No models downloaded")
     def setup_values(self):
         import torch
         self.mange_models = self.page_widget.findChild(QPushButton, "manage_model")
@@ -208,9 +208,9 @@ class Settings:
             self.multiple_trues.blockSignals(False)
 
 
-    def open_model_manager(self):
-        dialog = ModelManagerDialog(self.page_widget, self)  # Pass page_widget as parent and self as settings
-        dialog.exec_()
+    # def open_model_manager(self):
+    #     dialog = ModelManagerDialog(self.page_widget, self)  # Pass page_widget as parent and self as settings
+    #     dialog.exec_()
 
     def setting_changed(self, obj = None):
         if obj is None:
@@ -330,282 +330,282 @@ class Settings:
 
 
 
-class ModelManagerDialog(QDialog):
-    def __init__(self, parent=None, settings=None):
-        super().__init__(parent)
-        self.settings = settings  # Store the Settings instance
-        self.setWindowTitle("Whisper Model Manager")
-        self.setMinimumSize(600, 500)
-        self.setup_ui()
-        self.refresh_models()
-        self.parent = parent
-    def closeEvent(self, event):
-        if self.settings and hasattr(self.settings, 'populate_models'):
-            self.settings.populate_models(from_manager=True)
-        event.accept()
-    def setup_ui(self):
-        layout = QVBoxLayout(self)
+# class ModelManagerDialog(QDialog):
+#     def __init__(self, parent=None, settings=None):
+#         super().__init__(parent)
+#         self.settings = settings  # Store the Settings instance
+#         self.setWindowTitle("Whisper Model Manager")
+#         self.setMinimumSize(600, 500)
+#         self.setup_ui()
+#         self.refresh_models()
+#         self.parent = parent
+#     def closeEvent(self, event):
+#         if self.settings and hasattr(self.settings, 'populate_models'):
+#             self.settings.populate_models(from_manager=True)
+#         event.accept()
+#     def setup_ui(self):
+#         layout = QVBoxLayout(self)
 
-        # ----- Available Models Section -----
-        available_group = QGroupBox("Available Models")
-        available_layout = QVBoxLayout()
+#         # ----- Available Models Section -----
+#         available_group = QGroupBox("Available Models")
+#         available_layout = QVBoxLayout()
 
-        # Create a container widget for the scrollable content
-        scroll_content = QWidget()
-        scroll_content.setLayout(available_layout)
+#         # Create a container widget for the scrollable content
+#         scroll_content = QWidget()
+#         scroll_content.setLayout(available_layout)
 
-        # Create scroll area
-        scroll_area = QScrollArea()
-        scroll_area.setWidgetResizable(True)
-        scroll_area.setWidget(scroll_content)
-        scroll_area.setMaximumHeight(500)
-        scroll_area.setStyleSheet("""
-        QScrollArea {
-            border: none;
-            background-color: transparent;
-        }
-        QScrollBar:vertical {
-            width: 10px;
-            background: #f1f1f1;         /* light gray track instead of black */
-            border-radius: 5px;
-            margin: 0px;
-        }
-        /* Scroll handle (the part you drag) */
-        QScrollBar::handle:vertical {
-            background: #c1c1c1;         /* medium gray for good contrast */
-            border-radius: 5px;
-            min-height: 30px;
-            transition: background 0.3s ease;
-        }
-        /* Hover effect for handle */
-        QScrollBar::handle:vertical:hover {
-            background: #a0a0a0;         /* darker when hovered */
-        }
-        /* Pressed state */
-        QScrollBar::handle:vertical:pressed {
-            background: #808080;
-        }
-        /* Remove arrow buttons */
-        QScrollBar::sub-line:vertical,
-        QScrollBar::add-line:vertical {
-            height: 0;
-            width: 0;
-            background: none;
-            border: none;
-        }
-        /* Remove arrow icons */
-        QScrollBar::up-arrow:vertical,
-        QScrollBar::down-arrow:vertical {
-            background: none;
-        }
-        /* Optional: space at top/bottom (no buttons, just gap) */
-        QScrollBar::add-page:vertical,
-        QScrollBar::sub-page:vertical {
-            background: none;
-        }
-    """)
+#         # Create scroll area
+#         scroll_area = QScrollArea()
+#         scroll_area.setWidgetResizable(True)
+#         scroll_area.setWidget(scroll_content)
+#         scroll_area.setMaximumHeight(500)
+#         scroll_area.setStyleSheet("""
+#         QScrollArea {
+#             border: none;
+#             background-color: transparent;
+#         }
+#         QScrollBar:vertical {
+#             width: 10px;
+#             background: #f1f1f1;         /* light gray track instead of black */
+#             border-radius: 5px;
+#             margin: 0px;
+#         }
+#         /* Scroll handle (the part you drag) */
+#         QScrollBar::handle:vertical {
+#             background: #c1c1c1;         /* medium gray for good contrast */
+#             border-radius: 5px;
+#             min-height: 30px;
+#             transition: background 0.3s ease;
+#         }
+#         /* Hover effect for handle */
+#         QScrollBar::handle:vertical:hover {
+#             background: #a0a0a0;         /* darker when hovered */
+#         }
+#         /* Pressed state */
+#         QScrollBar::handle:vertical:pressed {
+#             background: #808080;
+#         }
+#         /* Remove arrow buttons */
+#         QScrollBar::sub-line:vertical,
+#         QScrollBar::add-line:vertical {
+#             height: 0;
+#             width: 0;
+#             background: none;
+#             border: none;
+#         }
+#         /* Remove arrow icons */
+#         QScrollBar::up-arrow:vertical,
+#         QScrollBar::down-arrow:vertical {
+#             background: none;
+#         }
+#         /* Optional: space at top/bottom (no buttons, just gap) */
+#         QScrollBar::add-page:vertical,
+#         QScrollBar::sub-page:vertical {
+#             background: none;
+#         }
+#     """)
 
-        for model_name, info in WHISPER_MODEL_INFO.items():
-            row = QWidget()
-            row_layout = QHBoxLayout(row)
-            row_layout.setContentsMargins(0, 0, 0, 0)
+#         for model_name, info in WHISPER_MODEL_INFO.items():
+#             row = QWidget()
+#             row_layout = QHBoxLayout(row)
+#             row_layout.setContentsMargins(0, 0, 0, 0)
 
-            # Model details
-            label = QLabel(
-                f"<b>{model_name}</b> ({info['size']})<br><i>{info['description']}</i>"
-            )
-            label.setWordWrap(True)
-            row_layout.addWidget(label, stretch=1)
+#             # Model details
+#             label = QLabel(
+#                 f"<b>{model_name}</b> ({info['size']})<br><i>{info['description']}</i>"
+#             )
+#             label.setWordWrap(True)
+#             row_layout.addWidget(label, stretch=1)
 
-            # Download button
-            btn = QPushButton("⬇ Download")
-            btn.clicked.connect(lambda _, m=model_name: self.download_model(m))
-            row_layout.addWidget(btn)
-            btn.setStyleSheet(
-                """
-                QPushButton
-                {   
-                border-style: outset;
-                    border-width: 1px;
-                    border-color: rgb(255, 255, 255);
-                    padding: 4px;
-                    font:20px;
-                border-radius:0px;
-                }
-                """
-            )
+#             # Download button
+#             btn = QPushButton("⬇ Download")
+#             btn.clicked.connect(lambda _, m=model_name: self.download_model(m))
+#             row_layout.addWidget(btn)
+#             btn.setStyleSheet(
+#                 """
+#                 QPushButton
+#                 {   
+#                 border-style: outset;
+#                     border-width: 1px;
+#                     border-color: rgb(255, 255, 255);
+#                     padding: 4px;
+#                     font:20px;
+#                 border-radius:0px;
+#                 }
+#                 """
+#             )
 
-            available_layout.addWidget(row)
+#             available_layout.addWidget(row)
 
-        layout.addWidget(scroll_area)
+#         layout.addWidget(scroll_area)
 
-        # Separator line
-        line = QFrame()
-        line.setFrameShape(QFrame.HLine)
-        line.setFrameShadow(QFrame.Sunken)
-        layout.addWidget(line)
+#         # Separator line
+#         line = QFrame()
+#         line.setFrameShape(QFrame.HLine)
+#         line.setFrameShadow(QFrame.Sunken)
+#         layout.addWidget(line)
 
-        # ----- Downloaded Models Section -----
-        downloaded_group = QGroupBox("Downloaded Models")
-        downloaded_layout = QVBoxLayout()
+#         # ----- Downloaded Models Section -----
+#         downloaded_group = QGroupBox("Downloaded Models")
+#         downloaded_layout = QVBoxLayout()
 
-        self.models_list = QListWidget()
-        self.models_list.setSelectionMode(QListWidget.SingleSelection)
-        self.models_list.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        downloaded_layout.addWidget(self.models_list)
+#         self.models_list = QListWidget()
+#         self.models_list.setSelectionMode(QListWidget.SingleSelection)
+#         self.models_list.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+#         downloaded_layout.addWidget(self.models_list)
 
-        self.total_size_label = QLabel("Total models size: 0 MB")
-        downloaded_layout.addWidget(self.total_size_label)
-        downloaded_group.setMinimumHeight(200)
+#         self.total_size_label = QLabel("Total models size: 0 MB")
+#         downloaded_layout.addWidget(self.total_size_label)
+#         downloaded_group.setMinimumHeight(200)
 
-        downloaded_group.setLayout(downloaded_layout)
-        layout.addWidget(downloaded_group)
+#         downloaded_group.setLayout(downloaded_layout)
+#         layout.addWidget(downloaded_group)
 
-        # ----- Buttons -----
-        button_layout = QHBoxLayout()
-        button_layout.addStretch()
+#         # ----- Buttons -----
+#         button_layout = QHBoxLayout()
+#         button_layout.addStretch()
 
-        self.refresh_btn = QPushButton("↻ Refresh")
-        self.refresh_btn.clicked.connect(self.refresh_models)
-        button_layout.addWidget(self.refresh_btn)
+#         self.refresh_btn = QPushButton("↻ Refresh")
+#         self.refresh_btn.clicked.connect(self.refresh_models)
+#         button_layout.addWidget(self.refresh_btn)
 
-        self.delete_btn = QPushButton("🗑 Delete Selected")
-        self.delete_btn.clicked.connect(self.delete_selected_model)
-        button_layout.addWidget(self.delete_btn)
+#         self.delete_btn = QPushButton("🗑 Delete Selected")
+#         self.delete_btn.clicked.connect(self.delete_selected_model)
+#         button_layout.addWidget(self.delete_btn)
 
-        self.close_btn = QPushButton("✖ Close")
-        self.close_btn.clicked.connect(self.close)
-        button_layout.addWidget(self.close_btn)
+#         self.close_btn = QPushButton("✖ Close")
+#         self.close_btn.clicked.connect(self.close)
+#         button_layout.addWidget(self.close_btn)
 
-        layout.addLayout(button_layout)
+#         layout.addLayout(button_layout)
 
-        # Light styling
-        self.setStyleSheet("""
-            QGroupBox {
-                font-weight: bold;
-                border: 1px solid #ccc;
-                border-radius: 6px;
-                margin-top: 12px;
-                padding: 8px;
-            }
-            QListWidget {
-                border: 1px solid #bbb;
-                border-radius: 4px;
-            }
-            QPushButton
-                {   
-                border-style: outset;
-                    border-width: 1px;
-                    border-color: rgb(255, 255, 255);
-                    padding: 4px;
-                    font:20px;
-                border-radius:0px;
-                }
-            QPushButton:hover {
-                background-color: #e0e0e0;
-            }
-            QPushButton:pressed {
-                background-color: #d0d0d0;
-            }
-            /* Scrollbar styling */
-            QScrollArea {
-                border: none;
-                background-color: transparent;
-            }
-            QScrollBar:vertical {
-                border: none;
-                background-color: #f0f0f0;
-                width: 12px;
-                margin: 0px;
-                border-radius: 6px;
-            }
-            QScrollBar::handle:vertical {
-                background-color: #c0c0c0;
-                border-radius: 6px;
-                min-height: 20px;
-            }
-            QScrollBar::handle:vertical:hover {
-                background-color: #a0a0a0;
-            }
-            QScrollBar::handle:vertical:pressed {
-                background-color: #808080;
-            }
-            QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
-                border: none;
-                background: none;
-            }
-            QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
-                background: none;
-            }
-        """)
+#         # Light styling
+#         self.setStyleSheet("""
+#             QGroupBox {
+#                 font-weight: bold;
+#                 border: 1px solid #ccc;
+#                 border-radius: 6px;
+#                 margin-top: 12px;
+#                 padding: 8px;
+#             }
+#             QListWidget {
+#                 border: 1px solid #bbb;
+#                 border-radius: 4px;
+#             }
+#             QPushButton
+#                 {   
+#                 border-style: outset;
+#                     border-width: 1px;
+#                     border-color: rgb(255, 255, 255);
+#                     padding: 4px;
+#                     font:20px;
+#                 border-radius:0px;
+#                 }
+#             QPushButton:hover {
+#                 background-color: #e0e0e0;
+#             }
+#             QPushButton:pressed {
+#                 background-color: #d0d0d0;
+#             }
+#             /* Scrollbar styling */
+#             QScrollArea {
+#                 border: none;
+#                 background-color: transparent;
+#             }
+#             QScrollBar:vertical {
+#                 border: none;
+#                 background-color: #f0f0f0;
+#                 width: 12px;
+#                 margin: 0px;
+#                 border-radius: 6px;
+#             }
+#             QScrollBar::handle:vertical {
+#                 background-color: #c0c0c0;
+#                 border-radius: 6px;
+#                 min-height: 20px;
+#             }
+#             QScrollBar::handle:vertical:hover {
+#                 background-color: #a0a0a0;
+#             }
+#             QScrollBar::handle:vertical:pressed {
+#                 background-color: #808080;
+#             }
+#             QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+#                 border: none;
+#                 background: none;
+#             }
+#             QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
+#                 background: none;
+#             }
+#         """)
 
-    def refresh_models(self):
-        self.models_list.clear()
-        downloaded_models = list_downloaded_models()
+#     def refresh_models(self):
+#         self.models_list.clear()
+#         downloaded_models = list_downloaded_models()
 
-        for model in downloaded_models:
-            item_text = f"{model['name']}   •   {model['size_str']}"
-            item = QListWidgetItem(item_text)
-            item.setData(Qt.UserRole, model['name'])
-            self.models_list.addItem(item)
+#         for model in downloaded_models:
+#             item_text = f"{model['name']}   •   {model['size_str']}"
+#             item = QListWidgetItem(item_text)
+#             item.setData(Qt.UserRole, model['name'])
+#             self.models_list.addItem(item)
 
-        total_size = get_total_models_size()
-        self.total_size_label.setText(f"Total models size: {total_size:.1f} MB")
+#         total_size = get_total_models_size()
+#         self.total_size_label.setText(f"Total models size: {total_size:.1f} MB")
 
-    def download_model(self, model_name):
-        reply = QMessageBox.question(
-            self,
-            "Download Model",
-            f"Do you want to download the '{model_name}' model?",
-            QMessageBox.Yes | QMessageBox.No,
-            QMessageBox.Yes
-        )
-        if reply == QMessageBox.Yes:
-            # Show starting toast, not success
-            displayToast('Downloading Model', f"Starting download of '{model_name}'...", ToastPreset.INFORMATION, duration=3000)
+#     def download_model(self, model_name):
+#         reply = QMessageBox.question(
+#             self,
+#             "Download Model",
+#             f"Do you want to download the '{model_name}' model?",
+#             QMessageBox.Yes | QMessageBox.No,
+#             QMessageBox.Yes
+#         )
+#         if reply == QMessageBox.Yes:
+#             # Show starting toast, not success
+#             displayToast('Downloading Model', f"Starting download of '{model_name}'...", ToastPreset.INFORMATION, duration=3000)
             
-            # Store thread as instance variable to prevent garbage collection
-            self.download_thread = downloadThread(model_name)
-            self.download_thread.finished.connect(self.on_download_finished)
-            self.download_thread.start()
+#             # Store thread as instance variable to prevent garbage collection
+#             self.download_thread = downloadThread(model_name)
+#             self.download_thread.finished.connect(self.on_download_finished)
+#             self.download_thread.start()
 
-    def on_download_finished(self, success, message):
-        if success:
-            displayToast('Download Successful', message, ToastPreset.SUCCESS, duration=5000)
-            self.refresh_models()
-        else:
-            displayToast('Download Failed', f"Error downloading model: {message}", ToastPreset.ERROR, duration=5000)
+#     def on_download_finished(self, success, message):
+#         if success:
+#             displayToast('Download Successful', message, ToastPreset.SUCCESS, duration=5000)
+#             self.refresh_models()
+#         else:
+#             displayToast('Download Failed', f"Error downloading model: {message}", ToastPreset.ERROR, duration=5000)
         
-        # Clean up thread reference
-        self.download_thread = None
+#         # Clean up thread reference
+#         self.download_thread = None
 
-    def delete_selected_model(self):
-        current_item = self.models_list.currentItem()
-        if not current_item:
-            QMessageBox.warning(self, "Warning", "Please select a model to delete")
-            return
+#     def delete_selected_model(self):
+#         current_item = self.models_list.currentItem()
+#         if not current_item:
+#             QMessageBox.warning(self, "Warning", "Please select a model to delete")
+#             return
         
-        model_name = current_item.data(Qt.UserRole)
-        reply = QMessageBox.question(
-            self,
-            "Confirm Deletion",
-            f"Are you sure you want to delete the '{model_name}' model?\n"
-            "This action cannot be undone.",
-            QMessageBox.Yes | QMessageBox.No,
-            QMessageBox.No
-        )
+#         model_name = current_item.data(Qt.UserRole)
+#         reply = QMessageBox.question(
+#             self,
+#             "Confirm Deletion",
+#             f"Are you sure you want to delete the '{model_name}' model?\n"
+#             "This action cannot be undone.",
+#             QMessageBox.Yes | QMessageBox.No,
+#             QMessageBox.No
+#         )
         
-        if reply == QMessageBox.Yes:
-            success, message = delete_model(model_name)
-            if success:
-                QMessageBox.information(self, "Success", message)
-                self.refresh_models()
-            else:
-                QMessageBox.critical(self, "Error", message)
+#         if reply == QMessageBox.Yes:
+#             success, message = delete_model(model_name)
+#             if success:
+#                 QMessageBox.information(self, "Success", message)
+#                 self.refresh_models()
+#             else:
+#                 QMessageBox.critical(self, "Error", message)
                 
 
 
-class downloadThread(QThread):
+# class downloadThread(QThread):
     finished = pyqtSignal(bool, str)
     
     def __init__(self, model_name):

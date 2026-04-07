@@ -1,3 +1,1 @@
-
-import os
-os.environ["TRANSFORMERS_NO_ADVISORY_WARNINGS"]="1"
+import os; os.environ["TRANSFORMERS_NO_ADVISORY_WARNINGS"]="1" 

@@ -12,7 +12,7 @@ from PyQt5.QtCore import QEvent
 
 
 
-from util.modelmanagement import list_downloaded_models
+# from util.modelmanagement import list_downloaded_models
 from PyQt5 import QtCore
 QtCore.QCoreApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True)
 QtCore.QCoreApplication.setAttribute(QtCore.Qt.AA_UseHighDpiPixmaps, True)
@@ -442,7 +442,7 @@ class MainWindow(QMainWindow):
                         self.settings.setValue(key, value)
         self.settings.setValue('processing', "CPU" if not torch.cuda.is_available() else "GPU")
         self.settings.setValue('cores', max(1, torch.get_num_threads()))
-        self.settings.setValue('model', list_downloaded_models()[0]['name'] if len(list_downloaded_models()) > 0 else "")
+        # self.settings.setValue('model', list_downloaded_models()[0]['name'] if len(list_downloaded_models()) > 0 else "")
         
         self.settings.setValue('default_settings', True)
         
