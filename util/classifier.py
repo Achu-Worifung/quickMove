@@ -4,7 +4,7 @@ from util.util import resource_path
 class Classifier:
     def __init__(self):
         self.saved_dir = resource_path("classifier")
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.device = "cpu"
         self.tokenizer_loaded = None
         self.model_loaded = None
         self.labled_map = {0:"non bible", 1:"bible"}

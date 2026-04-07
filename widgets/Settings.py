@@ -16,8 +16,7 @@ class Settings:
             print(key, "=", self.settings.value(key))
         
         self.basedir = self.settings.value("basedir")
-    
-    
+
         self.made_changes = {}
 
         
@@ -49,7 +48,7 @@ class Settings:
     def setup_values(self):
         import torch
         self.mange_models = self.page_widget.findChild(QPushButton, "manage_model")
-        self.mange_models.clicked.connect(self.open_model_manager)
+        # self.mange_models.clicked.connect(self.open_model_manager)
         
         # Define widget lists by type
         comboBox = [self.processing, self.model, self.channel, self.chunks, self.rate]
@@ -57,9 +56,9 @@ class Settings:
                    self.bible_con, self.partial_con, self.non_bible_con]
         doubleSpinBox = [self.temp, self.energy, self.minlen, self.maxlen, self.vad]
         
-        self.populate_models()
+        # self.populate_models()
         
-        self.processing.addItem("GPU") if torch.cuda.is_available() else None
+        # self.processing.addItem("GPU") if torch.cuda.is_available() else None
         
         # Load values from QSettings into widgets WITHOUT emitting change signals
         for box in comboBox:
@@ -213,6 +212,7 @@ class Settings:
     #     dialog.exec_()
 
     def setting_changed(self, obj = None):
+        print('setting changed')
         if obj is None:
             return
         object_name = obj.objectName()
@@ -231,6 +231,7 @@ class Settings:
         self.settings.setValue("changesmade", True)
     
     def save_settings(self):
+        print("Saving settings...")
         for change in list(self.made_changes.keys()):
             self.settings.setValue(change, self.made_changes[change])
         # persist and clear pending changes
@@ -241,6 +242,7 @@ class Settings:
             print(key, "=", self.settings.value(key))
         self.made_changes.clear()
     def discard_changes(self):
+        print("Discarding changes...")
         # Clear pending changes and reload UI from persisted settings
         self.made_changes.clear()
         self.settings.setValue("changesmade", False)
@@ -606,21 +608,21 @@ class Settings:
 
 
 # class downloadThread(QThread):
-    finished = pyqtSignal(bool, str)
+    # finished = pyqtSignal(bool, str)
     
-    def __init__(self, model_name):
-        super().__init__()
-        self.model_name = model_name
+    # def __init__(self, model_name):
+    #     super().__init__()
+    #     self.model_name = model_name
     
-    def run(self):
-        try:
-            cache_dir = resource_path(f"models/{self.model_name}")
-            os.makedirs(cache_dir, exist_ok=True)
-            model_path = fw_download_model(
-                self.model_name,
-                cache_dir=cache_dir,
-                local_files_only=False
-            )
-            self.finished.emit(True, f"Model '{self.model_name}' downloaded successfully")
-        except Exception as e:
-            self.finished.emit(False, str(e))
+    # def run(self):
+    #     try:
+    #         cache_dir = resource_path(f"models/{self.model_name}")
+    #         os.makedirs(cache_dir, exist_ok=True)
+    #         model_path = fw_download_model(
+    #             self.model_name,
+    #             cache_dir=cache_dir,
+    #             local_files_only=False
+    #         )
+    #         self.finished.emit(True, f"Model '{self.model_name}' downloaded successfully")
+    #     except Exception as e:
+    #         self.finished.emit(False, str(e))

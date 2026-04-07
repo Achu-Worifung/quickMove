@@ -38,7 +38,7 @@ class BibleSearch:
         self.BATCH_SIZE = 32
         self.KEYWORD_ONLY_MAX = 3
 
-        self.DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.DEVICE = "cpu"
 
         os.makedirs(self.ARTIFACT_DIR, exist_ok=True)
 

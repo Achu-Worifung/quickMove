@@ -343,12 +343,26 @@ class MainWindow(QMainWindow):
             page = self.stackedWidget.layout().itemAt(6).widget()
             self.settings_page = Settings(page)
         self.stackedWidget.setCurrentIndex(6)
-    def moveFromSettings(self, event = None):
-        # print('were changes made', self.settings.value("changesmade"))
-        changes = len(self.settings_page.made_changes) > 0 
+    def moveFromSettings(self, event=None):
+        # Safety check: ensure settings_page exists and is initialized
+        if not hasattr(self, 'settings_page') or self.settings_page is None:
+            return False
+        
+        # Safety check: ensure made_changes exists (defensive programming)
+        if not hasattr(self.settings_page, 'made_changes'):
+            self.settings_page.made_changes = {}
+        
+        changes = len(self.settings_page.made_changes) > 0
         print('this is changes', changes)
+        
         if changes:
-            reply = QMessageBox.question(self, 'Unsaved Changes', 'You have unsaved changes. Do you want to save them before leaving?', QMessageBox.Save | QMessageBox.Discard | QMessageBox.Cancel, QMessageBox.Save)
+            reply = QMessageBox.question(
+                self, 
+                'Unsaved Changes', 
+                'You have unsaved changes. Do you want to save them before leaving?', 
+                QMessageBox.Save | QMessageBox.Discard | QMessageBox.Cancel, 
+                QMessageBox.Save
+            )
             if reply == QMessageBox.Save:
                 self.settings_page.save_settings()
             elif reply == QMessageBox.Discard:
@@ -357,7 +371,8 @@ class MainWindow(QMainWindow):
                 if event is not None:
                     event.ignore()
                 return True
-        self.settings.sync() 
+        
+        self.settings.sync()
         return False
       
 
@@ -519,7 +534,11 @@ def main():
     sys.exit(app.exec_())
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as e:
+        print(f"Error: {e}")
+        
 
 
 
