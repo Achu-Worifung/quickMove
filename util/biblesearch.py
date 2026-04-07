@@ -38,7 +38,7 @@ class BibleSearch:
         self.BATCH_SIZE = 32
         self.KEYWORD_ONLY_MAX = 3
 
-        self.DEVICE = "cpu"
+        self.DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
         os.makedirs(self.ARTIFACT_DIR, exist_ok=True)
 
@@ -329,20 +329,16 @@ class BibleSearch:
             print(sm)
 
         
-        if 0 < len(keyword_candidates) <= self.KEYWORD_ONLY_MAX:
-            results = self._format_results(keyword_candidates)
-            path = f"keyword-only ({len(keyword_candidates)} hits)"
-            t_end = time.time()
-        else:
-            merged = list(dict.fromkeys(
-                list(semantic_candidates) + list(keyword_candidates[:self.KEYWORD_MERGE_K])
-            ))
-            results = self._rerank(query, merged)
-            t_end = time.time()
-            path = (
-                f"semantic+rerank (merged={len(merged)}, "
-                f"keyword={len(keyword_candidates)}, "
-                f"semantic={len(semantic_candidates)})"
+
+        merged = list(dict.fromkeys(
+            list(semantic_candidates) + list(keyword_candidates[:self.KEYWORD_MERGE_K])
+        ))
+        results = self._rerank(query, merged)
+        t_end = time.time()
+        path = (
+            f"semantic+rerank (merged={len(merged)}, "
+            f"keyword={len(keyword_candidates)}, "
+            f"semantic={len(semantic_candidates)})"
             )
 
         total = t_end - start

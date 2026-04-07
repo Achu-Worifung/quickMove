@@ -26,8 +26,7 @@ from util.classifier import Classifier
 from util.biblesearch import BibleSearch
 from util.extract_verse import extract_bible_reference
 
-nltk.download('punkt', quiet=True)
-nltk.download('stopwords', quiet=True)
+
 
 class TranscriptionWorker(QThread):
     finished          = pyqtSignal()
@@ -42,11 +41,13 @@ class TranscriptionWorker(QThread):
         self.search_page  = search_page
         self.classifier   = None
         self.bible_search = None
+        self.no_match_count = 0
         
         # State Management
         self._pause     = False
         self._stop      = False
         self.state_lock = threading.Lock()
+        self.verse_lock = threading.Lock()
 
         # Sliding window state for short turns
         self.word_buffer    = []
@@ -64,6 +65,12 @@ class TranscriptionWorker(QThread):
         # Config
         self.auto_search_size = int(self.settings.value('auto_length') or 4)
         self.speech_model     = self.settings.value('assemblyai_model') or 'u3-rt-pro'
+        
+        nltk.download('punkt', quiet=True)
+        nltk.download('stopwords', quiet=True)
+        self.WINDOW_SIZE = 8      # Words per chunk
+        self.STRIDE = 4           # Overlap: WINDOW_SIZE - STRIDE = 4 words overlap
+        self.MIN_CHUNK_WORDS = 4  # Minimum words to classify
 
     # ------------------------------------------------------------------
     # Lifecycle & Control
@@ -86,8 +93,12 @@ class TranscriptionWorker(QThread):
     def run(self):
         """Main QThread entry point."""
         print("Starting transcription worker...")
-        self.classifier = Classifier()
-        self.classifier.load_classifier()
+        try:
+            self.classifier = Classifier()
+            self.classifier.load_classifier()
+        except Exception as e:
+            self.statusUpdate.emit(f"classifier error: {e}")
+            self.classifier = None
         self.initialize_bible_search()
 
         self.loadingStatus.emit()
@@ -103,6 +114,10 @@ class TranscriptionWorker(QThread):
             self.classifier.offload_classifier()
             self.finished.emit()
 
+    def _parse_score(self, score) -> float:
+        if isinstance(score, (int, float)):
+            return score if score <= 1 else score / 100
+        return float(str(score).replace('%', '')) / 100
     # ------------------------------------------------------------------
     # AssemblyAI Streaming Logic
     # ------------------------------------------------------------------
@@ -147,11 +162,15 @@ class TranscriptionWorker(QThread):
         client.connect(StreamingParameters(
             sample_rate=16000,
             speech_model=self.speech_model,
-            max_turn_silence=900,
+            max_turn_silence=200,
             end_of_turn_confidence_threshold=0.5,
         ))
 
-        mic_stream = aai.extras.MicrophoneStream(sample_rate=16000)
+        try:
+            mic_stream = aai.extras.MicrophoneStream(sample_rate=16000)
+        except Exception as e:
+            self.statusUpdate.emit(f"mic error: {e}")
+            return
 
         def stream_generator():
             for chunk in mic_stream:
@@ -203,30 +222,132 @@ class TranscriptionWorker(QThread):
     # ------------------------------------------------------------------
     # Pipeline Processing
     # ------------------------------------------------------------------
+    def _create_overlapping_chunks(self, text: str) -> List[Dict]:
+        """Create overlapping word chunks from text for batch classification."""
+        words = text.split()
+        
+        # Configurable chunk size and stride
+        WINDOW_SIZE = getattr(self, 'WINDOW_SIZE', 8)
+        STRIDE = getattr(self, 'STRIDE', 4)
+        MIN_CHUNK_WORDS = 4
+        
+        if len(words) < MIN_CHUNK_WORDS:
+            return []
+        
+        # If text is shorter than window, return single chunk
+        if len(words) <= WINDOW_SIZE:
+            return [{'text': text, 'start': 0, 'end': len(words)}]
+        
+        chunks = []
+        for i in range(0, len(words) - WINDOW_SIZE + 1, STRIDE):
+            chunk_words = words[i:i + WINDOW_SIZE]
+            chunk_text = ' '.join(chunk_words)
+            chunks.append({
+                'text': chunk_text,
+                'start': i,
+                'end': i + WINDOW_SIZE
+            })
+        
+        # Add final chunk if we haven't covered the end
+        if chunks and chunks[-1]['end'] < len(words):
+            remaining = words[chunks[-1]['start'] + STRIDE:]
+            if len(remaining) >= MIN_CHUNK_WORDS:
+                chunks.append({
+                    'text': ' '.join(remaining),
+                    'start': chunks[-1]['start'] + STRIDE,
+                    'end': len(words)
+                })
+        
+        return chunks
 
     def _process_turn(self, text: str):
-        # 1. Spoken References
+        """Process transcription with a persistent buffer for short turns."""
+        incoming_words = text.split()
+        
+        # 1. Check for explicit references (Fast Path)
         refs = extract_bible_reference(text)
         if refs:
-            res = [{'reference': r['full'], 'score': 1.0} for r in refs]
-            self.autoSearchResults.emit(res, '', 0.0, self.auto_search_size)
+            # If we found a reference, we likely don't need the previous buffer
+            self.word_buffer = [] 
+            res = [{**r, 'score': 1.0, 'ref': r['full']} for r in refs]
+            self.autoSearchResults.emit(res, text, 0.0, self.auto_search_size)
             return
 
-        # 2. Chunking
-        words = text.split()
-        if len(words) >= self.MIN_TURN_WORDS:
-            chunk = text
-            self.word_buffer.clear()
+        # 2. Combine with previous short fragments
+        combined_words = self.word_buffer + incoming_words
+        combined_text = ' '.join(combined_words)
+
+        # 3. Create chunks
+        chunks = self._create_overlapping_chunks(combined_text)
+        
+        # Check if we still don't have enough words to form a valid chunk
+        if not chunks:
+            print(f"[Buffer] Text too short ({len(combined_words)} words). Saving to buffer.")
+            self.word_buffer = combined_words
+            
+            # Optional: Limit buffer size so it doesn't grow forever if no matches found
+            if len(self.word_buffer) > 30:
+                self.word_buffer = self.word_buffer[-20:]
+            return
+
+        # 4. We have enough to process, so clear the buffer
+        print(f"[Chunk] Processing {len(combined_words)} words (Buffer included)")
+        self.word_buffer = [] 
+
+        # 5. Batch classify all chunks
+        chunk_texts = [c['text'] for c in chunks]
+        try:
+            results = self.classifier.classify(chunk_texts) if self.classifier else []
+            print(f"[Classifier] Results: {results}")
+        except Exception as e:
+            print(f"[Classifier] Error: {e}")
+            results = [("non bible", 0.0)] * len(chunks)
+
+        # 4. Attach scores to chunks
+        for i, (label, conf) in enumerate(results):
+            chunks[i]['label'] = label
+            chunks[i]['confidence'] = conf
+            print(f"[Chunk {i}] '{chunks[i]['text'][:40]}...' -> {label} ({conf:.2f})")
+
+        # 5. Filter Bible chunks and pick best
+        bible_chunks = [c for c in chunks if c['label'] != "non bible" and c['confidence'] > 0.65]
+        
+        if not bible_chunks:
+            self.no_match_count += 1
+            if self.no_match_count > 3:
+                with self.verse_lock:
+                    self.verse_buffer = {}
+            print(f"[Chunk] No Bible chunks found (count: {self.no_match_count})")
+            return
         else:
-            chunk = self._get_sliding_window_chunk(text)
-            if not chunk: return
+            self.no_match_count = 0
 
-        # 3. Continuation
-        if self.verse_buffer and self._check_continuation(text, chunk):
-            return
+        # 6. Select highest confidence chunk for search
+        best_chunk = max(bible_chunks, key=lambda x: x['confidence'])
+        print(f"[Chunk] Selected: '{best_chunk['text'][:50]}...' ({best_chunk['confidence']:.2f})")
 
-        # 4 & 5. Segment & Search
-        self._search_and_emit(chunk)
+        # 7. Search and emit
+        threshold = self._confidence_threshold()
+        results = self.perform_auto_search(best_chunk['text'])
+        print('auto search results:', results)
+
+        verse_map = {}
+        with self.verse_lock:
+            for r in results:
+                score = self._parse_score(r.get('score', 0))
+                if score >= threshold:
+                    key = f"{r['book'].lower()} {r['chapter']}:{r['verse']}"
+                    if key not in verse_map or score > self._parse_score(verse_map[key].get('score', 0)):
+                        verse_map[key] = r
+                        self.verse_buffer[key] = r
+
+            print('verse_map:', verse_map)
+            deduped = sorted(verse_map.values(), key=lambda x: self._parse_score(x.get('score', 0)), reverse=True)
+            if deduped:
+                print(f"[Search] Found {len(deduped)} verses, emitting...")
+                self.autoSearchResults.emit(deduped, best_chunk['text'], threshold, self.auto_search_size)
+            else:
+                print(f"[Search] No verses above threshold ({threshold:.2f})")
 
     def _search_and_emit(self, query: str):
         search_query = self._extract_bible_segment(query)
@@ -239,7 +360,7 @@ class TranscriptionWorker(QThread):
 
         verse_map = {}
         for r in results:
-            score = float(str(r.get('score', 0)).replace('%', ''))
+            score = self._parse_score(r.get('score', 0))
             if score >= threshold:
                 key = f"{r['book'].lower()} {r['chapter']}:{r['verse']}"
                 if key not in verse_map or score > float(str(verse_map[key].get('score', 0)).replace('%', '')):
@@ -253,14 +374,6 @@ class TranscriptionWorker(QThread):
     # ------------------------------------------------------------------
     # Utils
     # ------------------------------------------------------------------
-
-    def _get_sliding_window_chunk(self, text: str):
-        self.word_buffer.extend(text.split())
-        if len(self.word_buffer) >= self.WINDOW_SIZE:
-            chunk = " ".join(self.word_buffer[:self.WINDOW_SIZE])
-            self.word_buffer = self.word_buffer[self.STRIDE:]
-            return chunk
-        return None
 
     def _check_continuation(self, text: str, chunk: str) -> bool:
         best_score = 0

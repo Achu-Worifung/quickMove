@@ -515,7 +515,10 @@ class SearchWidget(QDialog):
         widget.deleteLater()
 
     def add_auto_search_results(self, results, query, confidence=None, max_results=10):
-        results.sort(key=lambda x: x.get('score', 0), reverse=False)
+        # results.sort(key=lambda x: x.get('score', 0), reverse=False)
+        results = results[:max_results]
+        results = results[::-1]
+        print('auto search results:', results)
 
         count = 0
         for result in results:
@@ -585,7 +588,7 @@ class SearchWidget(QDialog):
             single_result.body.setText("Error parsing reference.")
 
         if confidence:
-            single_result.confidence.setText(f'{confidence}')
+            single_result.confidence.setText(f'{confidence:.2f}')
         else:
             single_result.confidence.setStyleSheet('color: transparent;')
 
