@@ -6,6 +6,7 @@ dist/
 build/
 models/
 .env
+venv
 Icons/
 bart-large-mnli/*
 finetuned_distilbert_bert
