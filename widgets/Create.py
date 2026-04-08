@@ -28,9 +28,12 @@ class Create(QWidget):
     def start_tracking(self):
         if self.tracking:
             return
-        from util import   Message as msg
-        ok = msg.questionBox(self, "StartTracking", 'Press YES to start tracking and ESC to stop\n tip: for hotkeys like crtl+a press a followed by crtl')
-        
+        from util import Message as msg
+
+        ok = msg.questionBox(self.page_widget.window(), "StartTracking", 
+                            'Press YES to start tracking and ESC to stop\n'
+                            'tip: for hotkeys like ctrl+a press a followed by ctrl')
+
         if ok:
             print("Tracking started")
             self.event_tracker_thread = EventTrackerThread()

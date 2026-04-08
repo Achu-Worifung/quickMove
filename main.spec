@@ -87,7 +87,7 @@ exe = EXE(
     debug=False,
     strip=False,
     upx=False,
-    console=True,  # set to False for release
+    console=False,  # set to False for release
     icon='logo.ico',
 )
 
